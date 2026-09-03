@@ -1,0 +1,71 @@
+package com.example.gym_app.training.service;
+
+import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.training.dto.ProgressLogRequestDTO;
+import com.example.gym_app.training.dto.ProgressLogResponseDTO;
+import com.example.gym_app.training.entity.Progress_Log;
+import com.example.gym_app.training.repository.ProgressLogRepository;
+import com.example.gym_app.user.entity.Member;
+import com.example.gym_app.user.repository.MemberRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+public class ProgressLogService {
+
+    @Autowired
+    private ProgressLogRepository progressLogRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    private ProgressLogResponseDTO toDTO(Progress_Log pl) {
+        ProgressLogResponseDTO dto = new ProgressLogResponseDTO();
+        dto.setId(pl.getId());
+        dto.setMemberId(pl.getMember().getId());
+        dto.setDateMesure(pl.getDateMesure());
+        dto.setPoids(pl.getPoids());
+        dto.setMasseGrasse(pl.getMasseGrasse());
+        dto.setNotes(pl.getNotes());
+        return dto;
+    }
+
+    private Progress_Log toEntity(ProgressLogRequestDTO dto) {
+        Member member = memberRepository.findById(dto.getMemberId())
+                .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + dto.getMemberId()));
+
+        Progress_Log pl = new Progress_Log();
+        pl.setMember(member);
+        pl.setDateMesure(dto.getDateMesure());
+        pl.setPoids(dto.getPoids());
+        pl.setMasseGrasse(dto.getMasseGrasse());
+        pl.setNotes(dto.getNotes());
+        return pl;
+    }
+
+    public List<ProgressLogResponseDTO> findByMember(UUID memberId) {
+        return progressLogRepository.findByMemberIdOrderByDateMesureAsc(memberId).stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    public ProgressLogResponseDTO create(ProgressLogRequestDTO dto) {
+        return toDTO(progressLogRepository.save(toEntity(dto)));
+    }
+
+    public ProgressLogResponseDTO update(UUID id, ProgressLogRequestDTO dto) {
+        Progress_Log existing = progressLogRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ProgressLog introuvable avec id: " + id));
+        existing.setDateMesure(dto.getDateMesure());
+        existing.setPoids(dto.getPoids());
+        existing.setMasseGrasse(dto.getMasseGrasse());
+        existing.setNotes(dto.getNotes());
+        return toDTO(progressLogRepository.save(existing));
+    }
+
+    public void delete(UUID id) {
+        progressLogRepository.deleteById(id);
+    }
+}

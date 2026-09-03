@@ -1,0 +1,115 @@
+package com.example.gym_app.classes.service;
+
+import com.example.gym_app.classes.dto.BookingRequestDTO;
+import com.example.gym_app.classes.dto.BookingResponseDTO;
+import com.example.gym_app.classes.entity.Booking;
+import com.example.gym_app.classes.entity.Class_Schedule;
+import com.example.gym_app.classes.repository.BookingRepository;
+import com.example.gym_app.classes.repository.ClassScheduleRepository;
+import com.example.gym_app.exception.BadRequestException;
+import com.example.gym_app.exception.ConflictException;
+import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.security.SecurityUtil;
+import com.example.gym_app.user.entity.Member;
+import com.example.gym_app.user.repository.MemberRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+public class BookingService {
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private ClassScheduleRepository classScheduleRepository;
+    @Autowired
+    private SecurityUtil securityUtil;
+
+    private BookingResponseDTO toDTO(Booking booking) {
+        BookingResponseDTO dto = new BookingResponseDTO();
+        dto.setId(booking.getId());
+        dto.setMemberId(booking.getMember().getId());
+        dto.setMemberNom(booking.getMember().getNom());
+        dto.setScheduleId(booking.getClassSchedule().getId());
+        dto.setDateReservation(booking.getDateReservation());
+        dto.setStatut(booking.getStatut());
+        return dto;
+    }
+
+    public List<BookingResponseDTO> findAll() {
+        return bookingRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    public BookingResponseDTO findById(UUID id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking introuvable avec id: " + id));
+        return toDTO(booking);
+    }
+
+    public List<BookingResponseDTO> findByMember(UUID memberId) {
+        return bookingRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    // Verifie la capacite max du cours avant de creer la reservation
+    public BookingResponseDTO create(BookingRequestDTO dto) {
+        Member member = memberRepository.findById(dto.getMemberId())
+                .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + dto.getMemberId()));
+        Class_Schedule schedule = classScheduleRepository.findById(dto.getScheduleId())
+                .orElseThrow(() -> new ResourceNotFoundException("ClassSchedule introuvable avec id: " + dto.getScheduleId()));
+
+        // Empeche un membre de reserver deux fois la meme seance
+        boolean dejaReserve = bookingRepository.findByMemberId(member.getId()).stream()
+                .anyMatch(b -> b.getClassSchedule().getId().equals(schedule.getId())
+                        && !"CANCELLED".equals(b.getStatut()));
+        if (dejaReserve) {
+            throw new ConflictException("Vous avez deja reserve cette seance");
+        }
+
+        long currentBookings = bookingRepository.countByClassScheduleId(schedule.getId());
+        if (currentBookings >= schedule.getGymClass().getCapaciteMax()) {
+            throw new ConflictException("Capacite maximale atteinte pour ce cours");
+        }
+
+        Booking booking = new Booking();
+        booking.setMember(member);
+        booking.setClassSchedule(schedule);
+        booking.setStatut(dto.getStatut());
+        booking.setDateReservation(LocalDateTime.now());
+
+        return toDTO(bookingRepository.save(booking));
+    }
+
+    public BookingResponseDTO cancel(UUID id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking introuvable avec id: " + id));
+
+        if ("CANCELLED".equals(booking.getStatut())) {
+            throw new ConflictException("Cette reservation est deja annulee");
+        }
+
+        // Un Member ne peut annuler que sa propre reservation ; ADMIN/RECEPTIONIST peuvent tout annuler
+        boolean isStaffOrAdmin = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        if (!isStaffOrAdmin) {
+            String currentEmail = securityUtil.getCurrentUserEmail();
+            if (!booking.getMember().getEmail().equals(currentEmail)) {
+                throw new BadRequestException("Vous ne pouvez annuler que vos propres reservations");
+            }
+        }
+
+        booking.setStatut("CANCELLED");
+        return toDTO(bookingRepository.save(booking));
+    }
+
+    public void delete(UUID id) {
+        bookingRepository.deleteById(id);
+    }
+}
