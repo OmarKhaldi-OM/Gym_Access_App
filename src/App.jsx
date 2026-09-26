@@ -1,4 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext.jsx'
+import { MembersProvider } from './context/MembersContext.jsx'
+import { ClassesProvider } from './context/ClassesContext.jsx'
 import Login from './pages/Login.jsx'
 
 import AdminDashboard from './pages/admin/Dashboard.jsx'
@@ -21,6 +24,18 @@ import FrontDesk from './pages/reception/FrontDesk.jsx'
 import ReceptionSchedule from './pages/reception/Schedule.jsx'
 
 export default function App() {
+  return (
+    <AuthProvider>
+      <MembersProvider>
+        <ClassesProvider>
+          <AppRoutes />
+        </ClassesProvider>
+      </MembersProvider>
+    </AuthProvider>
+  )
+}
+
+function AppRoutes() {
   return (
     <Routes>
       {/* Entry point */}

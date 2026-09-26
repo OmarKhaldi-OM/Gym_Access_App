@@ -1,6 +1,29 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext.jsx'
+
+const roleHome = {
+  admin: '/admin/dashboard',
+  membre: '/membre/dashboard',
+  coach: '/coach/planning',
+  reception: '/reception/accueil',
+}
+
+const roleButtons = [
+  { role: 'admin', label: 'Admin' },
+  { role: 'membre', label: 'Membre' },
+  { role: 'coach', label: 'Coach' },
+  { role: 'reception', label: 'Réceptionniste' },
+]
 
 export default function Login() {
+  const navigate = useNavigate()
+  const { login } = useAuth()
+
+  const handleDemoLogin = async (role) => {
+    await login(role)
+    navigate(roleHome[role])
+  }
+
   return (
     <div className="min-h-screen bg-graphite-bg flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
@@ -35,12 +58,22 @@ export default function Login() {
             className="w-full bg-graphite-hover border border-graphite-line rounded-md px-4 py-2.5 text-base mb-6 placeholder:text-text-muted"
           />
 
-          <Link
-            to="/admin/dashboard"
-            className="block w-full text-center bg-coral text-graphite-bg rounded-md py-2.5 text-base font-semibold"
-          >
-            Se connecter
-          </Link>
+          <div className="border-t border-graphite-line pt-5">
+            <p className="text-sm font-medium text-text-muted mb-3 text-center">
+              Aperçu — choisir un compte de démonstration
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {roleButtons.map((r) => (
+                <button
+                  key={r.role}
+                  onClick={() => handleDemoLogin(r.role)}
+                  className="bg-coral text-graphite-bg rounded-md py-2.5 text-base font-semibold"
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

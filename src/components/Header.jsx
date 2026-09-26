@@ -1,4 +1,5 @@
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext.jsx'
 
 const navByRole = {
   admin: [
@@ -40,12 +41,21 @@ const nameByRole = {
 }
 
 export default function Header({ role = 'admin' }) {
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const navItems = navByRole[role]
-  const name = nameByRole[role]
+  // Si connecté via l'écran de connexion, on utilise le vrai compte ; sinon
+  // (accès direct par URL pendant le développement), on retombe sur le nom de démo.
+  const name = user && user.role === role ? user.nom : nameByRole[role]
   const initials = name
     .split(' ')
     .map((n) => n[0])
     .join('')
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/')
+  }
 
   return (
     <header className="border-b border-graphite-line bg-graphite-bg">
@@ -76,12 +86,12 @@ export default function Header({ role = 'admin' }) {
         </nav>
 
         <div className="flex items-center gap-3 shrink-0">
-          <Link
-            to="/"
+          <button
+            onClick={handleLogout}
             className="text-base font-medium text-text-muted hover:text-text-primary underline decoration-graphite-line underline-offset-2"
           >
             Se déconnecter
-          </Link>
+          </button>
           <div className="text-right hidden md:block">
             <p className="text-base font-semibold leading-tight">{name}</p>
             <p className="text-base font-medium text-text-muted leading-tight">{roleLabel[role]}</p>

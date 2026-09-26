@@ -1,49 +1,63 @@
+import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout.jsx'
 import WeekNav from '../../components/schedule/WeekNav.jsx'
 import ScheduleGrid from '../../components/schedule/ScheduleGrid.jsx'
-import { classes, personalSessions } from '../../data/scheduleData.js'
+import ClassDetailModal from '../../components/schedule/ClassDetailModal.jsx'
+import * as coachService from '../../services/coachService.js'
 
 const COACH_NAME = 'Rania Sfar'
 
-const classBlocks = classes
-  .filter((c) => c.coach === COACH_NAME)
-  .map((c) => ({
+export default function MySchedule() {
+  const [classes, setClasses] = useState([])
+  const [personalSessions, setPersonalSessions] = useState([])
+  const [selected, setSelected] = useState(null)
+
+  useEffect(() => {
+    coachService.getCoachSchedule(COACH_NAME).then((data) => {
+      setClasses(data.classes)
+      setPersonalSessions(data.personalSessions)
+    })
+  }, [])
+
+  const classBlocks = classes.map((c) => ({
     id: c.id,
-    day: c.day,
-    start: c.start,
-    end: c.end,
-    title: c.name,
+    day: c.jour,
+    start: c.heureDebut,
+    end: c.heureFin,
+    title: c.nom,
     subtitle: 'Cours collectif',
     meta: c.studio,
-    muted: c.spots === 0,
+    muted: c.placesRestantes === 0,
     badge:
-      c.spots === 0
+      c.placesRestantes === 0
         ? { text: 'Complet', tone: 'solid' }
-        : { text: `${c.spots} places`, tone: 'teal' },
+        : { text: `${c.placesRestantes} places`, tone: 'teal' },
   }))
 
-const personalBlocks = personalSessions
-  .filter((p) => p.coach === COACH_NAME)
-  .map((p) => ({
+  const personalBlocks = personalSessions.map((p) => ({
     id: p.id,
-    day: p.day,
-    start: p.start,
-    end: p.end,
+    day: p.jour,
+    start: p.heureDebut,
+    end: p.heureFin,
     title: 'Séance perso',
-    subtitle: `Avec ${p.client}`,
+    subtitle: `Avec ${p.clientNom}`,
     meta: p.studio,
     muted: false,
     badge: { text: '1 client', tone: 'muted' },
   }))
 
-const blocks = [...classBlocks, ...personalBlocks]
+  const blocks = [...classBlocks, ...personalBlocks]
 
-export default function MySchedule() {
   return (
     <Layout role="coach">
       <h1 className="text-2xl font-bold mb-4">Mon planning</h1>
       <WeekNav />
-      <ScheduleGrid blocks={blocks} emptyMessage="Aucune séance programmée cette semaine" />
+      <ScheduleGrid
+        blocks={blocks}
+        onBlockClick={setSelected}
+        emptyMessage="Aucune séance programmée cette semaine"
+      />
+      <ClassDetailModal block={selected} onClose={() => setSelected(null)} />
     </Layout>
   )
 }

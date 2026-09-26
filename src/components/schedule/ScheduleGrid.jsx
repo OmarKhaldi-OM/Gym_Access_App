@@ -23,16 +23,17 @@ function Badge({ badge }) {
   )
 }
 
-function Block({ b }) {
+function Block({ b, onClick }) {
   const top = (toDecimal(b.start) - OPEN_HOUR) * HOUR_HEIGHT
   const height = (toDecimal(b.end) - toDecimal(b.start)) * HOUR_HEIGHT
 
   return (
     <div
       style={{ top, height }}
+      onClick={onClick ? () => onClick(b) : undefined}
       className={`absolute left-1 right-1 rounded-md border-l-4 px-2.5 py-1.5 overflow-hidden ${
-        b.muted ? 'bg-graphite-hover border-coral' : 'bg-coral/10 border-coral'
-      }`}
+        onClick ? 'cursor-pointer hover:brightness-125' : ''
+      } ${b.muted ? 'bg-graphite-hover border-coral' : 'bg-coral/10 border-coral'}`}
     >
       <p className="text-base font-bold leading-tight truncate">{b.title}</p>
       {b.subtitle && (
@@ -44,10 +45,11 @@ function Block({ b }) {
   )
 }
 
-function MobileCard({ b }) {
+function MobileCard({ b, onClick }) {
   return (
     <div
-      className={`rounded-md border-l-4 px-3 py-2.5 ${
+      onClick={onClick ? () => onClick(b) : undefined}
+      className={`rounded-md border-l-4 px-3 py-2.5 ${onClick ? 'cursor-pointer' : ''} ${
         b.muted ? 'bg-graphite-hover border-coral' : 'bg-coral/10 border-coral'
       }`}
     >
@@ -67,7 +69,7 @@ function MobileCard({ b }) {
   )
 }
 
-export default function ScheduleGrid({ blocks, emptyMessage = 'Aucun créneau cette semaine' }) {
+export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Aucun créneau cette semaine' }) {
   const hasAny = blocks.length > 0
 
   return (
@@ -110,7 +112,7 @@ export default function ScheduleGrid({ blocks, emptyMessage = 'Aucun créneau ce
                 {blocks
                   .filter((b) => b.day === d.key)
                   .map((b) => (
-                    <Block key={b.id} b={b} />
+                    <Block key={b.id} b={b} onClick={onBlockClick} />
                   ))}
               </div>
             ))}
@@ -133,7 +135,7 @@ export default function ScheduleGrid({ blocks, emptyMessage = 'Aucun créneau ce
               </h2>
               <div className="space-y-3">
                 {dayBlocks.map((b) => (
-                  <MobileCard key={b.id} b={b} />
+                  <MobileCard key={b.id} b={b} onClick={onBlockClick} />
                 ))}
               </div>
             </div>
