@@ -2,7 +2,12 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { MembersProvider } from './context/MembersContext.jsx'
 import { ClassesProvider } from './context/ClassesContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
+import { I18nProvider } from './context/I18nContext.jsx'
 import Login from './pages/Login.jsx'
+import Home from './pages/public/Home.jsx'
+import Plans from './pages/public/Plans.jsx'
+import SignUp from './pages/public/SignUp.jsx'
 
 import AdminDashboard from './pages/admin/Dashboard.jsx'
 import AdminActivityLog from './pages/admin/ActivityLog.jsx'
@@ -25,21 +30,29 @@ import ReceptionSchedule from './pages/reception/Schedule.jsx'
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MembersProvider>
-        <ClassesProvider>
-          <AppRoutes />
-        </ClassesProvider>
-      </MembersProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <MembersProvider>
+            <ClassesProvider>
+              <AppRoutes />
+            </ClassesProvider>
+          </MembersProvider>
+        </AuthProvider>
+      </I18nProvider>
+    </ThemeProvider>
   )
 }
 
 function AppRoutes() {
   return (
     <Routes>
-      {/* Entry point */}
-      <Route path="/" element={<Login />} />
+      {/* Public membership journey */}
+      <Route path="/" element={<Home />} />
+      <Route path="/plans" element={<Plans />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/signin" element={<Login />} />
+      <Route path="/login" element={<Login />} />
 
       {/* Admin (staff/management) view */}
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />

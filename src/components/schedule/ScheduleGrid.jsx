@@ -1,4 +1,5 @@
 import { days, OPEN_HOUR, HOUR_HEIGHT, TOTAL_HEIGHT, hourMarks, toDecimal } from '../../data/scheduleData.js'
+import { useT } from '../../context/I18nContext.jsx'
 
 function Badge({ badge }) {
   if (!badge) return null
@@ -70,12 +71,13 @@ function MobileCard({ b, onClick }) {
 }
 
 export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Aucun créneau cette semaine' }) {
+  const t = useT()
   const hasAny = blocks.length > 0
 
   return (
     <>
       {/* Grille hebdomadaire — tablette et plus */}
-      <div className="hidden md:block rounded-xl border border-graphite-line bg-graphite-panel overflow-x-auto">
+      <div className="management-panel hidden md:block rounded-xl border border-graphite-line bg-graphite-panel overflow-x-auto">
         <div className="min-w-[880px]">
           <div className="flex border-b border-graphite-line">
             <div className="w-16 shrink-0" />
@@ -106,7 +108,7 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
                 className="flex-1 relative border-l border-graphite-line"
                 style={{
                   height: TOTAL_HEIGHT,
-                  backgroundImage: `repeating-linear-gradient(to bottom, transparent, transparent ${HOUR_HEIGHT - 1}px, #404040 ${HOUR_HEIGHT - 1}px, #404040 ${HOUR_HEIGHT}px)`,
+                  backgroundImage: `repeating-linear-gradient(to bottom, transparent, transparent ${HOUR_HEIGHT - 1}px, #C6CABB ${HOUR_HEIGHT - 1}px, #C6CABB ${HOUR_HEIGHT}px)`,
                 }}
               >
                 {blocks
@@ -123,7 +125,7 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
       {/* Liste par jour — mobile */}
       <div className="md:hidden space-y-6">
         {!hasAny && (
-          <p className="text-base font-medium text-text-muted">{emptyMessage}</p>
+          <p className="text-base font-medium text-text-muted">{emptyMessage === 'Aucun créneau cette semaine' ? t('noSlots') : emptyMessage}</p>
         )}
         {days.map((d) => {
           const dayBlocks = blocks.filter((b) => b.day === d.key)

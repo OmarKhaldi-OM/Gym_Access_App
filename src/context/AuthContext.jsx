@@ -4,12 +4,24 @@ import * as authService from '../services/authService.js'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => authService.getCurrentUser())
 
   const login = useCallback(async (role) => {
     const loggedInUser = await authService.login(role)
     setUser(loggedInUser)
     return loggedInUser
+  }, [])
+
+  const signIn = useCallback(async (credentials) => {
+    const loggedInUser = await authService.signIn(credentials)
+    setUser(loggedInUser)
+    return loggedInUser
+  }, [])
+
+  const signUp = useCallback(async (details) => {
+    const registeredUser = await authService.signUp(details)
+    setUser(registeredUser)
+    return registeredUser
   }, [])
 
   const logout = useCallback(async () => {
@@ -18,7 +30,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, login, signIn, signUp, logout }}>{children}</AuthContext.Provider>
   )
 }
 

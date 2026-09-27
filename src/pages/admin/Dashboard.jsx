@@ -7,11 +7,13 @@ import Toast from '../../components/Toast.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
 import * as activityService from '../../services/activityService.js'
+import { useT } from '../../context/I18nContext.jsx'
 
 export default function Dashboard() {
   const { pendingEnrollments, enroll } = useMembers()
   const { toastMessage, showToast } = useToast()
   const [activity, setActivity] = useState([])
+  const t = useT()
 
   useEffect(() => {
     activityService.getActivityLog().then(setActivity)
@@ -22,25 +24,25 @@ export default function Dashboard() {
 
   const handleEnroll = async (id, nom) => {
     await enroll(id)
-    showToast(`${nom} a été inscrit à l'enrôlement facial`)
+    showToast(`${nom} · ${t('enrolled')}`)
   }
 
   return (
     <Layout role="admin">
-      <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('dashboard')}</h1>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
-        <StatCard label="Check-ins aujourd'hui" value={checkInsToday} tone="coral" />
-        <StatCard label="Tentatives refusées" value={deniedToday} tone="coral" />
-        <StatCard label="Membres à enrôler" value={pendingEnrollments.length} tone="teal" />
+        <StatCard label={t('today')} value={checkInsToday} tone="coral" />
+        <StatCard label={t('refused')} value={deniedToday} tone="coral" />
+        <StatCard label={t('notEnrolled')} value={pendingEnrollments.length} tone="teal" />
       </div>
 
       <Panel>
-        <SectionHeader title="Enrôlement facial en attente" />
+        <SectionHeader title={t('notEnrolled')} />
         <div>
           {pendingEnrollments.length === 0 && (
             <p className="px-5 py-4 text-base font-medium text-text-muted">
-              Aucun membre en attente d'enrôlement.
+              {t('noMembers')}
             </p>
           )}
           {pendingEnrollments.map((p, i) => (
@@ -54,7 +56,7 @@ export default function Dashboard() {
                 <p className="text-lg font-semibold">{p.nom}</p>
                 <p className="text-base font-medium text-text-muted mt-0.5">{p.since}</p>
               </div>
-              <Button onClick={() => handleEnroll(p.id, p.nom)}>Enrôler</Button>
+              <Button onClick={() => handleEnroll(p.id, p.nom)}>{t('enrolled')}</Button>
             </div>
           ))}
         </div>

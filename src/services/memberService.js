@@ -1,7 +1,21 @@
 import { members as initialMembers } from '../mocks/members.js'
 
+const STORAGE_KEY = 'gate.members'
+
+function loadMembers() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || [...initialMembers]
+  } catch {
+    return [...initialMembers]
+  }
+}
+
 // État en mémoire — représente ce qui viendrait de GET /api/members.
-let members = [...initialMembers]
+let members = loadMembers()
+
+function saveMembers() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(members))
+}
 
 function daysAgoLabel(dateStr) {
   const diffMs = Date.now() - new Date(dateStr).getTime()
@@ -19,6 +33,12 @@ export async function getMembers() {
 // Plus tard : GET /api/members/{id}
 export async function getMemberById(id) {
   return Promise.resolve(members.find((m) => m.id === id) ?? null)
+}
+
+export async function addMember(member) {
+  members = [...members, member]
+  saveMembers()
+  return Promise.resolve(member)
 }
 
 // Plus tard : GET /api/members?search=...
@@ -41,5 +61,6 @@ export async function getPendingEnrollments() {
 // Plus tard : POST /api/face-embeddings (avec les photos)
 export async function enrollMember(id) {
   members = members.map((m) => (m.id === id ? { ...m, visageEnrole: true } : m))
+  saveMembers()
   return Promise.resolve(members.find((m) => m.id === id) ?? null)
 }

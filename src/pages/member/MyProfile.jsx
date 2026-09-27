@@ -4,15 +4,16 @@ import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import * as memberService from '../../services/memberService.js'
-
-const MY_MEMBER_ID = 'mem-1'
+import { useAuth } from '../../context/AuthContext.jsx'
 
 export default function MyProfile() {
+  const { user } = useAuth()
+  const memberId = user?.memberId || 'mem-1'
   const [member, setMember] = useState(null)
 
   useEffect(() => {
-    memberService.getMemberById(MY_MEMBER_ID).then(setMember)
-  }, [])
+    memberService.getMemberById(memberId).then(setMember)
+  }, [memberId])
 
   if (!member) return null
 
@@ -58,7 +59,9 @@ export default function MyProfile() {
         <div className="px-5 py-4 flex items-center justify-between">
           <div>
             <p className="text-lg font-semibold">Plan {member.plan}</p>
-            <p className="text-base font-medium text-text-muted mt-0.5">Renouvellement le 12 Oct 2026</p>
+            <p className="text-base font-medium text-text-muted mt-0.5">
+              {user?.subscription?.billing === 'yearly' ? 'Facturation annuelle' : 'Facturation mensuelle'}
+            </p>
           </div>
           <StatusChip variant={member.statut === 'Actif' ? 'positive' : 'neutral'}>
             {member.statut}

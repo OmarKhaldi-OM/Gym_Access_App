@@ -1,4 +1,7 @@
+import { useT } from '../../context/I18nContext.jsx'
+
 export default function ClassDetailModal({ block, onClose, children }) {
+  const t = useT()
   if (!block) return null
 
   return (
@@ -27,7 +30,7 @@ export default function ClassDetailModal({ block, onClose, children }) {
           onClick={onClose}
           className="mt-4 w-full text-center text-base font-medium text-text-muted hover:text-text-primary"
         >
-          Fermer
+          {t('close')}
         </button>
       </div>
     </div>

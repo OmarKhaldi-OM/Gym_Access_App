@@ -5,8 +5,8 @@ import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import * as memberService from '../../services/memberService.js'
 import * as activityService from '../../services/activityService.js'
-
-const MY_MEMBER_ID = 'mem-1'
+import { useAuth } from '../../context/AuthContext.jsx'
+import { useT } from '../../context/I18nContext.jsx'
 
 function pairSessions(entries) {
   const sessions = []
@@ -23,15 +23,18 @@ function pairSessions(entries) {
 }
 
 export default function MyStatus() {
+  const { user } = useAuth()
+  const memberId = user?.memberId || 'mem-1'
+  const t = useT()
   const [member, setMember] = useState(null)
   const [sessions, setSessions] = useState([])
 
   useEffect(() => {
-    memberService.getMemberById(MY_MEMBER_ID).then(setMember)
+    memberService.getMemberById(memberId).then(setMember)
     activityService
-      .getMemberActivity(MY_MEMBER_ID)
+      .getMemberActivity(memberId)
       .then((entries) => setSessions(pairSessions(entries)))
-  }, [])
+  }, [memberId])
 
   if (!member) return null
 
@@ -39,7 +42,7 @@ export default function MyStatus() {
 
   return (
     <Layout role="membre">
-      <h1 className="text-2xl font-bold mb-6">Mon statut</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('status')}</h1>
 
       <Panel className="p-6 mb-6">
         <div className="flex items-center gap-4">
@@ -53,22 +56,22 @@ export default function MyStatus() {
           </StatusChip>
         </div>
         <div className="mt-5 pt-5 border-t border-graphite-line flex items-center justify-between">
-          <span className="text-lg font-medium text-text-muted">Dernier passage</span>
+          <span className="text-lg font-medium text-text-muted">{t('exit')}</span>
           <div className="flex items-center gap-3">
             <span className="text-base font-mono text-text-muted">
-              {sessions[0] ? `Entrée ${sessions[0].entry}` : 'Aucun passage'}
+              {sessions[0] ? `${t('entry')} ${sessions[0].entry}` : t('noPassages')}
             </span>
-            {current && <StatusChip variant="positive">En cours</StatusChip>}
+            {current && <StatusChip variant="positive">{t('active')}</StatusChip>}
           </div>
         </div>
       </Panel>
 
       <Panel>
-        <SectionHeader title="Historique récent" />
+        <SectionHeader title={t('activity')} />
         <div>
           {sessions.length === 0 && (
             <p className="px-5 py-4 text-base font-medium text-text-muted">
-              Aucun passage enregistré.
+              {t('noPassages')}
             </p>
           )}
           {sessions.map((s, i) => (
@@ -83,10 +86,10 @@ export default function MyStatus() {
               </span>
               <div className="flex items-center gap-3">
                 <span className="text-base font-mono text-text-muted">
-                  Entrée {s.entry}
-                  {s.exit ? ` — Sortie ${s.exit}` : ''}
+                  {t('entry')} {s.entry}
+                  {s.exit ? ` — ${t('exit')} ${s.exit}` : ''}
                 </span>
-                {!s.exit && <StatusChip variant="positive">En cours</StatusChip>}
+                {!s.exit && <StatusChip variant="positive">{t('active')}</StatusChip>}
               </div>
             </div>
           ))}

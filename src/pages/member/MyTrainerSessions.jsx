@@ -4,8 +4,7 @@ import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import * as trainerBookingService from '../../services/trainerBookingService.js'
-
-const MY_NAME = 'Sana Mabrouk'
+import { useAuth } from '../../context/AuthContext.jsx'
 
 const chipMap = {
   confirmee: { label: 'Confirmée', variant: 'positive' },
@@ -14,11 +13,12 @@ const chipMap = {
 }
 
 export default function MyTrainerSessions() {
+  const { user } = useAuth()
   const [sessions, setSessions] = useState([])
 
   useEffect(() => {
-    trainerBookingService.getBookingsForClient(MY_NAME).then(setSessions)
-  }, [])
+    trainerBookingService.getBookingsForClient(user?.nom || 'Sana Mabrouk').then(setSessions)
+  }, [user?.nom])
 
   return (
     <Layout role="membre">

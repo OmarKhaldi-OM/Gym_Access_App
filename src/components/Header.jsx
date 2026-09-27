@@ -1,36 +1,26 @@
 import { NavLink, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { useI18n, useT } from '../context/I18nContext.jsx'
+import { useTheme } from '../context/ThemeContext.jsx'
 
 const navByRole = {
   admin: [
-    { to: '/admin/dashboard', label: 'Tableau de bord' },
-    { to: '/admin/activity', label: "Journal d'activité" },
-    { to: '/admin/members', label: 'Membres' },
-    { to: '/admin/schedule', label: 'Planning' },
-    { to: '/admin/trainer-bookings', label: 'Réservations coach' },
+    { to: '/admin/dashboard', key: 'dashboard' }, { to: '/admin/activity', key: 'activity' }, { to: '/admin/members', key: 'members' }, { to: '/admin/schedule', key: 'schedule' }, { to: '/admin/trainer-bookings', key: 'trainerBookings' },
   ],
   membre: [
-    { to: '/membre/dashboard', label: 'Mon statut' },
-    { to: '/membre/bookings', label: 'Mes cours' },
-    { to: '/membre/trainer-sessions', label: 'Mes séances coach' },
-    { to: '/membre/profile', label: 'Profil' },
+    { to: '/membre/dashboard', key: 'status' }, { to: '/membre/bookings', key: 'bookings' }, { to: '/membre/trainer-sessions', key: 'trainerSessions' }, { to: '/membre/profile', key: 'profile' },
   ],
   coach: [
-    { to: '/coach/planning', label: 'Mon planning' },
-    { to: '/coach/clients', label: 'Mes clients' },
-    { to: '/coach/profil', label: 'Profil' },
+    { to: '/coach/planning', key: 'schedule' }, { to: '/coach/clients', key: 'members' }, { to: '/coach/profil', key: 'profile' },
   ],
   reception: [
-    { to: '/reception/accueil', label: 'Accueil' },
-    { to: '/reception/planning', label: 'Planning' },
+    { to: '/reception/accueil', key: 'home' }, { to: '/reception/planning', key: 'schedule' },
   ],
 }
 
 const roleLabel = {
-  admin: 'Admin',
-  membre: 'Membre',
-  coach: 'Coach',
-  reception: 'Réceptionniste',
+  admin: 'admin', membre: 'member', coach: 'coach', reception: 'reception',
 }
 
 const nameByRole = {
@@ -44,6 +34,9 @@ export default function Header({ role = 'admin' }) {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const navItems = navByRole[role]
+  const t = useT()
+  const { language, setLanguage } = useI18n()
+  const { theme, toggleTheme } = useTheme()
   // Si connecté via l'écran de connexion, on utilise le vrai compte ; sinon
   // (accès direct par URL pendant le développement), on retombe sur le nom de démo.
   const name = user && user.role === role ? user.nom : nameByRole[role]
@@ -58,45 +51,45 @@ export default function Header({ role = 'admin' }) {
   }
 
   return (
-    <header className="border-b border-graphite-line bg-graphite-bg">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 gap-6">
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="h-8 w-8 rounded-md bg-coral flex items-center justify-center">
-            <span className="text-graphite-bg font-bold text-base">G</span>
-          </div>
-          <span className="font-semibold text-lg tracking-tight">Gate</span>
-        </div>
+    <header className="management-header">
+      <div className="management-inner max-w-7xl mx-auto px-6">
+        <Link to="/" className="management-brand">
+          <span className="management-mark">G</span>
+          <span>gate<span className="brand-period">.</span></span>
+          <span className="management-area">{t(roleLabel[role])}</span>
+        </Link>
 
-        <nav className="flex items-center gap-6 flex-1">
+        <nav className="management-nav" text-size="14px" aria-label="Navigation de gestion">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              className={({ isActive }) =>
-                `text-base font-medium pb-1 whitespace-nowrap ${
-                  isActive
-                    ? 'text-text-primary border-b-2 border-coral'
-                    : 'text-text-muted hover:text-text-primary'
-                }`
-              }
+              className={({ isActive }) => isActive ? 'active' : ''}
             >
-              {item.label}
+              {t(item.key)}
             </NavLink>
           ))}
         </nav>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="management-actions">
+          <span className="demo-label">{t('demo')}</span>
+          <select className="language-select" aria-label={t('language')} value={language} onChange={(event) => setLanguage(event.target.value)}>
+            <option value="fr">FR</option><option value="en">EN</option><option value="ar">AR</option>
+          </select>
+          <button className="theme-toggle" onClick={toggleTheme} aria-label={`${t('theme')}: ${theme === 'dark' ? t('light') : t('dark')}`} title={theme === 'dark' ? t('light') : t('dark')}>
+            {theme === 'dark' ? '☼' : '☾'}
+          </button>
           <button
             onClick={handleLogout}
-            className="text-base font-medium text-text-muted hover:text-text-primary underline decoration-graphite-line underline-offset-2"
+            className="management-logout"
           >
-            Se déconnecter
+            {t('logout')}
           </button>
-          <div className="text-right hidden md:block">
-            <p className="text-base font-semibold leading-tight">{name}</p>
-            <p className="text-base font-medium text-text-muted leading-tight">{roleLabel[role]}</p>
+          <div className="management-user-name">
+            <p>{name}</p>
+            <span>{t(roleLabel[role])}</span>
           </div>
-          <div className="h-10 w-10 rounded-full bg-graphite-hover border border-graphite-line flex items-center justify-center text-base font-semibold">
+          <div className="management-avatar">
             {initials}
           </div>
         </div>
