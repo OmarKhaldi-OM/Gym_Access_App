@@ -1,4 +1,4 @@
-import { days, OPEN_HOUR, HOUR_HEIGHT, TOTAL_HEIGHT, hourMarks, toDecimal } from '../../data/scheduleData.js'
+import { days as weekdayKeys, getDaysForWeek, OPEN_HOUR, HOUR_HEIGHT, TOTAL_HEIGHT, hourMarks, toDecimal } from '../../data/scheduleData.js'
 import { useT } from '../../context/I18nContext.jsx'
 
 function Badge({ badge }) {
@@ -24,15 +24,61 @@ function Badge({ badge }) {
   )
 }
 
-function Block({ b, onClick }) {
-  const top = (toDecimal(b.start) - OPEN_HOUR) * HOUR_HEIGHT
-  const height = (toDecimal(b.end) - toDecimal(b.start)) * HOUR_HEIGHT
+function getLayouts(blocks) {
+  const layouts = new Map()
+  const byDay = weekdayKeys.map((day) => blocks.filter((block) => block.day === day.key))
+
+  byDay.forEach((dayBlocks) => {
+    const ordered = [...dayBlocks].sort((a, b) => toDecimal(a.start) - toDecimal(b.start))
+    let cluster = []
+    let clusterEnd = -Infinity
+
+    const commitCluster = () => {
+      const lanes = []
+      cluster.forEach((block) => {
+        let lane = lanes.findIndex((end) => end <= toDecimal(block.start))
+        if (lane === -1) {
+          lane = lanes.length
+          lanes.push(toDecimal(block.end))
+        } else {
+          lanes[lane] = toDecimal(block.end)
+        }
+        layouts.set(block.id, { column: lane, columns: lanes.length })
+      })
+      cluster.forEach((block) => {
+        const layout = layouts.get(block.id)
+        layout.columns = lanes.length
+      })
+      cluster = []
+    }
+
+    ordered.forEach((block) => {
+      const start = toDecimal(block.start)
+      if (cluster.length > 0 && start >= clusterEnd) commitCluster()
+      cluster.push(block)
+      clusterEnd = Math.max(clusterEnd, toDecimal(block.end))
+    })
+    if (cluster.length > 0) commitCluster()
+  })
+
+  return layouts
+}
+
+function Block({ b, onClick, layout }) {
+  const top = (toDecimal(b.start) - OPEN_HOUR) * HOUR_HEIGHT + 4
+  const height = Math.max(34, (toDecimal(b.end) - toDecimal(b.start)) * HOUR_HEIGHT - 8)
+  const columnWidth = 100 / layout.columns
 
   return (
     <div
-      style={{ top, height }}
+      style={{
+        top,
+        height,
+        left: `calc(${layout.column * columnWidth}% + 4px)`,
+        width: `calc(${columnWidth}% - 8px)`,
+      }}
       onClick={onClick ? () => onClick(b) : undefined}
-      className={`absolute left-1 right-1 rounded-md border-l-4 px-2.5 py-1.5 overflow-hidden ${
+      className={`schedule-block absolute rounded-md border-l-4 px-2.5 py-1.5 overflow-hidden ${
         onClick ? 'cursor-pointer hover:brightness-125' : ''
       } ${b.muted ? 'bg-graphite-hover border-coral' : 'bg-coral/10 border-coral'}`}
     >
@@ -70,9 +116,14 @@ function MobileCard({ b, onClick }) {
   )
 }
 
-export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Aucun créneau cette semaine' }) {
+export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Aucun créneau cette semaine', weekOffset = 0 }) {
   const t = useT()
-  const hasAny = blocks.length > 0
+  const visibleDays = getDaysForWeek(weekOffset)
+  const hasDates = blocks.some((block) => block.date)
+  const visibleDateValues = new Set(visibleDays.map((day) => day.dateValue))
+  const visibleBlocks = hasDates ? blocks.filter((block) => visibleDateValues.has(block.date)) : (weekOffset === 0 ? blocks : [])
+  const hasAny = visibleBlocks.length > 0
+  const layouts = getLayouts(visibleBlocks)
 
   return (
     <>
@@ -81,7 +132,7 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
         <div className="min-w-[880px]">
           <div className="flex border-b border-graphite-line">
             <div className="w-16 shrink-0" />
-            {days.map((d) => (
+            {visibleDays.map((d) => (
               <div key={d.key} className="flex-1 text-center py-3 border-l border-graphite-line">
                 <p className="text-base font-bold">{d.label}</p>
                 <p className="text-sm font-mono text-text-muted">{d.date}</p>
@@ -102,7 +153,7 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
               ))}
             </div>
 
-            {days.map((d) => (
+            {visibleDays.map((d) => (
               <div
                 key={d.key}
                 className="flex-1 relative border-l border-graphite-line"
@@ -111,14 +162,15 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
                   backgroundImage: `repeating-linear-gradient(to bottom, transparent, transparent ${HOUR_HEIGHT - 1}px, #C6CABB ${HOUR_HEIGHT - 1}px, #C6CABB ${HOUR_HEIGHT}px)`,
                 }}
               >
-                {blocks
+                {visibleBlocks
                   .filter((b) => b.day === d.key)
                   .map((b) => (
-                    <Block key={b.id} b={b} onClick={onBlockClick} />
+                    <Block key={b.id} b={b} layout={layouts.get(b.id) || { column: 0, columns: 1 }} onClick={onBlockClick} />
                   ))}
               </div>
             ))}
           </div>
+          {!hasAny && <p className="schedule-empty-state">{emptyMessage === 'Aucun créneau cette semaine' ? t('noSlots') : emptyMessage}</p>}
         </div>
       </div>
 
@@ -127,8 +179,8 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
         {!hasAny && (
           <p className="text-base font-medium text-text-muted">{emptyMessage === 'Aucun créneau cette semaine' ? t('noSlots') : emptyMessage}</p>
         )}
-        {days.map((d) => {
-          const dayBlocks = blocks.filter((b) => b.day === d.key)
+        {visibleDays.map((d) => {
+          const dayBlocks = visibleBlocks.filter((b) => b.day === d.key)
           if (dayBlocks.length === 0) return null
           return (
             <div key={d.key}>

@@ -11,6 +11,22 @@ export const days = [
   { key: 'samedi', label: 'Samedi', date: '26 sept.' },
 ]
 
+const BASE_WEEK_START = new Date(2026, 8, 21)
+
+export function getDaysForWeek(weekOffset = 0) {
+  const start = new Date(BASE_WEEK_START)
+  start.setDate(start.getDate() + weekOffset * 7)
+  return days.map((day, index) => {
+    const date = new Date(start)
+    date.setDate(start.getDate() + index)
+    return {
+      ...day,
+      dateValue: date.toISOString().slice(0, 10),
+      date: date.toLocaleDateString(document.documentElement.lang || 'fr', { day: '2-digit', month: 'short' }),
+    }
+  })
+}
+
 export const OPEN_HOUR = 7
 export const CLOSE_HOUR = 21
 export const HOUR_HEIGHT = 64 // px par heure

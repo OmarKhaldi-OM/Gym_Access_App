@@ -126,7 +126,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .management-brand { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; color: var(--ink); text-decoration: none; font: 700 22px var(--display); }
 .management-mark { width: 31px; height: 31px; display: grid; place-items: center; background: var(--lime); font-size: 15px; }
 .management-area { margin-left: 3px; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
-.management-nav { min-width: 0; display: flex; flex: 1; align-self: stretch; align-items: center; gap: clamp(12px, 2vw, 28px); overflow-x: auto; scrollbar-width: none; }
+.management-nav { min-width: 0; display: flex; flex: 1; align-self: stretch; align-items: center; justify-content: center; gap: clamp(12px, 2vw, 28px); overflow-x: auto; scrollbar-width: none; }
 .management-nav::-webkit-scrollbar { display: none; }
 .management-nav a { color: #62685d; text-decoration: none; font-size: 14px; font-weight: 600; white-space: nowrap; padding: 10px 0; border-bottom: 2px solid transparent; }
 .management-nav a:hover, .management-nav a.active { color: var(--ink); }
@@ -164,7 +164,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .management-user-name { display: none; }
   .management-logout { font-size: 11px; }
   .management-avatar { width: 32px; height: 32px; font-size: 10px; }
-  .management-nav { min-height: 43px; margin: 0 -16px; padding: 0 16px; gap: 20px; }
+  .management-nav { min-height: 43px; margin: 0 -16px; padding: 0 16px; justify-content: flex-start; gap: 20px; }
   .management-nav a { font-size: 13px; }
   .management-main { padding: 27px 16px 45px; }
   .management-main > h1 { margin-bottom: 18px; font-size: 27px; }
@@ -282,4 +282,54 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .public-controls { gap: 4px; }
   .public-controls .language-select { min-height: 29px; font-size: 10px; }
   .public-controls .theme-toggle { width: 29px; height: 29px; }
+}
+
+/* Animated sun/moon switch. */
+.theme-toggle { position: relative; width: 64px !important; height: 34px !important; flex: 0 0 auto; display: inline-flex !important; align-items: center; justify-content: space-between; padding: 0 8px; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-soft, #e2e4d8); color: var(--ink); cursor: pointer; font-size: inherit; transition: background .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.theme-toggle:hover { background: var(--surface-soft, #d9dccd); box-shadow: 0 3px 10px rgba(30, 38, 25, .14); }
+.theme-toggle .theme-icon { position: relative; z-index: 2; font-size: 15px; line-height: 1; transition: opacity .25s ease, transform .3s ease; }
+.theme-toggle .sun { color: #9b6a17; }
+.theme-toggle .moon { color: #637795; opacity: .42; }
+.theme-toggle.dark { background: #27332a; border-color: #50644d; }
+.theme-toggle.dark .sun { opacity: .42; }
+.theme-toggle.dark .moon { color: #dbe8ff; opacity: 1; transform: rotate(-12deg); }
+.theme-thumb { position: absolute; z-index: 1; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff8d6; box-shadow: 0 1px 4px rgba(25, 28, 24, .23); transition: transform .3s cubic-bezier(.22, 1, .36, 1), background .25s ease; }
+.theme-toggle.dark .theme-thumb { transform: translateX(30px); background: #d8e5ff; }
+[dir='rtl'] .theme-thumb { left: auto; right: 3px; }
+[dir='rtl'] .theme-toggle.dark .theme-thumb { transform: translateX(-30px); }
+@media (max-width: 680px) {
+  .theme-toggle, .public-controls .theme-toggle { width: 56px !important; height: 30px !important; padding: 0 6px; }
+  .theme-toggle .theme-icon { font-size: 13px; }
+  .theme-thumb { width: 22px; height: 22px; }
+  .theme-toggle.dark .theme-thumb { transform: translateX(26px); }
+  [dir='rtl'] .theme-toggle.dark .theme-thumb { transform: translateX(-26px); }
+
+  .schedule-block { z-index: 2; background: #eef4d8 !important; border-color: #89aa43 !important; box-shadow: 0 2px 7px rgba(25, 28, 24, .12); transition: transform .18s ease, box-shadow .18s ease, filter .18s ease; }
+  .schedule-block:hover { z-index: 4; transform: translateY(-1px); box-shadow: 0 5px 13px rgba(25, 28, 24, .18); }
+  .schedule-block.bg-graphite-hover { background: #dfe5d0 !important; }
+  .schedule-block p { position: relative; z-index: 1; }
+  .schedule-nav { gap: 18px; }
+  .schedule-nav > div { min-width: 0; flex: 1; }
+  .schedule-nav-button { min-width: 150px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--surface, #f3f3eb); transition: background .18s ease, color .18s ease, transform .18s ease; }
+  .schedule-nav-button:hover { background: var(--surface-soft, #e2e4d8); color: var(--ink); transform: translateY(-1px); }
+  .schedule-empty-state { position: absolute; inset: 50% 0 auto; transform: translateY(-50%); margin: 0; text-align: center; color: var(--muted); font-size: 17px; font-weight: 600; pointer-events: none; }
+  @media (max-width: 680px) {
+    .schedule-nav { align-items: stretch; flex-wrap: wrap; gap: 10px; padding: 12px; }
+    .schedule-nav > div { order: -1; flex-basis: 100%; }
+    .schedule-nav-button { min-width: 0; flex: 1; font-size: 13px; padding-left: 8px; padding-right: 8px; }
+    .schedule-nav-button span { font-size: 18px; }
+  }
+  [data-theme='dark'] .schedule-block { background: #35462a !important; border-color: #91b84c !important; color: #edf1e6; }
+  [data-theme='dark'] .schedule-block.bg-graphite-hover { background: #303b31 !important; }
+
+  .language-controls { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border: 1px solid var(--line); background: var(--surface, #f3f3eb); border-radius: 999px; }
+  .language-flag { width: 34px; height: 31px; display: inline-grid; place-items: center; padding: 0; border: 2px solid transparent; border-radius: 999px; background: transparent; cursor: pointer; font-size: 18px; line-height: 1; opacity: .62; filter: grayscale(.45); transition: opacity .2s ease, filter .2s ease, background .2s ease, border-color .2s ease, transform .2s ease; }
+  .language-flag:hover, .language-flag:focus-visible { opacity: 1; filter: grayscale(0); transform: translateY(-1px); outline: none; }
+  .language-flag.selected { opacity: 1; filter: grayscale(0); background: var(--accent-soft, #eef4d8); border-color: #88a943; box-shadow: 0 0 0 2px rgba(136, 169, 67, .18); }
+  .language-controls + .theme-toggle { margin-left: 5px; }
+  @media (max-width: 680px) {
+    .language-controls { gap: 2px; padding: 3px; }
+    .language-flag { width: 36px; height: 32px; font-size: 18px; }
+    .public-controls .language-flag { width: 34px; height: 30px; }
+  }
 }

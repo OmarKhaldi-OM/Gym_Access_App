@@ -1,8 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
-import { useI18n, useT } from '../context/I18nContext.jsx'
+import { useT } from '../context/I18nContext.jsx'
 import { useTheme } from '../context/ThemeContext.jsx'
+import LanguageControls from './LanguageControls.jsx'
 
 const navByRole = {
   admin: [
@@ -35,7 +36,6 @@ export default function Header({ role = 'admin' }) {
   const { user, logout } = useAuth()
   const navItems = navByRole[role]
   const t = useT()
-  const { language, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
   // Si connecté via l'écran de connexion, on utilise le vrai compte ; sinon
   // (accès direct par URL pendant le développement), on retombe sur le nom de démo.
@@ -56,10 +56,9 @@ export default function Header({ role = 'admin' }) {
         <Link to="/" className="management-brand">
           <span className="management-mark">G</span>
           <span>gate<span className="brand-period">.</span></span>
-          <span className="management-area">{t(roleLabel[role])}</span>
         </Link>
 
-        <nav className="management-nav" text-size="14px" aria-label="Navigation de gestion">
+        <nav className="management-nav" aria-label="Navigation de gestion">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -73,12 +72,6 @@ export default function Header({ role = 'admin' }) {
 
         <div className="management-actions">
           <span className="demo-label">{t('demo')}</span>
-          <select className="language-select" aria-label={t('language')} value={language} onChange={(event) => setLanguage(event.target.value)}>
-            <option value="fr">FR</option><option value="en">EN</option><option value="ar">AR</option>
-          </select>
-          <button className="theme-toggle" onClick={toggleTheme} aria-label={`${t('theme')}: ${theme === 'dark' ? t('light') : t('dark')}`} title={theme === 'dark' ? t('light') : t('dark')}>
-            {theme === 'dark' ? '☼' : '☾'}
-          </button>
           <button
             onClick={handleLogout}
             className="management-logout"
@@ -92,6 +85,12 @@ export default function Header({ role = 'admin' }) {
           <div className="management-avatar">
             {initials}
           </div>
+          <LanguageControls />
+          <button className={`theme-toggle ${theme}`} onClick={toggleTheme} aria-label={`${t('theme')}: ${theme === 'dark' ? t('light') : t('dark')}`} title={theme === 'dark' ? t('light') : t('dark')}>
+            <span className="theme-icon sun" aria-hidden="true">☀</span>
+            <span className="theme-icon moon" aria-hidden="true">☾</span>
+            <span className="theme-thumb" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </header>

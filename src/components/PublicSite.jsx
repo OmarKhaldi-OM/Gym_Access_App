@@ -1,12 +1,12 @@
 import { Link, NavLink } from 'react-router-dom'
-import { useI18n, useT } from '../context/I18nContext.jsx'
+import { useT } from '../context/I18nContext.jsx'
 import { useTheme } from '../context/ThemeContext.jsx'
+import LanguageControls from './LanguageControls.jsx'
 
 function PublicControls() {
   const t = useT()
-  const { language, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
-  return <div className="public-controls"><select className="language-select" aria-label={t('language')} value={language} onChange={(event) => setLanguage(event.target.value)}><option value="fr">FR</option><option value="en">EN</option><option value="ar">AR</option></select><button className="theme-toggle" onClick={toggleTheme} aria-label={theme === 'dark' ? t('light') : t('dark')}>{theme === 'dark' ? '☼' : '☾'}</button></div>
+  return <div className="public-controls"><LanguageControls /><button className={`theme-toggle ${theme}`} onClick={toggleTheme} aria-label={theme === 'dark' ? t('light') : t('dark')}><span className="theme-icon sun" aria-hidden="true">☀</span><span className="theme-icon moon" aria-hidden="true">☾</span><span className="theme-thumb" aria-hidden="true" /></button></div>
 }
 
 export function PublicHeader() {

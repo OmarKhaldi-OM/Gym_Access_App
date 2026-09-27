@@ -12,6 +12,24 @@ export async function getClasses() {
   return Promise.resolve([...classes])
 }
 
+export async function addClass(classDetails) {
+  const newClass = { id: `${classDetails.jour}-${classDetails.heureDebut.replace(':', '')}-${Date.now()}`, ...classDetails }
+  classes = [...classes, newClass]
+  return Promise.resolve({ ...newClass })
+}
+
+export async function updateClass(id, classDetails) {
+  classes = classes.map((item) => (item.id === id ? { ...item, ...classDetails, id } : item))
+  return Promise.resolve(classes.find((item) => item.id === id) ?? null)
+}
+
+export async function deleteClass(id) {
+  const deleted = classes.find((item) => item.id === id) ?? null
+  classes = classes.filter((item) => item.id !== id)
+  myBookings = myBookings.filter((booking) => booking.classeId !== id)
+  return Promise.resolve(deleted)
+}
+
 // Plus tard : GET /api/schedules/trainer/{trainerId}
 export async function getPersonalSessions() {
   return Promise.resolve([...personalSessions])

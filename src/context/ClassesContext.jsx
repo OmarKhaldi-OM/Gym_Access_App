@@ -45,9 +45,36 @@ export function ClassesProvider({ children }) {
     [refresh],
   )
 
+  const addClass = useCallback(
+    async (classDetails) => {
+      const result = await classService.addClass(classDetails)
+      await refresh()
+      return result
+    },
+    [refresh],
+  )
+
+  const updateClass = useCallback(
+    async (id, classDetails) => {
+      const result = await classService.updateClass(id, classDetails)
+      await refresh()
+      return result
+    },
+    [refresh],
+  )
+
+  const deleteClass = useCallback(
+    async (id) => {
+      const result = await classService.deleteClass(id)
+      await refresh()
+      return result
+    },
+    [refresh],
+  )
+
   return (
     <ClassesContext.Provider
-      value={{ classes, personalSessions, myBookings, loading, bookClass, cancelBooking, refresh }}
+      value={{ classes, personalSessions, myBookings, loading, bookClass, cancelBooking, addClass, updateClass, deleteClass, refresh }}
     >
       {children}
     </ClassesContext.Provider>
