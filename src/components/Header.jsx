@@ -52,41 +52,47 @@ export default function Header({ role = 'admin' }) {
 
   return (
     <header className="management-header">
-      <div className="management-inner max-w-7xl mx-auto px-6">
-        <Link to="/" className="management-brand">
-          <span className="management-mark">G</span>
-          <span>gate<span className="brand-period">.</span></span>
-        </Link>
+      <div className="management-inner">
+        <div className="management-left">
+          <Link to="/" className="management-brand">
+            <span className="management-mark">G</span>
+            <span>gate<span className="brand-period">.</span></span>
+          </Link>
 
-        <nav className="management-nav" aria-label="Navigation de gestion">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => isActive ? 'active' : ''}
-            >
-              {t(item.key)}
-            </NavLink>
-          ))}
-        </nav>
+          <nav className="management-nav" aria-label="Navigation de gestion">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => isActive ? 'active' : ''}
+              >
+                {t(item.key)}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
 
         <div className="management-actions">
           <span className="demo-label">{t('demo')}</span>
-          <button
-            onClick={handleLogout}
-            className="management-logout"
-          >
+          <button onClick={handleLogout} className="management-logout">
             {t('logout')}
           </button>
-          <div className="management-user-name">
-            <p>{name}</p>
-            <span>{t(roleLabel[role])}</span>
+
+          <div className="management-user-card">
+            <div className="management-user-name">
+              <p>{name}</p>
+              <span>{t(roleLabel[role])}</span>
+            </div>
+            <div className="management-avatar">{initials}</div>
           </div>
-          <div className="management-avatar">
-            {initials}
-          </div>
+
           <LanguageControls />
-          <button className={`theme-toggle ${theme}`} onClick={toggleTheme} aria-label={`${t('theme')}: ${theme === 'dark' ? t('light') : t('dark')}`} title={theme === 'dark' ? t('light') : t('dark')}>
+          <button
+            className={`theme-toggle ${theme}`}
+            onClick={toggleTheme}
+            aria-label={`${t('theme')}: ${theme === 'dark' ? t('light') : t('dark')}`}
+            title={theme === 'dark' ? t('light') : t('dark')}
+          >
             <span className="theme-icon sun" aria-hidden="true">☀</span>
             <span className="theme-icon moon" aria-hidden="true">☾</span>
             <span className="theme-thumb" aria-hidden="true" />
