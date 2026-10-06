@@ -1,10 +1,10 @@
-# Gate — UI interactive (données mock)
+# Gate — application de gestion de salle
 
-UI interactive pour le système de contrôle d'accès "Gate" : navigation,
-recherche, filtres, réservation de cours et enrôlement fonctionnent réellement,
-mais tout passe par des données locales en mémoire (aucun appel réseau réel).
-Conçu pour que brancher le backend Spring Boot plus tard soit un simple
-remplacement de l'intérieur des services, pas une réécriture.
+Application React connectée à l'API Spring Boot. Les pages passent par les
+services métier (`src/services/*`), qui utilisent le client HTTP commun
+`src/services/api.js` pour l'URL, le JWT, les en-têtes, le parsing et les erreurs.
+Les données sous `src/mocks/` restent des fixtures locales et ne remplacent pas
+les services branchés à l'API.
 
 ## Démarrer
 
@@ -23,10 +23,11 @@ src/
 │                            myBookings.js, activityLog.js, trainerBookings.js,
 │                            coachClients.js, users.js
 ├── services/             # SEUL point d'accès aux données depuis les pages.
-│                          Chaque fonction est async et retourne une Promise —
-│                          remplacer le corps par un fetch('/api/...') suffira.
+│                          Services métier, seuls propriétaires des endpoints ;
+│                          ils délèguent le transport à services/api.js.
 │                          → memberService, classService, activityService,
 │                            trainerBookingService, coachService, authService
+├── services/api.js        # client HTTP commun et stockage central du JWT
 ├── context/              # état partagé entre plusieurs écrans
 │                          → AuthContext (utilisateur connecté),
 │                            MembersContext (membres + file d'enrôlement),
@@ -70,18 +71,11 @@ d'identifiants réelle. Chaque en-tête n'affiche que la navigation propre à so
   (`MembersContext`) et affiche une confirmation (toast)
 - Connexion / déconnexion : bascule l'utilisateur affiché dans l'en-tête (`AuthContext`)
 
-## Brancher le vrai backend plus tard
+## Client API
 
-Chaque fonction de `src/services/*.js` a un commentaire indiquant l'endpoint réel
-à appeler (ex. `getMembers()` → `GET /api/members`). Remplacer le corps de la
-fonction par un `fetch`/`axios` vers cet endpoint, sans toucher aux pages ni aux
-contexts, puisqu'ils n'appellent jamais les mocks directement.
-
-## Prochaines étapes (à faire par toi)
-
-- Remplacer l'intérieur des services par de vrais appels réseau + un `axiosClient`
-  avec intercepteur JWT
-- Brancher le formulaire de connexion sur `POST /auth/login`, stocker le token,
-  et faire dépendre la redirection du rôle renvoyé par l'API
-- Ajouter des états de chargement/erreur autour des appels `useEffect` (actuellement
-  optimistes, sans gestion d'échec réseau puisqu'il n'y a pas de réseau)
+`api.js` utilise `VITE_API_URL` (par défaut `http://localhost:8080`), ajoute le
+Bearer token stocké par `authStorage`, sérialise les corps JSON et laisse les
+corps `FormData` gérer leur propre `Content-Type`. Les erreurs réseau et HTTP
+sont transformées en erreurs applicatives ; un 401 efface la session et un 403
+garde la session tout en signalant l'accès refusé. Aucun client HTTP tiers n'est
+nécessaire.

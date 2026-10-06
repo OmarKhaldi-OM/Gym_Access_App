@@ -8,6 +8,25 @@ function clearSession() {
   window.dispatchEvent(new Event('gate:unauthorized'))
 }
 
+function dispatchApiError(message) {
+  window.dispatchEvent(new CustomEvent('gate:api-error', { detail: message }))
+}
+
+async function parseResponse(response) {
+  if (response.status === 204 || response.status === 205) return null
+  const contentType = response.headers.get('content-type') || ''
+  if (contentType.includes('application/json') || contentType.includes('+json')) {
+    const text = await response.text()
+    if (!text) return null
+    try {
+      return JSON.parse(text)
+    } catch {
+      return text
+    }
+  }
+  return response.text()
+}
+
 export async function apiRequest(path, options = {}) {
   const { responseType, ...requestOptions } = options
   const token = localStorage.getItem(TOKEN_KEY)
@@ -20,16 +39,15 @@ export async function apiRequest(path, options = {}) {
     response = await fetch(`${API_BASE_URL}${path}`, { ...requestOptions, headers })
   } catch {
     const error = new Error('Le serveur est injoignable. Verifiez que le serveur est demarre puis reessayez.')
-    window.dispatchEvent(new CustomEvent('gate:api-error', { detail: error.message }))
+    dispatchApiError(error.message)
     throw error
   }
 
   if (response.status === 401) clearSession()
-  if (response.status === 204) return null
+  if (response.status === 204 || response.status === 205) return null
   if (responseType === 'blob' && response.ok) return response.blob()
 
-  const contentType = response.headers.get('content-type') || ''
-  const body = contentType.includes('application/json') ? await response.json() : await response.text()
+  const body = await parseResponse(response)
   if (!response.ok) {
     const message = response.status === 401
       ? path === '/api/auth/login'
@@ -37,10 +55,10 @@ export async function apiRequest(path, options = {}) {
         : 'Votre session a expiré. Connectez-vous à nouveau.'
       : response.status === 403
         ? 'Vous n’avez pas les droits pour effectuer cette action.'
-        : body?.message || `La requete a echoue (${response.status}).`
+        : (typeof body?.message === 'string' && body.message) || `La requete a echoue (${response.status}).`
     const error = new Error(message)
     error.status = response.status
-    window.dispatchEvent(new CustomEvent('gate:api-error', { detail: message }))
+      dispatchApiError(message)
     throw error
   }
   return body
@@ -78,6 +96,14 @@ export function apiDelete(path) {
 
 export const authStorage = {
   getToken: () => localStorage.getItem(TOKEN_KEY),
+  getUser() {
+    try {
+      return JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+    } catch {
+      return null
+    }
+  },
+  clearUser: () => localStorage.removeItem(USER_KEY),
   save(token, user) {
     localStorage.setItem(TOKEN_KEY, token)
     localStorage.setItem(USER_KEY, JSON.stringify(user))

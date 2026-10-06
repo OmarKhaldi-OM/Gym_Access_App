@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
         })
         .finally(() => setReady(true))
     } else {
-      localStorage.removeItem('gate.user')
+      authStorage.clearUser()
     }
     return () => {
       window.removeEventListener('gate:unauthorized', clearUser)

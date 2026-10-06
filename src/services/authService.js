@@ -1,8 +1,6 @@
 import { apiGet, apiGetBlob, apiPost, authStorage } from './api.js'
 import { normalizeRole } from '../roles.js'
 
-const USER_KEY = 'gate.user'
-
 export function toFrontendUser(user) {
   return {
     ...user,
@@ -25,11 +23,7 @@ async function authenticate(path, payload) {
 }
 
 export function getCurrentUser() {
-  try {
-    return JSON.parse(localStorage.getItem(USER_KEY) || 'null')
-  } catch {
-    return null
-  }
+  return authStorage.getUser()
 }
 
 export async function login() {
