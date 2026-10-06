@@ -3,17 +3,20 @@ import Layout from '../../components/Layout.jsx'
 import WeekNav from '../../components/schedule/WeekNav.jsx'
 import ScheduleGrid from '../../components/schedule/ScheduleGrid.jsx'
 import ClassDetailModal from '../../components/schedule/ClassDetailModal.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useClasses } from '../../context/ClassesContext.jsx'
 import { useT } from '../../context/I18nContext.jsx'
 
 export default function Schedule() {
   const t = useT()
-  const { classes } = useClasses()
+  const { classes, loading, error, refresh } = useClasses()
   const [selected, setSelected] = useState(null)
+  const [weekOffset, setWeekOffset] = useState(0)
 
   const blocks = classes.map((c) => ({
     id: c.id,
     day: c.jour,
+    date: c.date,
     start: c.heureDebut,
     end: c.heureFin,
     title: c.nom,
@@ -29,8 +32,10 @@ export default function Schedule() {
   return (
     <Layout role="reception">
       <h1 className="text-2xl font-bold mb-4">{t('classSchedule')}</h1>
-      <WeekNav />
-      <ScheduleGrid blocks={blocks} onBlockClick={setSelected} />
+      {loading && <ApiLoading message={t('loading')} />}
+      <ApiError error={error ? new Error(error) : null} onRetry={refresh} />
+      <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
+      <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={setSelected} />
       <ClassDetailModal block={selected} onClose={() => setSelected(null)} />
     </Layout>
   )

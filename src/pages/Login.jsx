@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { PublicShell } from '../components/PublicSite.jsx'
 import { useT } from '../context/I18nContext.jsx'
@@ -13,6 +13,7 @@ const roleHome = {
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signIn } = useAuth()
   const t = useT()
   const [email, setEmail] = useState('')
@@ -26,8 +27,9 @@ export default function Login() {
     setSubmitting(true)
     try {
       const user = await signIn({ email, password })
-      navigate(roleHome[user.role] || '/membre/dashboard')
+      navigate(location.state?.from?.pathname || roleHome[user.role] || '/membre/dashboard', { replace: true })
     } catch (signInError) {
+      window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(signInError.message || t('wrongCredentials'))
       setSubmitting(false)
     }

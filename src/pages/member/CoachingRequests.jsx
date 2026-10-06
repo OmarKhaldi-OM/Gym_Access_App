@@ -4,6 +4,7 @@ import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Button from '../../components/Button.jsx'
 import Toast from '../../components/Toast.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
 import { useT } from '../../context/I18nContext.jsx'
@@ -19,37 +20,53 @@ export default function CoachingRequests() {
   const [requests, setRequests] = useState([])
   const [notifications, setNotifications] = useState([])
   const [form, setForm] = useState({ coachId: '', requestedAt: '', goal: '' })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const refresh = async () => {
     if (!user?.id) return
-    const [memberRequests, updates] = await Promise.all([
-      requestService.getMemberRequests(user.id),
-      requestService.getNotifications(user.id, 'member'),
-    ])
-    setRequests(memberRequests)
-    setNotifications(updates)
+    setLoading(true)
+    setError(null)
+    try {
+      const [availableCoaches, memberRequests, updates] = await Promise.all([
+        requestService.getCoaches(),
+        requestService.getMemberRequests(user.id),
+        requestService.getNotifications(user.id, 'member'),
+      ])
+      setCoaches(availableCoaches)
+      setForm((current) => ({ ...current, coachId: current.coachId || availableCoaches[0]?.id || '' }))
+      setRequests(memberRequests)
+      setNotifications(updates)
+    } catch (requestError) {
+      setError(requestError)
+      throw requestError
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(() => {
-    requestService.getCoaches().then((available) => {
-      setCoaches(available)
-      setForm((current) => ({ ...current, coachId: current.coachId || available[0]?.id || '' }))
-    }).catch(() => {})
-    refresh().catch(() => {})
-  }, [user?.id])
+  useEffect(() => { refresh().catch(() => {}) }, [user?.id])
 
   const submit = async (event) => {
     event.preventDefault()
-    await requestService.createRequest({ memberId: user.id, coachId: form.coachId, requestedAt: form.requestedAt, goal: form.goal })
-    setForm((current) => ({ ...current, requestedAt: '', goal: '' }))
-    await refresh()
-    showToast(t('requestSent'))
+    try {
+      await requestService.createRequest({ memberId: user.id, coachId: form.coachId, requestedAt: form.requestedAt, goal: form.goal })
+      setForm((current) => ({ ...current, requestedAt: '', goal: '' }))
+      await refresh()
+      showToast(t('requestSent'))
+    } catch (requestError) {
+      setError(requestError)
+    }
   }
 
   const cancel = async (id) => {
-    await requestService.updateRequestStatus(id, 'cancelled')
-    await refresh()
-    showToast(t('requestCancelled'))
+    try {
+      await requestService.updateRequestStatus(id, 'cancelled')
+      await refresh()
+      showToast(t('requestCancelled'))
+    } catch (requestError) {
+      setError(requestError)
+    }
   }
 
   const notificationText = (notification) => notification.type === 'coaching-accepted'
@@ -59,6 +76,8 @@ export default function CoachingRequests() {
   return (
     <Layout role="membre">
       <h1 className="text-2xl font-bold mb-6">{t('coachingRequests')}</h1>
+      {loading && <ApiLoading message={t('loading')} />}
+      <ApiError error={error} onRetry={() => refresh().catch(() => {})} />
       {notifications.length > 0 && <Panel className="mb-6"><SectionHeader title={`${t('notifications')} (${notifications.length})`} /><div className="px-5 py-4 text-sm">{notifications.slice(0, 3).map((item) => <p key={item.id} className="border-b border-graphite-line py-2 last:border-0">{notificationText(item)}</p>)}</div></Panel>}
       <Panel className="p-6 mb-6">
         <SectionHeader title={t('requestCoach')} />
@@ -71,7 +90,7 @@ export default function CoachingRequests() {
       </Panel>
       <Panel>
         <SectionHeader title={t('myRequests')} />
-        <div>{requests.length === 0 && <p className="p-5 text-text-muted">{t('noRequests')}</p>}
+        <div>{!loading && !error && requests.length === 0 && <p className="p-5 text-text-muted">{t('noRequests')}</p>}
           {requests.map((request) => {
             const [label, variant] = statusMap[request.status] || statusMap.pending
             return <article key={request.id} className="flex flex-wrap items-center justify-between gap-4 border-b border-graphite-line px-5 py-4 last:border-0"><div><p className="font-semibold">{request.coachName}</p><p className="text-sm text-text-muted">{request.requestedAt} · {request.goal}</p>{request.response && <p className="mt-1 text-sm">{request.response}</p>}</div><div className="flex items-center gap-3"><StatusChip variant={variant}>{t(label)}</StatusChip>{request.status === 'pending' && <Button variant="secondary" onClick={() => cancel(request.id)}>{t('cancel')}</Button>}</div></article>

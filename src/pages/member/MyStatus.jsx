@@ -3,6 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as memberService from '../../services/memberService.js'
 import * as activityService from '../../services/activityService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
@@ -30,15 +31,37 @@ export default function MyStatus() {
   const { language } = useI18n()
   const [member, setMember] = useState(null)
   const [sessions, setSessions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    memberService.getMemberById(memberId).then(setMember)
-    activityService
-      .getMemberActivity(memberId)
-      .then((entries) => setSessions(pairSessions(entries)))
+    let active = true
+    setLoading(true)
+    setError(null)
+    Promise.all([
+      memberService.getMemberById(memberId),
+      activityService.getMemberActivity(memberId),
+    ])
+      .then(([memberData, entries]) => {
+        if (!active) return
+        setMember(memberData)
+        setSessions(pairSessions(entries))
+      })
+      .catch((requestError) => {
+        if (active) setError(requestError)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => { active = false }
   }, [memberId])
 
-  if (!member) return null
+  if (loading) return <Layout role="membre"><ApiLoading message={t('loading')} /></Layout>
+  if (error || !member) return (
+    <Layout role="membre">
+      <ApiError error={error || new Error(t('requestFailed', 'Impossible de charger votre statut.'))} onRetry={() => window.location.reload()} />
+    </Layout>
+  )
 
   const current = sessions.find((s) => !s.exit)
 

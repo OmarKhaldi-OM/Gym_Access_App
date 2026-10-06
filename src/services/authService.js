@@ -14,9 +14,14 @@ export function toFrontendUser(user) {
 async function authenticate(path, payload) {
   const result = await apiPost(path, payload)
   authStorage.save(result.token, { email: result.email, role: result.role })
-  const user = await getIdentity()
-  authStorage.save(result.token, user)
-  return user
+  try {
+    const user = await getIdentity()
+    authStorage.save(result.token, user)
+    return user
+  } catch (error) {
+    authStorage.clear()
+    throw error
+  }
 }
 
 export function getCurrentUser() {

@@ -3,6 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import WeekNav from '../../components/schedule/WeekNav.jsx'
 import ScheduleGrid from '../../components/schedule/ScheduleGrid.jsx'
 import ClassDetailModal from '../../components/schedule/ClassDetailModal.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as coachService from '../../services/coachService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 
@@ -12,14 +13,23 @@ export default function MySchedule() {
   const [personalSessions, setPersonalSessions] = useState([])
   const [selected, setSelected] = useState(null)
   const [weekOffset, setWeekOffset] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const loadSchedule = () => {
     if (!user?.displayName) return
-    coachService.getCoachSchedule(user.displayName).then((data) => {
-      setClasses(data.classes)
-      setPersonalSessions(data.personalSessions)
-    })
-  }, [user?.displayName])
+    setLoading(true)
+    setError(null)
+    coachService.getCoachSchedule(user.displayName)
+      .then((data) => {
+        setClasses(data.classes)
+        setPersonalSessions(data.personalSessions)
+      })
+      .catch(setError)
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { loadSchedule() }, [user?.displayName])
 
   const classBlocks = classes.map((c) => ({
     id: c.id,
@@ -55,6 +65,8 @@ export default function MySchedule() {
   return (
     <Layout role="coach">
       <h1 className="text-2xl font-bold mb-4">Mon planning</h1>
+      {loading && <ApiLoading />}
+      <ApiError error={error} onRetry={loadSchedule} />
       <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
       <ScheduleGrid
         blocks={blocks}

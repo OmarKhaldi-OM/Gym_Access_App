@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { useLocation } from 'react-router-dom'
 import * as classService from '../services/classService.js'
 import { useAuth } from './AuthContext.jsx'
 
@@ -6,6 +7,8 @@ const ClassesContext = createContext(null)
 
 export function ClassesProvider({ children }) {
   const { user } = useAuth()
+  const { pathname } = useLocation()
+  const shouldLoadClasses = ['/admin/schedule', '/membre/bookings', '/reception/planning'].includes(pathname)
   const [classes, setClasses] = useState([])
   const [personalSessions, setPersonalSessions] = useState([])
   const [myBookings, setMyBookings] = useState([])
@@ -15,6 +18,12 @@ export function ClassesProvider({ children }) {
   const refresh = useCallback(async () => {
     setError('')
     try {
+      if (!shouldLoadClasses) {
+        setClasses([])
+        setPersonalSessions([])
+        setMyBookings([])
+        return
+      }
       const [classesList, personalList, bookings] = await Promise.all([
         classService.getClasses(),
         user?.role === 'membre' ? classService.getPersonalSessions(user.id) : Promise.resolve([]),
@@ -29,7 +38,7 @@ export function ClassesProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [shouldLoadClasses, user])
 
   useEffect(() => {
     refresh().catch(() => {})

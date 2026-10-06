@@ -12,6 +12,7 @@ export function MembersProvider({ children }) {
   const [error, setError] = useState('')
 
   const refresh = useCallback(async () => {
+    setLoading(true)
     setError('')
     try {
       if (!user) {

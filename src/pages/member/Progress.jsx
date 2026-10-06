@@ -3,6 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import Button from '../../components/Button.jsx'
 import ProgressBar from '../../components/ProgressBar.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
 import * as progressService from '../../services/progressService.js'
@@ -16,30 +17,44 @@ export default function Progress() {
   const [goals, setGoals] = useState([])
   const [goal, setGoal] = useState({ name: '', target: 5, deadline: '' })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const refresh = async () => {
     if (!memberId) return
-    const [data, nextGoals] = await Promise.all([
-      progressService.getProgress(memberId),
-      progressService.getGoals(memberId),
-    ])
-    setProgress(data)
-    setGoals(nextGoals)
+    setLoading(true)
+    setError(null)
+    try {
+      const [data, nextGoals] = await Promise.all([
+        progressService.getProgress(memberId),
+        progressService.getGoals(memberId),
+      ])
+      setProgress(data)
+      setGoals(nextGoals)
+    } catch (requestError) {
+      setError(requestError)
+      throw requestError
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
-    refresh().catch(() => {}).finally(() => setLoading(false))
+    refresh().catch(() => {})
   }, [memberId])
 
   const addGoal = async (event) => {
     event.preventDefault()
-    await progressService.addGoal(memberId, { ...goal, target: Number(goal.target) })
-    setGoal({ name: '', target: 5, deadline: '' })
-    await refresh()
+    try {
+      await progressService.addGoal(memberId, { ...goal, target: Number(goal.target) })
+      setGoal({ name: '', target: 5, deadline: '' })
+      await refresh()
+    } catch (requestError) {
+      setError(requestError)
+    }
   }
 
-  if (loading) return <Layout role="membre"><p role="status">{t('loading')}</p></Layout>
-  if (!progress) return <Layout role="membre"><p role="alert">{t('requestFailed', 'Impossible de charger votre progression.')}</p></Layout>
+  if (loading) return <Layout role="membre"><ApiLoading message={t('loading')} /></Layout>
+  if (error || !progress) return <Layout role="membre"><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger votre progression.'))} onRetry={() => refresh().catch(() => {})} /></Layout>
 
   const latestWeight = progress.weight.at(-1)?.value
   return (

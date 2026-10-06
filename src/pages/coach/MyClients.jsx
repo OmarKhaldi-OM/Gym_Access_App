@@ -3,6 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as coachService from '../../services/coachService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useT } from '../../context/I18nContext.jsx'
@@ -11,10 +12,17 @@ export default function MyClients() {
   const t = useT()
   const { user } = useAuth()
   const [clients, setClients] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
-    if (user?.displayName) coachService.getCoachClients(user.displayName).then(setClients)
-  }, [user?.displayName])
+  const loadClients = () => {
+    if (!user?.displayName) return
+    setLoading(true)
+    setError(null)
+    coachService.getCoachClients(user.displayName).then(setClients).catch(setError).finally(() => setLoading(false))
+  }
+
+  useEffect(() => { loadClients() }, [user?.displayName])
 
   return (
     <Layout role="coach">
@@ -23,7 +31,10 @@ export default function MyClients() {
       <Panel>
         <SectionHeader title={`${clients.length} ${t('members').toLowerCase()}`} />
         <div>
-          {clients.map((c, i) => (
+          {loading && <ApiLoading />}
+          <ApiError error={error} onRetry={loadClients} />
+          {!loading && !error && clients.length === 0 && <p className="px-5 py-4 text-base font-medium text-text-muted">{t('noMembers')}</p>}
+          {!loading && !error && clients.map((c, i) => (
             <div
               key={c.id}
               className={`flex items-center justify-between px-5 py-4 ${

@@ -4,6 +4,7 @@ import { Panel, SectionHeader } from '../components/Panel.jsx'
 import Avatar from '../components/Avatar.jsx'
 import Button from '../components/Button.jsx'
 import Toast from '../components/Toast.jsx'
+import { ApiError, ApiLoading } from '../components/ApiState.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../hooks/useToast.js'
 import * as profileService from '../services/profileService.js'
@@ -20,16 +21,21 @@ export default function ProfileEdit({ role = 'membre' }) {
   const [loading, setLoading] = useState(true)
   const [photoFile, setPhotoFile] = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
+  const loadProfile = () => {
+    setLoading(true)
+    setError(null)
     profileService.getProfile()
       .then((data) => {
         setProfile(data)
         setPhotoPreview(data.photo)
       })
-      .catch(() => {})
+      .catch(setError)
       .finally(() => setLoading(false))
-  }, [user?.id])
+  }
+
+  useEffect(() => { loadProfile() }, [user?.id])
 
   const update = (field) => (event) => setProfile((current) => ({ ...current, [field]: event.target.value }))
 
@@ -75,8 +81,8 @@ export default function ProfileEdit({ role = 'membre' }) {
     }
   }
 
-  if (loading) return <Layout role={role}><p role="status">{t('loading')}</p></Layout>
-  if (!profile) return <Layout role={role}><p role="alert">{t('requestFailed', 'Impossible de charger votre profil.')}</p></Layout>
+  if (loading) return <Layout role={role}><ApiLoading message={t('loading')} /></Layout>
+  if (error || !profile) return <Layout role={role}><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger votre profil.'))} onRetry={loadProfile} /></Layout>
 
   return (
     <Layout role={role}>

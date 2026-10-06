@@ -4,6 +4,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as memberService from '../../services/memberService.js'
 import * as activityService from '../../services/activityService.js'
 import * as classService from '../../services/classService.js'
@@ -31,20 +32,36 @@ export default function MemberProfile() {
   const [member, setMember] = useState(null)
   const [sessions, setSessions] = useState([])
   const [memberBookings, setMemberBookings] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  useEffect(() => {
-    memberService.getMemberById(id).then(setMember)
-    activityService.getMemberActivity(id).then((entries) => setSessions(pairSessions(entries)))
-    classService.getMyBookings(id).then(setMemberBookings)
-  }, [id])
+  const loadMember = () => {
+    setLoading(true)
+    setError(null)
+    Promise.all([
+      memberService.getMemberById(id),
+      activityService.getMemberActivity(id),
+      classService.getMyBookings(id),
+    ])
+      .then(([memberData, entries, bookings]) => {
+        setMember(memberData)
+        setSessions(pairSessions(entries))
+        setMemberBookings(bookings)
+      })
+      .catch(setError)
+      .finally(() => setLoading(false))
+  }
 
-  if (!member) {
+  useEffect(() => { loadMember() }, [id])
+
+  if (loading) {
     return (
       <Layout role="admin">
-        <p className="text-base font-medium text-text-muted">{t('loading')}</p>
+        <ApiLoading message={t('loading')} />
       </Layout>
     )
   }
+  if (error || !member) return <Layout role="admin"><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger ce membre.'))} onRetry={loadMember} /></Layout>
 
   const confirmedBookings = memberBookings.filter(
     (b) => b.membreId === id && b.statut === 'confirmee' && b.classe,

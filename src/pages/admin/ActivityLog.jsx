@@ -3,6 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as activityService from '../../services/activityService.js'
 import { useT } from '../../context/I18nContext.jsx'
 
@@ -24,11 +25,16 @@ const TODAY = new Date().toISOString().slice(0, 10)
 export default function ActivityLog() {
   const t = useT()
   const [logs, setLogs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [statusFilter, setStatusFilter] = useState('tous')
   const [todayOnly, setTodayOnly] = useState(false)
 
   useEffect(() => {
-    activityService.getActivityLog().then(setLogs)
+    activityService.getActivityLog()
+      .then(setLogs)
+      .catch(setError)
+      .finally(() => setLoading(false))
   }, [])
 
   const filtered = useMemo(() => {
@@ -72,7 +78,13 @@ export default function ActivityLog() {
       <Panel>
         <SectionHeader title={`${filtered.length} ${t(filtered.length === 1 ? 'event' : 'events')}`} />
         <div>
-          {filtered.length === 0 && (
+          {loading && <ApiLoading message={t('loading')} />}
+          <ApiError error={error} onRetry={() => {
+            setLoading(true)
+            setError(null)
+            activityService.getActivityLog().then(setLogs).catch(setError).finally(() => setLoading(false))
+          }} />
+          {!loading && !error && filtered.length === 0 && (
             <p className="px-5 py-4 text-base font-medium text-text-muted">
               {t('noEvents')}
             </p>

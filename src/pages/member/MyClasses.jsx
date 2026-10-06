@@ -5,15 +5,17 @@ import ScheduleGrid from '../../components/schedule/ScheduleGrid.jsx'
 import ClassDetailModal from '../../components/schedule/ClassDetailModal.jsx'
 import Button from '../../components/Button.jsx'
 import Toast from '../../components/Toast.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useClasses } from '../../context/ClassesContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
 import { useT } from '../../context/I18nContext.jsx'
 
 export default function MyClasses() {
-  const { classes, myBookings, bookClass, cancelBooking } = useClasses()
+  const { classes, myBookings, loading, error, refresh, bookClass, cancelBooking } = useClasses()
   const { toastMessage, showToast } = useToast()
   const t = useT()
   const [selectedId, setSelectedId] = useState(null)
+  const [weekOffset, setWeekOffset] = useState(0)
 
   const myBookingFor = (classeId) =>
     myBookings.find((b) => b.classeId === classeId && b.statut === 'confirmee')
@@ -30,6 +32,7 @@ export default function MyClasses() {
     return {
       id: c.id,
       day: c.jour,
+      date: c.date,
       start: c.heureDebut,
       end: c.heureFin,
       title: c.nom,
@@ -50,8 +53,9 @@ export default function MyClasses() {
     try {
       await bookClass(selectedClass.id)
       showToast(`${t('reserved')}: ${selectedClass.nom}`)
-    } catch {
-      showToast(t('classIsFull'))
+    } catch (error) {
+      window.dispatchEvent(new Event('gate:api-error-dismiss'))
+      showToast(error.message || t('classIsFull'))
     }
     setSelectedId(null)
   }
@@ -65,8 +69,10 @@ export default function MyClasses() {
   return (
     <Layout role="membre">
       <h1 className="text-2xl font-bold mb-4">{t('myClasses')}</h1>
-      <WeekNav />
-      <ScheduleGrid blocks={blocks} onBlockClick={(b) => setSelectedId(b.id)} />
+      <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
+      {loading && <ApiLoading message={t('loading')} />}
+      <ApiError error={error ? new Error(error) : null} onRetry={refresh} />
+      <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={(b) => setSelectedId(b.id)} />
 
       <ClassDetailModal block={selectedBlock} onClose={() => setSelectedId(null)}>
         {selectedBooking ? (

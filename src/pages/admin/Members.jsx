@@ -1,23 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
-import * as memberService from '../../services/memberService.js'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
 
 export default function Members() {
   const t = useT()
   const { language } = useI18n()
-  const { members } = useMembers()
+  const { members, loading, error, refresh } = useMembers()
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
-
-  useEffect(() => {
-    memberService.searchMembers(query).then(setResults)
-  }, [query, members])
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const results = useMemo(() => members.filter((member) => member.nom.toLocaleLowerCase().includes(normalizedQuery)), [members, normalizedQuery])
 
   return (
     <Layout role="admin">
@@ -36,7 +33,9 @@ export default function Members() {
       <Panel>
         <SectionHeader title={`${results.length} ${results.length === 1 ? t('member') : t('members').toLowerCase()}`} />
         <div>
-          {results.length === 0 && (
+          {loading && <ApiLoading message={t('loading')} />}
+          <ApiError error={error ? new Error(error) : null} onRetry={refresh} />
+          {!loading && !error && results.length === 0 && (
             <p className="px-5 py-4 text-base font-medium text-text-muted">
               {t('noMembers')}
             </p>

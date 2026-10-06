@@ -5,12 +5,13 @@ import WeekNav from '../../components/schedule/WeekNav.jsx'
 import ScheduleGrid from '../../components/schedule/ScheduleGrid.jsx'
 import ClassDetailModal from '../../components/schedule/ClassDetailModal.jsx'
 import CreateClassModal from '../../components/schedule/CreateClassModal.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useClasses } from '../../context/ClassesContext.jsx'
 import { useT } from '../../context/I18nContext.jsx'
 import { getDaysForWeek } from '../../data/scheduleData.js'
 
 export default function ClassSchedule() {
-  const { classes, addClass, updateClass, deleteClass } = useClasses()
+  const { classes, loading, error, refresh, addClass, updateClass, deleteClass } = useClasses()
   const [selected, setSelected] = useState(null)
   const [creating, setCreating] = useState(false)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -49,6 +50,8 @@ export default function ClassSchedule() {
       </div>
 
       <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
+      {loading && <ApiLoading message={t('loading')} />}
+      <ApiError error={error ? new Error(error) : null} onRetry={refresh} />
       <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={setSelected} />
 
       <ClassDetailModal block={selected} onClose={() => setSelected(null)}>

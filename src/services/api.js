@@ -32,7 +32,9 @@ export async function apiRequest(path, options = {}) {
   const body = contentType.includes('application/json') ? await response.json() : await response.text()
   if (!response.ok) {
     const message = response.status === 401
-      ? 'Votre session a expire. Connectez-vous a nouveau.'
+      ? path === '/api/auth/login'
+        ? 'Adresse e-mail ou mot de passe incorrect.'
+        : 'Votre session a expiré. Connectez-vous à nouveau.'
       : response.status === 403
         ? 'Vous n’avez pas les droits pour effectuer cette action.'
         : body?.message || `La requete a echoue (${response.status}).`

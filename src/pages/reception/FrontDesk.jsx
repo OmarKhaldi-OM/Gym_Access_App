@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import Button from '../../components/Button.jsx'
 import Toast from '../../components/Toast.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
-import * as memberService from '../../services/memberService.js'
 import * as activityService from '../../services/activityService.js'
 import { useT } from '../../context/I18nContext.jsx'
 
-const TODAY = new Date().toISOString().slice(0, 10)
+const now = new Date()
+const TODAY = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 
 function pairTodaySessions(entries) {
   const byMember = new Map()
@@ -30,23 +31,22 @@ function pairTodaySessions(entries) {
 
 export default function FrontDesk() {
   const t = useT()
-  const { pendingEnrollments, enroll } = useMembers()
+  const { members, pendingEnrollments, loading: membersLoading, error: membersError, refresh, enroll } = useMembers()
   const { toastMessage, showToast } = useToast()
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
   const [todaySessions, setTodaySessions] = useState([])
+  const [activityLoading, setActivityLoading] = useState(true)
+  const [activityError, setActivityError] = useState(null)
 
   useEffect(() => {
-    activityService.getActivityLog().then((entries) => setTodaySessions(pairTodaySessions(entries)))
+    activityService.getActivityLog()
+      .then((entries) => setTodaySessions(pairTodaySessions(entries)))
+      .catch(setActivityError)
+      .finally(() => setActivityLoading(false))
   }, [])
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([])
-      return
-    }
-    memberService.searchMembers(query).then(setResults)
-  }, [query])
+  const normalizedQuery = query.trim().toLocaleLowerCase()
+  const results = useMemo(() => members.filter((member) => member.nom.toLocaleLowerCase().includes(normalizedQuery)), [members, normalizedQuery])
 
   const handleEnroll = async (id, nom) => {
     if (await enroll(id)) showToast(`${nom} · ${t('enrolled')}`)
@@ -69,10 +69,11 @@ export default function FrontDesk() {
         />
         {query.trim() && (
           <div className="mt-3 max-w-md rounded-xl border border-graphite-line bg-graphite-panel divide-y divide-graphite-line">
-            {results.length === 0 && (
+            {membersLoading && <ApiLoading message={t('loading')} />}
+            {!membersLoading && !membersError && results.length === 0 && (
               <p className="px-4 py-3 text-base font-medium text-text-muted">{t('noResults')}</p>
             )}
-            {results.map((m) => (
+            {!membersLoading && !membersError && results.map((m) => (
               <div key={m.id} className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3">
                   <Avatar name={m.nom} />
@@ -91,7 +92,13 @@ export default function FrontDesk() {
         <Panel>
           <SectionHeader title={t('presentToday')} />
           <div>
-            {todaySessions.length === 0 && (
+            {activityLoading && <ApiLoading message={t('loading')} />}
+            <ApiError error={activityError} onRetry={() => {
+              setActivityLoading(true)
+              setActivityError(null)
+              activityService.getActivityLog().then((entries) => setTodaySessions(pairTodaySessions(entries))).catch(setActivityError).finally(() => setActivityLoading(false))
+            }} />
+            {!activityLoading && !activityError && todaySessions.length === 0 && (
               <p className="px-5 py-4 text-base font-medium text-text-muted">
                 {t('noVisitsToday')}
               </p>
@@ -122,7 +129,9 @@ export default function FrontDesk() {
         <Panel>
           <SectionHeader title={t('enrollmentQueue')} />
           <div>
-            {pendingEnrollments.length === 0 && (
+            {membersLoading && <ApiLoading message={t('loading')} />}
+            <ApiError error={membersError ? new Error(membersError) : null} onRetry={refresh} />
+            {!membersLoading && !membersError && pendingEnrollments.length === 0 && (
               <p className="px-5 py-4 text-base font-medium text-text-muted">
                 {t('noPendingMembers')}
               </p>

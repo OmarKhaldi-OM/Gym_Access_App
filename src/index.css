@@ -370,3 +370,11 @@ html[lang='ar'] body { font-family: Tahoma, 'Noto Sans Arabic', sans-serif; lett
   .language-controls + .theme-toggle { margin-inline-start: 2px; }
   .management-actions { flex-wrap: wrap; gap: 6px; }
 }
+
+.public-nav .nav-join { color: var(--paper); white-space: nowrap; flex: 0 0 auto; }
+@media (max-width: 680px) {
+  .public-header { height: auto; min-height: 66px; padding-block: 8px; gap: 8px; }
+  .public-nav { min-width: 0; max-width: calc(100% - 86px); flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+  .public-nav .nav-login { margin: 0; white-space: nowrap; font-size: 10px; }
+  .public-nav .nav-join { min-height: 34px; padding-inline: 7px; gap: 5px; font-size: 9px !important; }
+}

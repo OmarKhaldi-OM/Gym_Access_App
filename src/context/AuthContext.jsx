@@ -22,7 +22,10 @@ export function AuthProvider({ children }) {
           authStorage.save(authStorage.getToken(), currentUser)
           setUser(currentUser)
         })
-        .catch(clearUser)
+        .catch((identityError) => {
+          if (identityError.status === 401) clearUser()
+          else setReady(true)
+        })
         .finally(() => setReady(true))
     } else {
       localStorage.removeItem('gate.user')

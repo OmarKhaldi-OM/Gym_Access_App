@@ -5,8 +5,13 @@ export default function ApiFeedback() {
 
   useEffect(() => {
     const showError = (event) => setMessage(event.detail)
+    const dismissError = () => setMessage('')
     window.addEventListener('gate:api-error', showError)
-    return () => window.removeEventListener('gate:api-error', showError)
+    window.addEventListener('gate:api-error-dismiss', dismissError)
+    return () => {
+      window.removeEventListener('gate:api-error', showError)
+      window.removeEventListener('gate:api-error-dismiss', dismissError)
+    }
   }, [])
 
   if (!message) return null

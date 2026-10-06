@@ -9,6 +9,7 @@ export const days = [
   { key: 'jeudi', label: 'Jeudi', date: '24 sept.' },
   { key: 'vendredi', label: 'Vendredi', date: '25 sept.' },
   { key: 'samedi', label: 'Samedi', date: '26 sept.' },
+  { key: 'dimanche', label: 'Dimanche', date: '27 sept.' },
 ]
 
 function currentWeekStart() {
