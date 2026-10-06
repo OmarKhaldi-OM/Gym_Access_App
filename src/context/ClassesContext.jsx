@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { useLocation } from 'react-router-dom'
 import * as classService from '../services/classService.js'
 import { useAuth } from './AuthContext.jsx'
+import { canAccessFeature, FEATURES } from '../roles.js'
 
 const ClassesContext = createContext(null)
 
@@ -26,8 +27,8 @@ export function ClassesProvider({ children }) {
       }
       const [classesList, personalList, bookings] = await Promise.all([
         classService.getClasses(),
-        user?.role === 'membre' ? classService.getPersonalSessions(user.id) : Promise.resolve([]),
-        user?.role === 'membre' ? classService.getMyBookings(user.id) : Promise.resolve([]),
+        canAccessFeature(user, FEATURES.VIEW_OWN_BOOKINGS) ? classService.getPersonalSessions(user.id) : Promise.resolve([]),
+        canAccessFeature(user, FEATURES.VIEW_OWN_BOOKINGS) ? classService.getMyBookings(user.id) : Promise.resolve([]),
       ])
       setClasses(classesList)
       setPersonalSessions(personalList)

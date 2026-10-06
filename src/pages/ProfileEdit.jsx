@@ -13,7 +13,7 @@ import { useT } from '../context/I18nContext.jsx'
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
-export default function ProfileEdit({ role = 'membre' }) {
+export default function ProfileEdit() {
   const t = useT()
   const { user } = useAuth()
   const { toastMessage, showToast } = useToast()
@@ -81,11 +81,11 @@ export default function ProfileEdit({ role = 'membre' }) {
     }
   }
 
-  if (loading) return <Layout role={role}><ApiLoading message={t('loading')} /></Layout>
-  if (error || !profile) return <Layout role={role}><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger votre profil.'))} onRetry={loadProfile} /></Layout>
+  if (loading) return <Layout><ApiLoading message={t('loading')} /></Layout>
+  if (error || !profile) return <Layout><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger votre profil.'))} onRetry={loadProfile} /></Layout>
 
   return (
-    <Layout role={role}>
+    <Layout>
       <h1 className="text-2xl font-bold mb-6">{t('editProfile')}</h1>
       <Panel className="p-6">
         <SectionHeader title={t('personalInformation')} />

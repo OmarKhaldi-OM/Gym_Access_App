@@ -1,13 +1,13 @@
 import { apiGet, apiGetBlob, apiPost, authStorage } from './api.js'
+import { normalizeRole } from '../roles.js'
 
 const USER_KEY = 'gate.user'
 
 export function toFrontendUser(user) {
-  const roles = { MEMBER: 'membre', TRAINER: 'coach', RECEPTIONIST: 'reception', ADMIN: 'admin' }
   return {
     ...user,
     displayName: [user.prenom, user.nom].filter(Boolean).join(' '),
-    role: roles[user.role] || user.role?.toLowerCase(),
+    role: normalizeRole(user.role),
   }
 }
 

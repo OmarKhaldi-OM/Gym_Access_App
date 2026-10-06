@@ -4,30 +4,13 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useT } from '../context/I18nContext.jsx'
 import { useTheme } from '../context/ThemeContext.jsx'
 import LanguageControls from './LanguageControls.jsx'
+import { getRoleDefinition } from '../roles.js'
 
-const navByRole = {
-  admin: [
-    { to: '/admin/dashboard', key: 'dashboard' }, { to: '/admin/activity', key: 'activity' }, { to: '/admin/members', key: 'members' }, { to: '/admin/schedule', key: 'schedule' }, { to: '/admin/trainer-bookings', key: 'trainerBookings' }, { to: '/admin/profile', key: 'profile' },
-  ],
-  membre: [
-    { to: '/membre/dashboard', key: 'status' }, { to: '/membre/bookings', key: 'bookings' }, { to: '/membre/trainer-sessions', key: 'trainerSessions' }, { to: '/membre/coaching', key: 'coachingRequests' }, { to: '/membre/progress', key: 'progress' }, { to: '/membre/profile', key: 'profile' },
-  ],
-  coach: [
-    { to: '/coach/planning', key: 'schedule' }, { to: '/coach/clients', key: 'members' }, { to: '/coach/requests', key: 'coachingRequests' }, { to: '/coach/profil', key: 'profile' },
-  ],
-  reception: [
-  { to: '/reception/accueil', key: 'home' }, { to: '/reception/planning', key: 'schedule' }, { to: '/reception/profil', key: 'profile' },
-  ],
-}
-
-const roleLabel = {
-  admin: 'admin', membre: 'member', coach: 'coach', reception: 'reception',
-}
-
-export default function Header({ role = 'admin' }) {
+export default function Header({ role }) {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
-  const navItems = navByRole[role]
+  const roleDefinition = getRoleDefinition(user?.role || role)
+  const navItems = roleDefinition?.navigation || []
   const t = useT()
   const { theme, toggleTheme } = useTheme()
   const name = user?.displayName || user?.email || ''
@@ -70,7 +53,7 @@ export default function Header({ role = 'admin' }) {
           </button>
           <div className="management-user-name">
             <p>{name}</p>
-            <span>{t(roleLabel[role])}</span>
+            <span>{roleDefinition ? t(roleDefinition.label) : ''}</span>
           </div>
           <div className="management-avatar">
             {user?.photoUrl ? <img src={user.photoUrl} alt="" /> : initials}

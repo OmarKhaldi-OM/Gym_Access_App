@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import * as memberService from '../services/memberService.js'
 import { useAuth } from './AuthContext.jsx'
+import { canAccessFeature, FEATURES } from '../roles.js'
 
 const MembersContext = createContext(null)
 
@@ -18,12 +19,12 @@ export function MembersProvider({ children }) {
       if (!user) {
         setMembers([])
         setPendingEnrollments([])
-      } else if (user.role === 'admin' || user.role === 'reception') {
+      } else if (canAccessFeature(user, FEATURES.MANAGE_MEMBERS)) {
         const membersList = await memberService.getMembers()
         const pending = await memberService.getPendingEnrollments(membersList)
         setMembers(membersList)
         setPendingEnrollments(pending)
-      } else if (user.role === 'membre') {
+      } else if (canAccessFeature(user, FEATURES.VIEW_OWN_MEMBER_RECORD)) {
         setMembers([await memberService.getMemberById(user.id)])
         setPendingEnrollments([])
       } else {

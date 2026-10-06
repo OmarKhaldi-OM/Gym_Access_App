@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
 import ApiFeedback from './components/ApiFeedback.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { canAccessRoute, getHomePath } from './roles.js'
 import { MembersProvider } from './context/MembersContext.jsx'
 import { ClassesProvider } from './context/ClassesContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
@@ -51,7 +52,6 @@ export default function App() {
 }
 
 function AppRoutes() {
-  const { user, ready } = useAuth()
   return (
     <>
     <ApiFeedback />
@@ -65,47 +65,45 @@ function AppRoutes() {
 
       {/* Admin (staff/management) view */}
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-      <Route path="/admin/dashboard" element={<RequireRole role="admin" user={user} ready={ready}><AdminDashboard /></RequireRole>} />
-      <Route path="/admin/activity" element={<RequireRole role="admin" user={user} ready={ready}><AdminActivityLog /></RequireRole>} />
-      <Route path="/admin/members" element={<RequireRole role="admin" user={user} ready={ready}><AdminMembers /></RequireRole>} />
-      <Route path="/admin/members/:id" element={<RequireRole role="admin" user={user} ready={ready}><AdminMemberProfile /></RequireRole>} />
-      <Route path="/admin/schedule" element={<RequireRole role="admin" user={user} ready={ready}><AdminClassSchedule /></RequireRole>} />
-      <Route path="/admin/trainer-bookings" element={<RequireRole role="admin" user={user} ready={ready}><AdminTrainerBookings /></RequireRole>} />
-      <Route path="/admin/profile" element={<RequireRole role="admin" user={user} ready={ready}><ProfileEdit role="admin" /></RequireRole>} />
+      <Route path="/admin/dashboard" element={<RequireRole><AdminDashboard /></RequireRole>} />
+      <Route path="/admin/activity" element={<RequireRole><AdminActivityLog /></RequireRole>} />
+      <Route path="/admin/members" element={<RequireRole><AdminMembers /></RequireRole>} />
+      <Route path="/admin/members/:id" element={<RequireRole><AdminMemberProfile /></RequireRole>} />
+      <Route path="/admin/schedule" element={<RequireRole><AdminClassSchedule /></RequireRole>} />
+      <Route path="/admin/trainer-bookings" element={<RequireRole><AdminTrainerBookings /></RequireRole>} />
+      <Route path="/admin/profile" element={<RequireRole><ProfileEdit /></RequireRole>} />
 
       {/* Membre (personal) view */}
       <Route path="/membre" element={<Navigate to="/membre/dashboard" replace />} />
-      <Route path="/membre/dashboard" element={<RequireRole role="membre" user={user} ready={ready}><MyStatus /></RequireRole>} />
-      <Route path="/membre/bookings" element={<RequireRole role="membre" user={user} ready={ready}><MyClasses /></RequireRole>} />
-      <Route path="/membre/trainer-sessions" element={<RequireRole role="membre" user={user} ready={ready}><MyTrainerSessions /></RequireRole>} />
-      <Route path="/membre/profile" element={<RequireRole role="membre" user={user} ready={ready}><ProfileEdit role="membre" /></RequireRole>} />
-      <Route path="/membre/coaching" element={<RequireRole role="membre" user={user} ready={ready}><CoachingRequests /></RequireRole>} />
-      <Route path="/membre/progress" element={<RequireRole role="membre" user={user} ready={ready}><MemberProgress /></RequireRole>} />
+      <Route path="/membre/dashboard" element={<RequireRole><MyStatus /></RequireRole>} />
+      <Route path="/membre/bookings" element={<RequireRole><MyClasses /></RequireRole>} />
+      <Route path="/membre/trainer-sessions" element={<RequireRole><MyTrainerSessions /></RequireRole>} />
+      <Route path="/membre/profile" element={<RequireRole><ProfileEdit /></RequireRole>} />
+      <Route path="/membre/coaching" element={<RequireRole><CoachingRequests /></RequireRole>} />
+      <Route path="/membre/progress" element={<RequireRole><MemberProgress /></RequireRole>} />
 
       {/* Coach (trainer) view */}
       <Route path="/coach" element={<Navigate to="/coach/planning" replace />} />
-      <Route path="/coach/planning" element={<RequireRole role="coach" user={user} ready={ready}><CoachSchedule /></RequireRole>} />
-      <Route path="/coach/clients" element={<RequireRole role="coach" user={user} ready={ready}><CoachClients /></RequireRole>} />
-      <Route path="/coach/profil" element={<RequireRole role="coach" user={user} ready={ready}><ProfileEdit role="coach" /></RequireRole>} />
-      <Route path="/coach/requests" element={<RequireRole role="coach" user={user} ready={ready}><CoachRequests /></RequireRole>} />
+      <Route path="/coach/planning" element={<RequireRole><CoachSchedule /></RequireRole>} />
+      <Route path="/coach/clients" element={<RequireRole><CoachClients /></RequireRole>} />
+      <Route path="/coach/profil" element={<RequireRole><ProfileEdit /></RequireRole>} />
+      <Route path="/coach/requests" element={<RequireRole><CoachRequests /></RequireRole>} />
 
       {/* Réceptionniste (front desk) view */}
       <Route path="/reception" element={<Navigate to="/reception/accueil" replace />} />
-      <Route path="/reception/accueil" element={<RequireRole role="reception" user={user} ready={ready}><FrontDesk /></RequireRole>} />
-      <Route path="/reception/planning" element={<RequireRole role="reception" user={user} ready={ready}><ReceptionSchedule /></RequireRole>} />
-      <Route path="/reception/profil" element={<RequireRole role="reception" user={user} ready={ready}><ProfileEdit role="reception" /></RequireRole>} />
+      <Route path="/reception/accueil" element={<RequireRole><FrontDesk /></RequireRole>} />
+      <Route path="/reception/planning" element={<RequireRole><ReceptionSchedule /></RequireRole>} />
+      <Route path="/reception/profil" element={<RequireRole><ProfileEdit /></RequireRole>} />
     </Routes>
     </>
   )
 }
 
-function RequireRole({ role, user, ready, children }) {
+function RequireRole({ children }) {
+  const { user, ready } = useAuth()
   const location = useLocation()
   if (!ready) return <main className="min-h-screen grid place-items-center">Chargement…</main>
   if (!user) return <Navigate to="/signin" replace state={{ from: location }} />
-  if (user.role !== role) {
-    const destinations = { admin: '/admin/dashboard', membre: '/membre/dashboard', coach: '/coach/planning', reception: '/reception/accueil' }
-    return <Navigate to={destinations[user.role] || '/'} replace />
-  }
+  if (!canAccessRoute(user, location.pathname)) return <Navigate to={getHomePath(user) || '/'} replace />
   return children
 }

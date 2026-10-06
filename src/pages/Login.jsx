@@ -3,13 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { PublicShell } from '../components/PublicSite.jsx'
 import { useT } from '../context/I18nContext.jsx'
-
-const roleHome = {
-  admin: '/admin/dashboard',
-  membre: '/membre/dashboard',
-  coach: '/coach/planning',
-  reception: '/reception/accueil',
-}
+import { getHomePath } from '../roles.js'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -27,7 +21,7 @@ export default function Login() {
     setSubmitting(true)
     try {
       const user = await signIn({ email, password })
-      navigate(location.state?.from?.pathname || roleHome[user.role] || '/membre/dashboard', { replace: true })
+      navigate(location.state?.from?.pathname || getHomePath(user) || '/', { replace: true })
     } catch (signInError) {
       window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(signInError.message || t('wrongCredentials'))
