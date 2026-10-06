@@ -60,18 +60,36 @@ public class TrainerBookingService {
     }
 
     public List<TrainerBookingResponseDTO> findAll() {
+        if (!securityUtil.hasRole("ADMIN") && !securityUtil.hasRole("RECEPTIONIST")) {
+            throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
+        }
         return trainerBookingRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public List<TrainerBookingResponseDTO> findByMember(UUID memberId) {
+        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        if (!staff && !memberRepository.findById(memberId)
+                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
+        }
         return trainerBookingRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public List<TrainerBookingResponseDTO> findByTrainer(UUID trainerId) {
+        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        if (!staff && !trainerRepository.findById(trainerId)
+                .map(trainer -> trainer.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
+        }
         return trainerBookingRepository.findByTrainerId(trainerId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public TrainerBookingResponseDTO create(TrainerBookingRequestDTO dto) {
+        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        if (!staff && !memberRepository.findById(dto.getMemberId())
+                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
+        }
         Trainer_Booking tb = toEntity(dto);
 
         // Empeche un membre de reserver deux fois le meme trainer au meme horaire exact

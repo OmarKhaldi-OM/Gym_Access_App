@@ -10,10 +10,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin(origins = "http://localhost:5173")
 public class BookingController {
 
     @Autowired
@@ -22,6 +23,11 @@ public class BookingController {
     @GetMapping
     public List<BookingResponseDTO> getAll() {
         return bookingService.findAll();
+    }
+
+    @GetMapping("/counts")
+    public Map<UUID, Long> getCounts() {
+        return bookingService.countActiveBySchedule();
     }
 
     @GetMapping("/{id}")

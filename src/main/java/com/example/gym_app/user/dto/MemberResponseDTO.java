@@ -16,4 +16,5 @@ public class MemberResponseDTO {
     private String email;
     private LocalDate dateNaissance;
     private LocalDateTime dateInscription;
+    private boolean visageEnrole;
 }

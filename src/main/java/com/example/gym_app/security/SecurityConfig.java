@@ -54,10 +54,40 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/classes/**", "/api/schedules/**", "/api/plans/**").permitAll()
-                        .requestMatchers("/api/staff/**", "/api/trainers/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/plans", "/api/classes", "/api/schedules").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/counts").permitAll()
+                        .requestMatchers("/api/staff/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/trainers/**").hasAnyRole("ADMIN", "RECEPTIONIST", "TRAINER", "MEMBER")
+                        .requestMatchers("/api/trainers/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/members").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.POST, "/api/members/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.PUT, "/api/members/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/members/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers("/api/members/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers(HttpMethod.GET, "/api/access-logs/member/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers("/api/access-logs/**", "/api/face-embeddings/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.GET, "/api/bookings/member/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers(HttpMethod.POST, "/api/bookings").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/cancel").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers("/api/bookings/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.GET, "/api/subscriptions/member/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers(HttpMethod.POST, "/api/subscriptions").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers("/api/subscriptions/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers("/api/progress-logs/**").hasAnyRole("ADMIN", "MEMBER")
+                        .requestMatchers(HttpMethod.GET, "/api/trainer-bookings/member/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers(HttpMethod.GET, "/api/trainer-bookings/trainer/**").hasAnyRole("ADMIN", "RECEPTIONIST", "TRAINER")
+                        .requestMatchers(HttpMethod.POST, "/api/trainer-bookings").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/trainer-bookings/*/cancel").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers("/api/trainer-bookings/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers("/api/coaching-requests/**").hasAnyRole("ADMIN", "RECEPTIONIST", "TRAINER", "MEMBER")
+                        .requestMatchers("/api/member-goals/**").hasRole("MEMBER")
+                        .requestMatchers(HttpMethod.POST, "/api/plans", "/api/classes", "/api/schedules")
+                            .hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.PUT, "/api/plans/**", "/api/classes/**", "/api/schedules/**")
+                            .hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.DELETE, "/api/plans/**", "/api/classes/**", "/api/schedules/**")
+                            .hasAnyRole("ADMIN", "RECEPTIONIST")
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -69,9 +99,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

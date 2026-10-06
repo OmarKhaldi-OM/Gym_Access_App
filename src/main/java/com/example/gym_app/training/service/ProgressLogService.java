@@ -7,6 +7,8 @@ import com.example.gym_app.training.entity.Progress_Log;
 import com.example.gym_app.training.repository.ProgressLogRepository;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.repository.MemberRepository;
+import com.example.gym_app.security.SecurityUtil;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,15 @@ public class ProgressLogService {
 
     @Autowired
     private MemberRepository memberRepository;
+    @Autowired
+    private SecurityUtil securityUtil;
+
+    private void requireMemberAccess(UUID memberId) {
+        if (!securityUtil.hasRole("ADMIN") && !memberRepository.findById(memberId)
+                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+            throw new AccessDeniedException("Acces refuse");
+        }
+    }
 
     private ProgressLogResponseDTO toDTO(Progress_Log pl) {
         ProgressLogResponseDTO dto = new ProgressLogResponseDTO();
@@ -48,16 +59,19 @@ public class ProgressLogService {
     }
 
     public List<ProgressLogResponseDTO> findByMember(UUID memberId) {
+        requireMemberAccess(memberId);
         return progressLogRepository.findByMemberIdOrderByDateMesureAsc(memberId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public ProgressLogResponseDTO create(ProgressLogRequestDTO dto) {
+        requireMemberAccess(dto.getMemberId());
         return toDTO(progressLogRepository.save(toEntity(dto)));
     }
 
     public ProgressLogResponseDTO update(UUID id, ProgressLogRequestDTO dto) {
         Progress_Log existing = progressLogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ProgressLog introuvable avec id: " + id));
+        requireMemberAccess(existing.getMember().getId());
         existing.setDateMesure(dto.getDateMesure());
         existing.setPoids(dto.getPoids());
         existing.setMasseGrasse(dto.getMasseGrasse());
@@ -66,6 +80,9 @@ public class ProgressLogService {
     }
 
     public void delete(UUID id) {
-        progressLogRepository.deleteById(id);
+        Progress_Log existing = progressLogRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("ProgressLog introuvable avec id: " + id));
+        requireMemberAccess(existing.getMember().getId());
+        progressLogRepository.delete(existing);
     }
 }

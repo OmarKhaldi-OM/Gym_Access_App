@@ -47,10 +47,13 @@ public class DataSeeder implements CommandLineRunner {
 
     private static final String ADMIN_EMAIL = "admin@gym.com";
     private static final String ADMIN_PASSWORD = "admin1234";
+    private static final String RECEPTIONIST_EMAIL = "reception@gym.com";
+    private static final String RECEPTIONIST_PASSWORD = "reception1234";
 
     @Override
     public void run(String... args) {
         seedAdmin();
+        seedReceptionist();
         seedTrainers();
         seedMembers();
         seedPlans();
@@ -69,6 +72,21 @@ public class DataSeeder implements CommandLineRunner {
             admin.setDateCreation(LocalDateTime.now());
             staffRepository.save(admin);
             System.out.println(">>> Admin cree : " + ADMIN_EMAIL + " / " + ADMIN_PASSWORD);
+        }
+    }
+
+    private void seedReceptionist() {
+        if (!userRepository.existsByEmail(RECEPTIONIST_EMAIL)) {
+            Staff receptionist = new Staff();
+            receptionist.setNom("Cherni");
+            receptionist.setPrenom("Ines");
+            receptionist.setEmail(RECEPTIONIST_EMAIL);
+            receptionist.setMotDePasse(passwordEncoder.encode(RECEPTIONIST_PASSWORD));
+            receptionist.setRole(Role.RECEPTIONIST);
+            receptionist.setDateEmbauche(LocalDate.now());
+            receptionist.setDateCreation(LocalDateTime.now());
+            staffRepository.save(receptionist);
+            System.out.println(">>> Receptionist cree : " + RECEPTIONIST_EMAIL + " / " + RECEPTIONIST_PASSWORD);
         }
     }
 

@@ -6,7 +6,6 @@ import com.example.gym_app.classes.entity.Booking;
 import com.example.gym_app.classes.entity.Class_Schedule;
 import com.example.gym_app.classes.repository.BookingRepository;
 import com.example.gym_app.classes.repository.ClassScheduleRepository;
-import com.example.gym_app.exception.BadRequestException;
 import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.security.SecurityUtil;
@@ -18,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,6 +49,13 @@ public class BookingService {
         return bookingRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
+    public Map<UUID, Long> countActiveBySchedule() {
+        return bookingRepository.findAll().stream()
+                .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut())
+                        && !"ANNULEE".equalsIgnoreCase(booking.getStatut()))
+                .collect(Collectors.groupingBy(booking -> booking.getClassSchedule().getId(), Collectors.counting()));
+    }
+
     public BookingResponseDTO findById(UUID id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking introuvable avec id: " + id));
@@ -56,13 +63,23 @@ public class BookingService {
     }
 
     public List<BookingResponseDTO> findByMember(UUID memberId) {
+        requireMemberAccess(memberId);
         return bookingRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    private void requireMemberAccess(UUID memberId) {
+        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        if (!staff && !memberRepository.findById(memberId)
+                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+            throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
+        }
     }
 
     // Verifie la capacite max du cours avant de creer la reservation
     public BookingResponseDTO create(BookingRequestDTO dto) {
         Member member = memberRepository.findById(dto.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + dto.getMemberId()));
+        requireMemberAccess(member.getId());
         Class_Schedule schedule = classScheduleRepository.findById(dto.getScheduleId())
                 .orElseThrow(() -> new ResourceNotFoundException("ClassSchedule introuvable avec id: " + dto.getScheduleId()));
 
@@ -74,7 +91,10 @@ public class BookingService {
             throw new ConflictException("Vous avez deja reserve cette seance");
         }
 
-        long currentBookings = bookingRepository.countByClassScheduleId(schedule.getId());
+        long currentBookings = bookingRepository.findByClassScheduleId(schedule.getId()).stream()
+            .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut())
+                && !"ANNULEE".equalsIgnoreCase(booking.getStatut()))
+            .count();
         if (currentBookings >= schedule.getGymClass().getCapaciteMax()) {
             throw new ConflictException("Capacite maximale atteinte pour ce cours");
         }
@@ -101,7 +121,7 @@ public class BookingService {
         if (!isStaffOrAdmin) {
             String currentEmail = securityUtil.getCurrentUserEmail();
             if (!booking.getMember().getEmail().equals(currentEmail)) {
-                throw new BadRequestException("Vous ne pouvez annuler que vos propres reservations");
+                throw new org.springframework.security.access.AccessDeniedException("Vous ne pouvez annuler que vos propres reservations");
             }
         }
 

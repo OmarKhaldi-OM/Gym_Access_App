@@ -30,6 +30,14 @@ public abstract class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    private String telephone;
+
+    @Column(length = 1000)
+    private String bio;
+
+    @Column(name = "profile_photo_filename")
+    private String profilePhotoFilename;
+
     @Column(name = "mot_de_passe", nullable = false)
     private String motDePasse;
 

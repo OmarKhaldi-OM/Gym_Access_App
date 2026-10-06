@@ -1,4 +1,6 @@
 HELP.md
+.env
+uploads/
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -8,6 +10,7 @@ target/
 .apt_generated
 .classpath
 .factorypath
+
 .project
 .settings
 .springBeans

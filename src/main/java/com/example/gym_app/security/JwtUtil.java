@@ -4,17 +4,25 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
+import jakarta.annotation.PostConstruct;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class JwtUtil {
 
-    // Cle secrete generee au demarrage : en production, mets-la dans application.properties
-    // via une variable d'environnement plutot que codee en dur ici
-    private final SecretKey key = Keys.secretKeyFor(io.jsonwebtoken.SignatureAlgorithm.HS256);
+    @Value("${app.jwt.secret}")
+    private String secret;
+    private SecretKey key;
+
+    @PostConstruct
+    void initializeKey() {
+        key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
 
     private static final long EXPIRATION_MS = 24 * 60 * 60 * 1000; // 24h
 

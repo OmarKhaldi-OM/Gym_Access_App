@@ -9,6 +9,8 @@ import com.example.gym_app.membership.repository.MembershipPlanRepository;
 import com.example.gym_app.membership.repository.SubscriptionRepository;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.repository.MemberRepository;
+import com.example.gym_app.security.SecurityUtil;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,8 @@ public class SubscriptionService {
 
     @Autowired
     private MembershipPlanRepository membershipPlanRepository;
+    @Autowired
+    private SecurityUtil securityUtil;
 
     private SubscriptionResponseDTO toDTO(Subscription subscription) {
         SubscriptionResponseDTO dto = new SubscriptionResponseDTO();
@@ -68,7 +72,16 @@ public class SubscriptionService {
     }
 
     public List<SubscriptionResponseDTO> findByMember(UUID memberId) {
+        requireMemberAccess(memberId);
         return subscriptionRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    private void requireMemberAccess(UUID memberId) {
+        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        if (!staff && !memberRepository.findById(memberId)
+                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+            throw new AccessDeniedException("Acces refuse");
+        }
     }
 
     public boolean hasActiveSubscription(UUID memberId) {
@@ -77,6 +90,7 @@ public class SubscriptionService {
     }
 
     public SubscriptionResponseDTO create(SubscriptionRequestDTO dto) {
+        requireMemberAccess(dto.getMemberId());
         return toDTO(subscriptionRepository.save(toEntity(dto)));
     }
 

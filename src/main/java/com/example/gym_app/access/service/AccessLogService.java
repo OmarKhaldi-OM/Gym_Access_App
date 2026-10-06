@@ -9,6 +9,8 @@ import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Staff;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.user.repository.StaffRepository;
+import com.example.gym_app.security.SecurityUtil;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,8 @@ public class AccessLogService {
 
     @Autowired
     private StaffRepository staffRepository;
+    @Autowired
+    private SecurityUtil securityUtil;
 
     private AccessLogResponseDTO toDTO(Access_Log log) {
         AccessLogResponseDTO dto = new AccessLogResponseDTO();
@@ -65,6 +69,11 @@ public class AccessLogService {
     }
 
     public List<AccessLogResponseDTO> findByMember(UUID memberId) {
+        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        if (!staff && !memberRepository.findById(memberId)
+                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+            throw new AccessDeniedException("Acces refuse");
+        }
         return accessLogRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 

@@ -6,6 +6,8 @@ import com.example.gym_app.user.dto.MemberResponseDTO;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
+import com.example.gym_app.security.SecurityUtil;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ public class MemberService {
     private MemberRepository memberRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private SecurityUtil securityUtil;
 
     // ---- Mapping entite -> DTO ----
     private MemberResponseDTO toDTO(Member member) {
@@ -32,6 +36,7 @@ public class MemberService {
         dto.setEmail(member.getEmail());
         dto.setDateNaissance(member.getDateNaissance());
         dto.setDateInscription(member.getDateInscription());
+        dto.setVisageEnrole(member.getFaceEmbeddings() != null && !member.getFaceEmbeddings().isEmpty());
         return dto;
     }
 
@@ -57,6 +62,10 @@ public class MemberService {
     public MemberResponseDTO findById(UUID id) {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + id));
+        if (!securityUtil.hasRole("ADMIN") && !securityUtil.hasRole("RECEPTIONIST")
+            && !member.getEmail().equals(securityUtil.getCurrentUserEmail())) {
+            throw new AccessDeniedException("Acces refuse");
+        }
         return toDTO(member);
     }
 
