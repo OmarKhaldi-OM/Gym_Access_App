@@ -1,12 +1,14 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
 import ApiFeedback from './components/ApiFeedback.jsx'
+import { ApiLoading } from './components/ApiState.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { canAccessRoute, getHomePath } from './roles.js'
 import { MembersProvider } from './context/MembersContext.jsx'
 import { ClassesProvider } from './context/ClassesContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import { I18nProvider } from './context/I18nContext.jsx'
+import { useT } from './context/I18nContext.jsx'
 import Login from './pages/Login.jsx'
 import Home from './pages/public/Home.jsx'
 import Plans from './pages/public/Plans.jsx'
@@ -100,7 +102,8 @@ function AppRoutes() {
 function RequireRole({ children }) {
   const { user, ready } = useAuth()
   const location = useLocation()
-  if (!ready) return <main className="min-h-screen grid place-items-center">Chargement…</main>
+  const t = useT()
+  if (!ready) return <main className="min-h-screen grid place-items-center"><ApiLoading message={t('loading')} /></main>
   if (!user) return <Navigate to="/signin" replace state={{ from: location }} />
   if (!canAccessRoute(user, location.pathname)) return <Navigate to={getHomePath(user) || '/'} replace />
   return children

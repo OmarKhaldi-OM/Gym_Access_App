@@ -5,7 +5,7 @@ import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import Button from '../../components/Button.jsx'
 import Toast from '../../components/Toast.jsx'
-import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
 import * as activityService from '../../services/activityService.js'
@@ -37,6 +37,7 @@ export default function FrontDesk() {
   const [todaySessions, setTodaySessions] = useState([])
   const [activityLoading, setActivityLoading] = useState(true)
   const [activityError, setActivityError] = useState(null)
+  const [enrollingId, setEnrollingId] = useState(null)
 
   useEffect(() => {
     activityService.getActivityLog()
@@ -49,7 +50,12 @@ export default function FrontDesk() {
   const results = useMemo(() => members.filter((member) => member.nom.toLocaleLowerCase().includes(normalizedQuery)), [members, normalizedQuery])
 
   const handleEnroll = async (id, nom) => {
-    if (await enroll(id)) showToast(`${nom} · ${t('enrolled')}`)
+    setEnrollingId(id)
+    try {
+      if (await enroll(id)) showToast(`${nom} · ${t('enrolled')}`)
+    } finally {
+      setEnrollingId(null)
+    }
   }
 
   return (
@@ -71,7 +77,7 @@ export default function FrontDesk() {
           <div className="mt-3 max-w-md rounded-xl border border-graphite-line bg-graphite-panel divide-y divide-graphite-line">
             {membersLoading && <ApiLoading message={t('loading')} />}
             {!membersLoading && !membersError && results.length === 0 && (
-              <p className="px-4 py-3 text-base font-medium text-text-muted">{t('noResults')}</p>
+              <ApiEmpty message={t('noResults')} />
             )}
             {!membersLoading && !membersError && results.map((m) => (
               <div key={m.id} className="flex items-center justify-between px-4 py-3">
@@ -99,11 +105,9 @@ export default function FrontDesk() {
               activityService.getActivityLog().then((entries) => setTodaySessions(pairTodaySessions(entries))).catch(setActivityError).finally(() => setActivityLoading(false))
             }} />
             {!activityLoading && !activityError && todaySessions.length === 0 && (
-              <p className="px-5 py-4 text-base font-medium text-text-muted">
-                {t('noVisitsToday')}
-              </p>
+              <ApiEmpty message={t('noVisitsToday')} />
             )}
-            {todaySessions.map((a, i) => (
+            {!activityLoading && !activityError && todaySessions.map((a, i) => (
               <div
                 key={a.nom + i}
                 className={`flex items-center justify-between px-5 py-4 ${
@@ -130,13 +134,11 @@ export default function FrontDesk() {
           <SectionHeader title={t('enrollmentQueue')} />
           <div>
             {membersLoading && <ApiLoading message={t('loading')} />}
-            <ApiError error={membersError ? new Error(membersError) : null} onRetry={refresh} />
+            <ApiError error={membersError} onRetry={refresh} />
             {!membersLoading && !membersError && pendingEnrollments.length === 0 && (
-              <p className="px-5 py-4 text-base font-medium text-text-muted">
-                {t('noPendingMembers')}
-              </p>
+              <ApiEmpty message={t('noPendingMembers')} />
             )}
-            {pendingEnrollments.map((p, i) => (
+            {!membersLoading && !membersError && pendingEnrollments.map((p, i) => (
               <div
                 key={p.id}
                 className={`flex items-center justify-between px-5 py-4 ${
@@ -147,7 +149,7 @@ export default function FrontDesk() {
                   <p className="text-lg font-semibold">{p.nom}</p>
                   <p className="text-base font-medium text-text-muted mt-0.5">{p.daysSince === 0 ? t('registeredToday') : (p.daysSince === 1 ? t('registeredOneDay') : t('registeredDays').replace('{count}', p.daysSince))}</p>
                 </div>
-                <Button onClick={() => handleEnroll(p.id, p.nom)}>{t('register')}</Button>
+                <Button disabled={enrollingId === p.id} onClick={() => handleEnroll(p.id, p.nom)}>{t('register')}</Button>
               </div>
             ))}
           </div>

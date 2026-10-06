@@ -71,16 +71,16 @@ export default function MyClasses() {
       <h1 className="text-2xl font-bold mb-4">{t('myClasses')}</h1>
       <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
       {loading && <ApiLoading message={t('loading')} />}
-      <ApiError error={error ? new Error(error) : null} onRetry={refresh} />
-      <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={(b) => setSelectedId(b.id)} />
+      <ApiError error={error} onRetry={refresh} />
+      {!loading && !error && <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={(b) => setSelectedId(b.id)} />}
 
       <ClassDetailModal block={selectedBlock} onClose={() => setSelectedId(null)}>
         {selectedBooking ? (
-          <Button variant="secondary" className="w-full" onClick={handleCancel}>
+          <Button variant="secondary" className="w-full" disabled={loading} onClick={handleCancel}>
             {t('cancelBooking')}
           </Button>
         ) : selectedClass && selectedClass.placesRestantes > 0 ? (
-          <Button className="w-full" onClick={handleBook}>
+          <Button className="w-full" disabled={loading} onClick={handleBook}>
             {t('reserve')}
           </Button>
         ) : (

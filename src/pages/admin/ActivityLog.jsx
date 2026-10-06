@@ -3,7 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
-import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as activityService from '../../services/activityService.js'
 import { useT } from '../../context/I18nContext.jsx'
 
@@ -85,11 +85,9 @@ export default function ActivityLog() {
             activityService.getActivityLog().then(setLogs).catch(setError).finally(() => setLoading(false))
           }} />
           {!loading && !error && filtered.length === 0 && (
-            <p className="px-5 py-4 text-base font-medium text-text-muted">
-              {t('noEvents')}
-            </p>
+            <ApiEmpty message={t('noEvents')} />
           )}
-          {filtered.map((log, i) => (
+          {!loading && !error && filtered.map((log, i) => (
             <div
               key={log.id}
               className={`flex items-center justify-between px-5 py-4 ${

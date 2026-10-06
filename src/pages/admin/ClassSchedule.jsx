@@ -46,13 +46,13 @@ export default function ClassSchedule() {
     <Layout role="admin">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">{t('classSchedule')}</h1>
-        <Button onClick={() => setCreating(true)}>+ {t('createClass')}</Button>
+        <Button disabled={loading || Boolean(error)} onClick={() => setCreating(true)}>+ {t('createClass')}</Button>
       </div>
 
       <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
       {loading && <ApiLoading message={t('loading')} />}
-      <ApiError error={error ? new Error(error) : null} onRetry={refresh} />
-      <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={setSelected} />
+      <ApiError error={error} onRetry={refresh} />
+      {!loading && !error && <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={setSelected} />}
 
       <ClassDetailModal block={selected} onClose={() => setSelected(null)}>
         {selectedClass && <div className="flex gap-3">

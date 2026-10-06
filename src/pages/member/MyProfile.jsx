@@ -3,6 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
+import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as memberService from '../../services/memberService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
@@ -13,12 +14,22 @@ export default function MyProfile() {
   const { user } = useAuth()
   const memberId = user?.id
   const [member, setMember] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const loadMember = () => {
+    if (!memberId) return
+    setLoading(true)
+    setError(null)
+    memberService.getMemberById(memberId).then(setMember).catch(setError).finally(() => setLoading(false))
+  }
 
   useEffect(() => {
-    memberService.getMemberById(memberId).then(setMember)
+    loadMember()
   }, [memberId])
 
-  if (!member) return null
+  if (loading) return <Layout role="membre"><ApiLoading message={t('loading')} /></Layout>
+  if (error || !member) return <Layout role="membre"><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger votre profil.'))} onRetry={loadMember} /></Layout>
 
   return (
     <Layout role="membre">

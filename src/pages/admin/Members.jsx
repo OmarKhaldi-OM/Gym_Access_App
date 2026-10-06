@@ -4,7 +4,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
-import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
 
@@ -34,13 +34,11 @@ export default function Members() {
         <SectionHeader title={`${results.length} ${results.length === 1 ? t('member') : t('members').toLowerCase()}`} />
         <div>
           {loading && <ApiLoading message={t('loading')} />}
-          <ApiError error={error ? new Error(error) : null} onRetry={refresh} />
+          <ApiError error={error} onRetry={refresh} />
           {!loading && !error && results.length === 0 && (
-            <p className="px-5 py-4 text-base font-medium text-text-muted">
-              {t('noMembers')}
-            </p>
+            <ApiEmpty message={t('noMembers')} action={query.trim() ? <button type="button" className="text-sm font-semibold underline" onClick={() => setQuery('')}>{t('clearSearch', 'Effacer la recherche')}</button> : null} />
           )}
-          {results.map((m, i) => (
+          {!loading && !error && results.map((m, i) => (
             <Link
               to={`/admin/members/${m.id}`}
               key={m.id}

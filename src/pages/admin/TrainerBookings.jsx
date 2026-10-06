@@ -3,7 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
-import { ApiError } from '../../components/ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as trainerBookingService from '../../services/trainerBookingService.js'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
 
@@ -36,10 +36,10 @@ export default function TrainerBookings() {
       <Panel>
         <SectionHeader title={t('personalSessions')} />
         <div>
-          {loading && <p className="px-5 py-4 text-base font-medium text-text-muted" role="status">{t('loading')}</p>}
+          {loading && <ApiLoading message={t('loading')} />}
           <ApiError error={error} onRetry={loadBookings} />
-          {!loading && !error && bookings.length === 0 && <p className="px-5 py-4 text-base font-medium text-text-muted">{t('noSessions')}</p>}
-          {bookings.map((b, i) => (
+          {!loading && !error && bookings.length === 0 && <ApiEmpty message={t('noSessions')} />}
+          {!loading && !error && bookings.map((b, i) => (
             <div
               key={b.id}
               className={`flex items-center justify-between px-5 py-4 ${

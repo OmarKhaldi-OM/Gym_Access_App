@@ -4,7 +4,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
-import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as memberService from '../../services/memberService.js'
 import * as activityService from '../../services/activityService.js'
 import * as classService from '../../services/classService.js'
@@ -106,11 +106,7 @@ export default function MemberProfile() {
         <Panel>
           <SectionHeader title={t('visitHistory')} />
           <div>
-            {sessions.length === 0 && (
-              <p className="px-5 py-4 text-base font-medium text-text-muted">
-                {t('noPassages')}
-              </p>
-            )}
+            {sessions.length === 0 && <ApiEmpty message={t('noPassages')} />}
             {sessions.map((s, i) => (
               <div
                 key={i}
@@ -137,9 +133,7 @@ export default function MemberProfile() {
           <SectionHeader title={t('bookedClasses')} />
           <div>
             {confirmedBookings.length === 0 && (
-              <p className="px-5 py-4 text-base font-medium text-text-muted">
-                {t('noBookedClasses')}
-              </p>
+              <ApiEmpty message={t('noBookedClasses')} />
             )}
             {confirmedBookings.map((b, i) => (
               <div

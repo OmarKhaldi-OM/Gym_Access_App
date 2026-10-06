@@ -4,7 +4,7 @@ import StatCard from '../../components/StatCard.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import Button from '../../components/Button.jsx'
 import Toast from '../../components/Toast.jsx'
-import { ApiError } from '../../components/ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
 import * as activityService from '../../services/activityService.js'
@@ -47,17 +47,13 @@ export default function Dashboard() {
       </div>
 
       <ApiError error={activityError} onRetry={loadActivity} />
-      <ApiError error={membersError ? new Error(membersError) : null} onRetry={refreshMembers} />
+      <ApiError error={membersError} onRetry={refreshMembers} />
       <Panel>
         <SectionHeader title={t('notEnrolled')} />
         <div>
-          {membersLoading && <p className="px-5 py-4 text-base font-medium text-text-muted" role="status">{t('loading')}</p>}
-          {!membersLoading && !membersError && pendingEnrollments.length === 0 && (
-            <p className="px-5 py-4 text-base font-medium text-text-muted">
-              {t('noMembers')}
-            </p>
-          )}
-          {pendingEnrollments.map((p, i) => (
+          {membersLoading && <ApiLoading message={t('loading')} />}
+          {!membersLoading && !membersError && pendingEnrollments.length === 0 && <ApiEmpty message={t('noMembers')} />}
+          {!membersLoading && !membersError && pendingEnrollments.map((p, i) => (
             <div
               key={p.id}
               className={`flex items-center justify-between px-5 py-4 ${
@@ -68,7 +64,7 @@ export default function Dashboard() {
                 <p className="text-lg font-semibold">{p.nom}</p>
                 <p className="text-base font-medium text-text-muted mt-0.5">{p.daysSince === 0 ? t('registeredToday') : (p.daysSince === 1 ? t('registeredOneDay') : t('registeredDays').replace('{count}', p.daysSince))}</p>
               </div>
-              <Button onClick={() => handleEnroll(p.id, p.nom)}>{t('enrolled')}</Button>
+              <Button disabled={membersLoading} onClick={() => handleEnroll(p.id, p.nom)}>{t('enrolled')}</Button>
             </div>
           ))}
         </div>

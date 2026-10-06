@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ApiError } from '../ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../ApiState.jsx'
 import { useT } from '../../context/I18nContext.jsx'
 import * as coachingRequestService from '../../services/coachingRequestService.js'
 
@@ -23,6 +23,7 @@ export default function CreateClassModal({ onClose, onCreate, initialClass = nul
     capaciteMax: initialClass.capaciteMax,
   } : initialForm)
   const [saving, setSaving] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
   const [coaches, setCoaches] = useState([])
   const [coachesLoading, setCoachesLoading] = useState(true)
   const [coachesError, setCoachesError] = useState(null)
@@ -46,11 +47,21 @@ export default function CreateClassModal({ onClose, onCreate, initialClass = nul
 
   useEffect(() => { loadCoaches() }, [])
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
+  const saveClass = async () => {
     setSaving(true)
-    await onCreate({ ...form, jour: dayFromDate(form.date), capaciteMax: Number(form.capaciteMax), placesRestantes: Number(form.capaciteMax) })
-    setSaving(false)
+    setSubmitError(null)
+    try {
+      await onCreate({ ...form, jour: dayFromDate(form.date), capaciteMax: Number(form.capaciteMax), placesRestantes: Number(form.capaciteMax) })
+    } catch (error) {
+      setSubmitError(error)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    saveClass()
   }
 
   return (
@@ -72,9 +83,11 @@ export default function CreateClassModal({ onClose, onCreate, initialClass = nul
         <datalist id="class-coach-options">
           {matchingCoaches.map((coach) => <option key={coach.id} value={coach.nom} label={coach.specialty} />)}
         </datalist>
-        {coachesLoading && <p className="mt-2 text-sm text-text-muted" role="status">{t('loading')}</p>}
+        {coachesLoading && <ApiLoading message={t('loading')} />}
+        {!coachesLoading && !coachesError && coaches.length === 0 && <ApiEmpty message={t('noCoachesAvailable', 'Aucun coach disponible pour le moment.')} />}
         {!coachesLoading && !coachesError && form.coachNom.trim() && matchingCoaches.length === 0 && <p className="mt-2 text-sm text-text-muted" role="status">{t('noResults')}</p>}
         <ApiError error={coachesError} onRetry={loadCoaches} />
+        <ApiError error={submitError} onRetry={saveClass} />
         <div className="flex justify-end gap-3 mt-6"><button type="button" className="px-4 py-2.5 rounded-md border border-graphite-line text-text-muted" onClick={onClose}>{t('close')}</button><button className="button button-lime" disabled={saving || !selectedCoachIsValid}>{saving ? t('loading') : t(editing ? 'saveChanges' : 'createClass', editing ? 'Enregistrer' : 'Ajouter un cours')} <span aria-hidden="true">↗</span></button></div>
       </form>
     </div>

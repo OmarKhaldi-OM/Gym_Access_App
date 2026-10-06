@@ -1,5 +1,6 @@
 import { days as weekdayKeys, getDaysForWeek, OPEN_HOUR, HOUR_HEIGHT, TOTAL_HEIGHT, hourMarks, toDecimal } from '../../data/scheduleData.js'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
+import { ApiEmpty } from '../ApiState.jsx'
 
 const classTitleKeys = {
   'Yoga Matinal': 'classYoga', 'Spinning Soirée': 'classSpinning', Cycling: 'classCycling',
@@ -194,14 +195,14 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = '', 
               </div>
             ))}
           </div>
-          {!hasAny && <p className="schedule-empty-state">{t(emptyMessage || 'noSlots')}</p>}
+          {!hasAny && <ApiEmpty message={t(emptyMessage || 'noSlots')} className="schedule-empty-state" />}
         </div>
       </div>
 
       {/* Liste par jour — mobile */}
       <div className="md:hidden space-y-6">
         {!hasAny && (
-          <p className="text-base font-medium text-text-muted">{t(emptyMessage || 'noSlots')}</p>
+          <ApiEmpty message={t(emptyMessage || 'noSlots')} />
         )}
         {visibleDays.map((d) => {
           const dayBlocks = visibleBlocks.filter((b) => b.day === d.key)

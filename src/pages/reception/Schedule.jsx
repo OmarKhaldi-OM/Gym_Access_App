@@ -33,9 +33,9 @@ export default function Schedule() {
     <Layout role="reception">
       <h1 className="text-2xl font-bold mb-4">{t('classSchedule')}</h1>
       {loading && <ApiLoading message={t('loading')} />}
-      <ApiError error={error ? new Error(error) : null} onRetry={refresh} />
+      <ApiError error={error} onRetry={refresh} />
       <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
-      <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={setSelected} />
+      {!loading && !error && <ScheduleGrid blocks={blocks} weekOffset={weekOffset} onBlockClick={setSelected} />}
       <ClassDetailModal block={selected} onClose={() => setSelected(null)} />
     </Layout>
   )

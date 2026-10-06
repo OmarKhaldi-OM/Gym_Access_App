@@ -10,7 +10,7 @@ export function MembersProvider({ children }) {
   const [members, setMembers] = useState([])
   const [pendingEnrollments, setPendingEnrollments] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -32,7 +32,7 @@ export function MembersProvider({ children }) {
         setPendingEnrollments([])
       }
     } catch (requestError) {
-      setError(requestError.message)
+      setError(requestError)
       throw requestError
     } finally {
       setLoading(false)

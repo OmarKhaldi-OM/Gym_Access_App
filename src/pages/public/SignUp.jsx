@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { PublicShell } from '../../components/PublicSite.jsx'
+import { ApiLoading } from '../../components/ApiState.jsx'
 import * as membershipService from '../../services/membershipService.js'
 import { useT } from '../../context/I18nContext.jsx'
 
@@ -62,7 +63,7 @@ export default function SignUp() {
             <label>{t('email')}<input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={t('emailPlaceholder')} /></label>
             <label>{t('password')}<input required type="password" minLength={8} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t('passwordPlaceholder')} /></label>
             <div className="signup-plan-select"><div className="select-heading"><span>{t('signupStepPlan')}</span><Link to="/plans">{t('compare')}</Link></div>
-              <div className="select-controls"><label>{t('membershipType')}<select required disabled={plansLoading || plans.length === 0} value={planId} onChange={(event) => setPlanId(event.target.value)}>{plans.map((item) => <option key={item.id} value={item.id}>{item.nom}</option>)}</select></label><p>{plansLoading ? t('loading') : plan ? `${plan.prix} DT · ${plan.dureeJours} jours` : t('noPlansAvailable', 'Aucun forfait disponible pour le moment.')}</p></div>
+              <div className="select-controls"><label>{t('membershipType')}<select required disabled={plansLoading || plans.length === 0} value={planId} onChange={(event) => setPlanId(event.target.value)}>{plans.map((item) => <option key={item.id} value={item.id}>{item.nom}</option>)}</select></label>{plansLoading ? <ApiLoading message={t('loading')} /> : <p>{plan ? `${plan.prix} DT · ${plan.dureeJours} jours` : t('noPlansAvailable', 'Aucun forfait disponible pour le moment.')}</p>}</div>
               {plan && <div className="checkout-total"><div><strong>{plan.nom}</strong><span>{plan.dureeJours} jours</span></div><p><strong>{plan.prix} DT</strong></p></div>}
             </div>
             {error && <p className="form-error" role="alert">{error}</p>}

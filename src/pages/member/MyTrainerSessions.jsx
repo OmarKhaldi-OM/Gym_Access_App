@@ -40,12 +40,8 @@ export default function MyTrainerSessions() {
         <div>
           {loading && <ApiLoading message={t('loading')} />}
           <ApiError error={error} onRetry={loadSessions} />
-          {!loading && !error && sessions.length === 0 && (
-            <p className="px-5 py-4 text-base font-medium text-text-muted">
-              {t('noSessions')}
-            </p>
-          )}
-          {sessions.map((s, i) => (
+          {!loading && !error && sessions.length === 0 && <ApiEmpty message={t('noSessions')} />}
+          {!loading && !error && sessions.map((s, i) => (
             <div
               key={s.id}
               className={`flex items-center justify-between px-5 py-4 ${

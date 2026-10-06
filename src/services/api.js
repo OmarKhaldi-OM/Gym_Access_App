@@ -38,7 +38,7 @@ export async function apiRequest(path, options = {}) {
   try {
     response = await fetch(`${API_BASE_URL}${path}`, { ...requestOptions, headers })
   } catch {
-    const error = new Error('Le serveur est injoignable. Verifiez que le serveur est demarre puis reessayez.')
+    const error = new Error('Le serveur est injoignable. Vérifiez qu’il est démarré puis réessayez.')
     dispatchApiError(error.message)
     throw error
   }
@@ -49,16 +49,23 @@ export async function apiRequest(path, options = {}) {
 
   const body = await parseResponse(response)
   if (!response.ok) {
+    const serverMessage = typeof body?.message === 'string' ? body.message.trim() : ''
+    const safeServerMessage = response.status < 500
+      && serverMessage.length > 0
+      && serverMessage.length <= 300
+      && !/(?:exception|stack\s*trace|\bat\s+[\w.$]+\(|<\/?(?:html|body|pre)\b)/i.test(serverMessage)
+      ? serverMessage
+      : ''
     const message = response.status === 401
       ? path === '/api/auth/login'
         ? 'Adresse e-mail ou mot de passe incorrect.'
         : 'Votre session a expiré. Connectez-vous à nouveau.'
       : response.status === 403
         ? 'Vous n’avez pas les droits pour effectuer cette action.'
-        : (typeof body?.message === 'string' && body.message) || `La requete a echoue (${response.status}).`
+        : safeServerMessage || 'La requête a échoué. Veuillez réessayer.'
     const error = new Error(message)
     error.status = response.status
-      dispatchApiError(message)
+    dispatchApiError(message)
     throw error
   }
   return body

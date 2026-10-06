@@ -6,9 +6,11 @@ import ClassDetailModal from '../../components/schedule/ClassDetailModal.jsx'
 import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as coachService from '../../services/coachService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
+import { useT } from '../../context/I18nContext.jsx'
 
 export default function MySchedule() {
   const { user } = useAuth()
+  const t = useT()
   const [classes, setClasses] = useState([])
   const [personalSessions, setPersonalSessions] = useState([])
   const [selected, setSelected] = useState(null)
@@ -65,15 +67,15 @@ export default function MySchedule() {
   return (
     <Layout role="coach">
       <h1 className="text-2xl font-bold mb-4">Mon planning</h1>
-      {loading && <ApiLoading />}
+      {loading && <ApiLoading message={t('loading')} />}
       <ApiError error={error} onRetry={loadSchedule} />
       <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
-      <ScheduleGrid
+      {!loading && !error && <ScheduleGrid
         blocks={blocks}
         weekOffset={weekOffset}
         onBlockClick={setSelected}
         emptyMessage="noSessions"
-      />
+      />}
       <ClassDetailModal block={selected} onClose={() => setSelected(null)} />
     </Layout>
   )

@@ -3,7 +3,7 @@ import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
-import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as coachService from '../../services/coachService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useT } from '../../context/I18nContext.jsx'
@@ -33,7 +33,7 @@ export default function MyClients() {
         <div>
           {loading && <ApiLoading />}
           <ApiError error={error} onRetry={loadClients} />
-          {!loading && !error && clients.length === 0 && <p className="px-5 py-4 text-base font-medium text-text-muted">{t('noMembers')}</p>}
+          {!loading && !error && clients.length === 0 && <ApiEmpty message={t('noMembers')} />}
           {!loading && !error && clients.map((c, i) => (
             <div
               key={c.id}

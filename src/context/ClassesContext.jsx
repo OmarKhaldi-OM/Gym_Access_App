@@ -14,9 +14,10 @@ export function ClassesProvider({ children }) {
   const [personalSessions, setPersonalSessions] = useState([])
   const [myBookings, setMyBookings] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(null)
 
   const refresh = useCallback(async () => {
+    setLoading(shouldLoadClasses)
     setError('')
     try {
       if (!shouldLoadClasses) {
@@ -34,7 +35,7 @@ export function ClassesProvider({ children }) {
       setPersonalSessions(personalList)
       setMyBookings(bookings)
     } catch (requestError) {
-      setError(requestError.message)
+      setError(requestError)
       throw requestError
     } finally {
       setLoading(false)
