@@ -22,11 +22,9 @@ import AdminTrainerBookings from './pages/admin/TrainerBookings.jsx'
 import MyStatus from './pages/member/MyStatus.jsx'
 import MyClasses from './pages/member/MyClasses.jsx'
 import MyTrainerSessions from './pages/member/MyTrainerSessions.jsx'
-import MyProfile from './pages/member/MyProfile.jsx'
 
 import CoachSchedule from './pages/coach/MySchedule.jsx'
 import CoachClients from './pages/coach/MyClients.jsx'
-import CoachProfile from './pages/coach/MyProfile.jsx'
 
 import FrontDesk from './pages/reception/FrontDesk.jsx'
 import ReceptionSchedule from './pages/reception/Schedule.jsx'
