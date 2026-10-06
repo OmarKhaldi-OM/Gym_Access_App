@@ -10,6 +10,7 @@ import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.entity.Member;
+import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,7 +69,7 @@ public class BookingService {
     }
 
     private void requireMemberAccess(UUID memberId) {
-        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
         if (!staff && !memberRepository.findById(memberId)
                 .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
@@ -117,7 +118,7 @@ public class BookingService {
         }
 
         // Un Member ne peut annuler que sa propre reservation ; ADMIN/RECEPTIONIST peuvent tout annuler
-        boolean isStaffOrAdmin = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        boolean isStaffOrAdmin = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
         if (!isStaffOrAdmin) {
             String currentEmail = securityUtil.getCurrentUserEmail();
             if (!booking.getMember().getEmail().equals(currentEmail)) {

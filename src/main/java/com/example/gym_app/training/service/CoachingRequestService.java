@@ -11,6 +11,7 @@ import com.example.gym_app.training.entity.Trainer_Booking;
 import com.example.gym_app.training.repository.CoachingRequestRepository;
 import com.example.gym_app.training.repository.TrainerBookingRepository;
 import com.example.gym_app.user.entity.Member;
+import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.Trainer;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.user.repository.TrainerRepository;
@@ -55,7 +56,7 @@ public class CoachingRequestService {
     }
 
     private void requireMember(UUID memberId) {
-        if (!securityUtil.hasRole("ADMIN") && !securityUtil.hasRole("RECEPTIONIST")
+        if (!securityUtil.hasRole(Role.ADMIN) && !securityUtil.hasRole(Role.RECEPTIONIST)
                 && !memberRepository.findById(memberId).map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
@@ -67,7 +68,7 @@ public class CoachingRequestService {
     }
 
     public List<CoachingRequestResponseDTO> findByTrainer(UUID trainerId) {
-        if (!securityUtil.hasRole("ADMIN") && !securityUtil.hasRole("RECEPTIONIST")
+        if (!securityUtil.hasRole(Role.ADMIN) && !securityUtil.hasRole(Role.RECEPTIONIST)
                 && !trainerRepository.findById(trainerId).map(trainer -> trainer.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
@@ -94,7 +95,7 @@ public class CoachingRequestService {
         CoachingRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande introuvable"));
         String status = dto.getStatus().trim().toUpperCase();
-        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
         boolean member = request.getMember().getEmail().equals(securityUtil.getCurrentUserEmail());
         boolean trainer = request.getTrainer().getEmail().equals(securityUtil.getCurrentUserEmail());
         if ("CANCELLED".equals(status)) {

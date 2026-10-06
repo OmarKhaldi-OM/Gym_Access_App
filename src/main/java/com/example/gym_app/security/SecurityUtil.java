@@ -1,5 +1,6 @@
 package com.example.gym_app.security;
 
+import com.example.gym_app.user.entity.Role;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -16,9 +17,9 @@ public class SecurityUtil {
         return authentication.getName();
     }
 
-    public boolean hasRole(String role) {
+    public boolean hasRole(Role role) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role.name()));
     }
 }

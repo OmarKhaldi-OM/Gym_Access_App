@@ -8,6 +8,7 @@ import com.example.gym_app.membership.entity.Subscription;
 import com.example.gym_app.membership.repository.MembershipPlanRepository;
 import com.example.gym_app.membership.repository.SubscriptionRepository;
 import com.example.gym_app.user.entity.Member;
+import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.security.SecurityUtil;
 import org.springframework.security.access.AccessDeniedException;
@@ -77,7 +78,7 @@ public class SubscriptionService {
     }
 
     private void requireMemberAccess(UUID memberId) {
-        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
         if (!staff && !memberRepository.findById(memberId)
                 .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
             throw new AccessDeniedException("Acces refuse");

@@ -6,6 +6,7 @@ import com.example.gym_app.access.entity.Access_Log;
 import com.example.gym_app.access.repository.AccessLogRepository;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.user.entity.Member;
+import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.Staff;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.user.repository.StaffRepository;
@@ -69,7 +70,7 @@ public class AccessLogService {
     }
 
     public List<AccessLogResponseDTO> findByMember(UUID memberId) {
-        boolean staff = securityUtil.hasRole("ADMIN") || securityUtil.hasRole("RECEPTIONIST");
+        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
         if (!staff && !memberRepository.findById(memberId)
                 .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
             throw new AccessDeniedException("Acces refuse");

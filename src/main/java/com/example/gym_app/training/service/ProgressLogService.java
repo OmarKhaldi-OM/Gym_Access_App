@@ -6,6 +6,7 @@ import com.example.gym_app.training.dto.ProgressLogResponseDTO;
 import com.example.gym_app.training.entity.Progress_Log;
 import com.example.gym_app.training.repository.ProgressLogRepository;
 import com.example.gym_app.user.entity.Member;
+import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.security.SecurityUtil;
 import org.springframework.security.access.AccessDeniedException;
@@ -28,7 +29,7 @@ public class ProgressLogService {
     private SecurityUtil securityUtil;
 
     private void requireMemberAccess(UUID memberId) {
-        if (!securityUtil.hasRole("ADMIN") && !memberRepository.findById(memberId)
+        if (!securityUtil.hasRole(Role.ADMIN) && !memberRepository.findById(memberId)
                 .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
             throw new AccessDeniedException("Acces refuse");
         }

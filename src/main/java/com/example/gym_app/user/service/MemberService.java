@@ -62,7 +62,7 @@ public class MemberService {
     public MemberResponseDTO findById(UUID id) {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + id));
-        if (!securityUtil.hasRole("ADMIN") && !securityUtil.hasRole("RECEPTIONIST")
+        if (!securityUtil.hasRole(Role.ADMIN) && !securityUtil.hasRole(Role.RECEPTIONIST)
             && !member.getEmail().equals(securityUtil.getCurrentUserEmail())) {
             throw new AccessDeniedException("Acces refuse");
         }
