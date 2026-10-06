@@ -20,7 +20,7 @@ export default function ClassSchedule() {
 
   const handleDelete = async () => {
     if (!selectedClass) return
-    if (!window.confirm(`Supprimer « ${selectedClass.nom} » ?`)) return
+    if (!window.confirm(`${t('deleteClass')}: « ${selectedClass.nom} » ?`)) return
     await deleteClass(selectedClass.id)
     setSelected(null)
   }
@@ -33,7 +33,7 @@ export default function ClassSchedule() {
     title: c.nom,
     subtitle: c.coachNom,
     date: c.date || baseDays.find((day) => day.key === c.jour)?.dateValue,
-    meta: `${c.date ? `${c.date} · ` : ''}${c.studio} · ${c.placesRestantes}/${c.capaciteMax} places`,
+    meta: `${c.date ? `${c.date} · ` : ''}${c.studio} · ${c.placesRestantes}/${c.capaciteMax} ${t('spots')}`,
     muted: c.placesRestantes === 0,
     badge:
       c.placesRestantes === 0
@@ -44,8 +44,8 @@ export default function ClassSchedule() {
   return (
     <Layout role="admin">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Planning des cours</h1>
-        <Button onClick={() => setCreating(true)}>+ {t('createClass', 'Ajouter un cours')}</Button>
+        <h1 className="text-2xl font-bold">{t('classSchedule')}</h1>
+        <Button onClick={() => setCreating(true)}>+ {t('createClass')}</Button>
       </div>
 
       <WeekNav weekOffset={weekOffset} onWeekChange={setWeekOffset} />
@@ -53,8 +53,8 @@ export default function ClassSchedule() {
 
       <ClassDetailModal block={selected} onClose={() => setSelected(null)}>
         {selectedClass && <div className="flex gap-3">
-          <Button variant="secondary" className="flex-1" onClick={() => setCreating(selectedClass)}>Modifier</Button>
-          <Button className="flex-1 !bg-rose-100 !text-rose-800" onClick={handleDelete}>Supprimer</Button>
+          <Button variant="secondary" className="flex-1" onClick={() => setCreating(selectedClass)}>{t('editClass')}</Button>
+          <Button className="flex-1 !bg-rose-100 !text-rose-800" onClick={handleDelete}>{t('deleteClass')}</Button>
         </div>}
       </ClassDetailModal>
       {creating && <CreateClassModal initialClass={creating === true ? null : creating} onClose={() => setCreating(false)} onCreate={async (details) => { if (creating === true) await addClass(details); else await updateClass(creating.id, details); setCreating(false) }} />}

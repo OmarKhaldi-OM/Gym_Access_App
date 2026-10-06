@@ -4,23 +4,25 @@ import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import * as activityService from '../../services/activityService.js'
+import { useT } from '../../context/I18nContext.jsx'
 
 const chipMap = {
-  entree: { label: 'Entrée', variant: 'positive' },
-  sortie: { label: 'Sortie', variant: 'neutral' },
-  refuse: { label: 'Refusé', variant: 'negative' },
+  entree: { key: 'entry', variant: 'positive' },
+  sortie: { key: 'exit', variant: 'neutral' },
+  refuse: { key: 'refusedStatus', variant: 'negative' },
 }
 
 const statusFilters = [
-  { key: 'tous', label: 'Tous les statuts' },
-  { key: 'entree', label: 'Entrées' },
-  { key: 'sortie', label: 'Sorties' },
-  { key: 'refuse', label: 'Refusés' },
+  { key: 'tous', labelKey: 'allStatuses' },
+  { key: 'entree', labelKey: 'entries' },
+  { key: 'sortie', labelKey: 'exits' },
+  { key: 'refuse', labelKey: 'refused' },
 ]
 
-const TODAY = '2026-09-24'
+const TODAY = new Date().toISOString().slice(0, 10)
 
 export default function ActivityLog() {
+  const t = useT()
   const [logs, setLogs] = useState([])
   const [statusFilter, setStatusFilter] = useState('tous')
   const [todayOnly, setTodayOnly] = useState(false)
@@ -39,7 +41,7 @@ export default function ActivityLog() {
 
   return (
     <Layout role="admin">
-      <h1 className="text-2xl font-bold mb-6">Journal d'activité</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('activity')}</h1>
 
       <div className="flex flex-wrap gap-3 mb-4">
         {statusFilters.map((f) => (
@@ -52,7 +54,7 @@ export default function ActivityLog() {
                 : 'bg-graphite-panel text-text-muted border-graphite-line hover:text-text-primary'
             }`}
           >
-            {f.label}
+            {t(f.labelKey)}
           </button>
         ))}
         <button
@@ -63,16 +65,16 @@ export default function ActivityLog() {
               : 'bg-graphite-panel text-text-muted border-graphite-line hover:text-text-primary'
           }`}
         >
-          Aujourd'hui
+          {t('todayOnly')}
         </button>
       </div>
 
       <Panel>
-        <SectionHeader title={`${filtered.length} événement${filtered.length > 1 ? 's' : ''}`} />
+        <SectionHeader title={`${filtered.length} ${t(filtered.length === 1 ? 'event' : 'events')}`} />
         <div>
           {filtered.length === 0 && (
             <p className="px-5 py-4 text-base font-medium text-text-muted">
-              Aucun événement pour ce filtre.
+              {t('noEvents')}
             </p>
           )}
           {filtered.map((log, i) => (
@@ -89,7 +91,7 @@ export default function ActivityLog() {
               <div className="flex items-center gap-4">
                 <span className="text-base font-mono text-text-muted">{log.heure}</span>
                 <StatusChip variant={chipMap[log.type].variant}>
-                  {chipMap[log.type].label}
+                  {t(chipMap[log.type].key)}
                 </StatusChip>
               </div>
             </div>

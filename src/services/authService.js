@@ -1,84 +1,62 @@
-import { users } from '../mocks/users.js'
-import { addMember } from './memberService.js'
+import { apiGet, apiGetBlob, apiPost, authStorage } from './api.js'
 
-const ACCOUNT_KEY = 'gate.accounts'
-const SESSION_KEY = 'gate.user'
+const USER_KEY = 'gate.user'
 
-function getAccounts() {
-  try {
-    return JSON.parse(localStorage.getItem(ACCOUNT_KEY) || '[]')
-  } catch {
-    return []
+export function toFrontendUser(user) {
+  const roles = { MEMBER: 'membre', TRAINER: 'coach', RECEPTIONIST: 'reception', ADMIN: 'admin' }
+  return {
+    ...user,
+    displayName: [user.prenom, user.nom].filter(Boolean).join(' '),
+    role: roles[user.role] || user.role?.toLowerCase(),
   }
 }
 
-async function hashPassword(password) {
-  const bytes = new TextEncoder().encode(password)
-  const digest = await crypto.subtle.digest('SHA-256', bytes)
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('')
-}
-
-function saveSession(user) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user))
-  return { ...user }
+async function authenticate(path, payload) {
+  const result = await apiPost(path, payload)
+  authStorage.save(result.token, { email: result.email, role: result.role })
+  const user = await getIdentity()
+  authStorage.save(result.token, user)
+  return user
 }
 
 export function getCurrentUser() {
   try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null')
+    return JSON.parse(localStorage.getItem(USER_KEY) || 'null')
   } catch {
     return null
   }
 }
 
-// Plus tard : POST /auth/login  { email, motDePasse } -> { token, ...user }
-export async function login(role) {
-  const user = users.find((u) => u.role === role)
-  return Promise.resolve(user ? saveSession(user) : null)
+export async function login() {
+  throw new Error('Connectez-vous avec votre adresse email et votre mot de passe.')
 }
 
 export async function signIn({ email, password }) {
-  const normalizedEmail = email.trim().toLowerCase()
-  const account = getAccounts().find((entry) => entry.email === normalizedEmail)
-  if (!account || account.passwordHash !== (await hashPassword(password))) {
-    throw new Error('Adresse e-mail ou mot de passe incorrect.')
-  }
-  return saveSession(account.user)
+  return authenticate('/api/auth/login', { email: email.trim().toLowerCase(), motDePasse: password })
 }
 
-export async function signUp({ name, email, password, plan, billing }) {
-  const normalizedEmail = email.trim().toLowerCase()
-  const exists = users.some((entry) => entry.email.toLowerCase() === normalizedEmail)
-    || getAccounts().some((entry) => entry.email === normalizedEmail)
-  if (exists) throw new Error('Cette adresse e-mail est déjà utilisée.')
-
-  const memberId = `mem-${crypto.randomUUID()}`
-  const user = {
-    id: `user-${crypto.randomUUID()}`,
-    nom: name.trim(),
-    email: normalizedEmail,
-    role: 'membre',
-    memberId,
-    subscription: { plan, billing, startedAt: new Date().toISOString() },
-  }
-  const member = {
-    id: memberId,
-    nom: user.nom,
-    email: user.email,
-    plan,
-    statut: 'Actif',
-    dateInscription: new Date().toISOString().slice(0, 10),
-    visageEnrole: false,
-  }
-  await addMember(member)
-  localStorage.setItem(ACCOUNT_KEY, JSON.stringify([
-    ...getAccounts(),
-    { email: normalizedEmail, passwordHash: await hashPassword(password), user },
-  ]))
-  return saveSession(user)
+export async function signUp({ name, email, password }) {
+  const names = name.trim().split(/\s+/)
+  const prenom = names.shift()
+  const nom = names.join(' ') || prenom
+  return authenticate('/api/auth/register', {
+    nom,
+    prenom,
+    email: email.trim().toLowerCase(),
+    motDePasse: password,
+  })
 }
 
 export async function logout() {
-  localStorage.removeItem(SESSION_KEY)
-  return Promise.resolve(true)
+  authStorage.clear()
+  return true
+}
+
+export async function getIdentity() {
+  const identity = await apiGet('/api/auth/me')
+  const user = toFrontendUser(identity)
+  user.photoUrl = identity.hasProfilePhoto
+    ? URL.createObjectURL(await apiGetBlob('/api/auth/me/photo'))
+    : ''
+  return user
 }

@@ -1,15 +1,36 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import * as authService from '../services/authService.js'
+import { authStorage } from '../services/api.js'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => authService.getCurrentUser())
+  const [user, setUser] = useState(() => authStorage.getToken() ? authService.getCurrentUser() : null)
+  const [ready, setReady] = useState(() => !authStorage.getToken())
 
-  const login = useCallback(async (role) => {
-    const loggedInUser = await authService.login(role)
-    setUser(loggedInUser)
-    return loggedInUser
+  useEffect(() => {
+    const clearUser = () => {
+      setUser(null)
+      setReady(true)
+    }
+    const updateUser = (event) => setUser(event.detail)
+    window.addEventListener('gate:unauthorized', clearUser)
+    window.addEventListener('gate:identity', updateUser)
+    if (authStorage.getToken()) {
+      authService.getIdentity()
+        .then((currentUser) => {
+          authStorage.save(authStorage.getToken(), currentUser)
+          setUser(currentUser)
+        })
+        .catch(clearUser)
+        .finally(() => setReady(true))
+    } else {
+      localStorage.removeItem('gate.user')
+    }
+    return () => {
+      window.removeEventListener('gate:unauthorized', clearUser)
+      window.removeEventListener('gate:identity', updateUser)
+    }
   }, [])
 
   const signIn = useCallback(async (credentials) => {
@@ -29,9 +50,7 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
-  return (
-    <AuthContext.Provider value={{ user, login, signIn, signUp, logout }}>{children}</AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={{ user, ready, signIn, signUp, logout }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

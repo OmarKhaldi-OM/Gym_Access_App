@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useT } from '../../context/I18nContext.jsx'
 
-const initialForm = { nom: '', date: '2026-09-21', heureDebut: '09:00', heureFin: '10:00', coachNom: '', studio: 'Studio A', capaciteMax: 10 }
+const defaultDate = new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+const initialForm = { nom: '', date: defaultDate, heureDebut: '09:00', heureFin: '10:00', coachNom: '', studio: 'Studio A', capaciteMax: 10 }
 
 function dayFromDate(dateValue) {
   const dayKeys = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi']

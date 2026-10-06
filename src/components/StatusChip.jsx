@@ -15,6 +15,12 @@ export default function StatusChip({ children, variant = 'neutral' }) {
     'Non enrôlé': 'notEnrolled', 'Not enrolled': 'notEnrolled',
     Entrée: 'entry', Entry: 'entry', Sortie: 'exit', Exit: 'exit',
     Refusé: 'refusedStatus', Refused: 'refusedStatus',
+    Enrôlé: 'enrolledStatus', Enrolled: 'enrolledStatus',
+    'En attente': 'pending', Pending: 'pending', Confirmée: 'confirmed', Confirmed: 'confirmed',
+    Acceptée: 'accepted', Accepted: 'accepted', Refusée: 'rejected', Rejected: 'rejected',
+    Annulée: 'cancelled', Cancelled: 'cancelled', Terminée: 'completed', Completed: 'completed',
+    Complet: 'complete', Full: 'complete', Réservé: 'reserved', Booked: 'reserved',
+    Présent: 'present', Present: 'present',
   }[children]
   return (
     <span

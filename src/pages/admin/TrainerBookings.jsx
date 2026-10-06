@@ -4,27 +4,37 @@ import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import * as trainerBookingService from '../../services/trainerBookingService.js'
+import { useI18n, useT } from '../../context/I18nContext.jsx'
 
 const chipMap = {
-  confirmee: { label: 'Confirmée', variant: 'positive' },
-  en_attente: { label: 'En attente', variant: 'neutral' },
-  annulee: { label: 'Annulée', variant: 'negative' },
+  confirmee: { key: 'confirmed', variant: 'positive' },
+  en_attente: { key: 'pending', variant: 'neutral' },
+  annulee: { key: 'cancelled', variant: 'negative' },
+  terminee: { key: 'completed', variant: 'positive' },
 }
 
 export default function TrainerBookings() {
+  const t = useT()
+  const { language } = useI18n()
   const [bookings, setBookings] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    trainerBookingService.getTrainerBookings().then(setBookings)
+    trainerBookingService.getTrainerBookings()
+      .then(setBookings)
+      .catch(() => setBookings([]))
+      .finally(() => setLoading(false))
   }, [])
 
   return (
     <Layout role="admin">
-      <h1 className="text-2xl font-bold mb-6">Réservations avec coach</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('trainerReservations')}</h1>
 
       <Panel>
-        <SectionHeader title="Sessions personnelles" />
+        <SectionHeader title={t('personalSessions')} />
         <div>
+          {loading && <p className="px-5 py-4 text-base font-medium text-text-muted" role="status">{t('loading')}</p>}
+          {!loading && bookings.length === 0 && <p className="px-5 py-4 text-base font-medium text-text-muted">{t('noSessions')}</p>}
           {bookings.map((b, i) => (
             <div
               key={b.id}
@@ -36,12 +46,12 @@ export default function TrainerBookings() {
                 <Avatar name={b.clientNom} />
                 <div>
                   <p className="text-lg font-semibold">{b.clientNom}</p>
-                  <p className="text-base font-medium text-text-muted mt-0.5">avec {b.coachNom}</p>
+                  <p className="text-base font-medium text-text-muted mt-0.5">{t('withCoach')} {b.coachNom}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-base font-mono text-text-muted">{b.quand}</span>
-                <StatusChip variant={chipMap[b.statut].variant}>{chipMap[b.statut].label}</StatusChip>
+                <time className="text-base text-text-muted" dateTime={b.dateTime}>{new Date(b.dateTime).toLocaleString(language, { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>
+                <StatusChip variant={(chipMap[b.statut] || chipMap.en_attente).variant}>{t((chipMap[b.statut] || chipMap.en_attente).key)}</StatusChip>
               </div>
             </div>
           ))}

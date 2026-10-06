@@ -1,31 +1,55 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import * as memberService from '../services/memberService.js'
+import { useAuth } from './AuthContext.jsx'
 
 const MembersContext = createContext(null)
 
 export function MembersProvider({ children }) {
+  const { user } = useAuth()
   const [members, setMembers] = useState([])
   const [pendingEnrollments, setPendingEnrollments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const refresh = useCallback(async () => {
-    const [membersList, pending] = await Promise.all([
-      memberService.getMembers(),
-      memberService.getPendingEnrollments(),
-    ])
-    setMembers(membersList)
-    setPendingEnrollments(pending)
-    setLoading(false)
-  }, [])
+    setError('')
+    try {
+      if (!user) {
+        setMembers([])
+        setPendingEnrollments([])
+      } else if (user.role === 'admin' || user.role === 'reception') {
+        const membersList = await memberService.getMembers()
+        const pending = await memberService.getPendingEnrollments(membersList)
+        setMembers(membersList)
+        setPendingEnrollments(pending)
+      } else if (user.role === 'membre') {
+        setMembers([await memberService.getMemberById(user.id)])
+        setPendingEnrollments([])
+      } else {
+        setMembers([])
+        setPendingEnrollments([])
+      }
+    } catch (requestError) {
+      setError(requestError.message)
+      throw requestError
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
 
   useEffect(() => {
-    refresh()
+    refresh().catch(() => {})
   }, [refresh])
 
   const enroll = useCallback(
     async (id) => {
-      await memberService.enrollMember(id)
-      await refresh()
+      try {
+        await memberService.enrollMember(id)
+        await refresh()
+        return true
+      } catch {
+        return false
+      }
     },
     [refresh],
   )
@@ -34,7 +58,7 @@ export function MembersProvider({ children }) {
 
   return (
     <MembersContext.Provider
-      value={{ members, pendingEnrollments, loading, enroll, search, refresh }}
+      value={{ members, pendingEnrollments, loading, error, enroll, search, refresh }}
     >
       {children}
     </MembersContext.Provider>

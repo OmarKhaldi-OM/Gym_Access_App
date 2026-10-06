@@ -1,17 +1,25 @@
-import { activityLog as initialLog } from '../mocks/activityLog.js'
+import { apiGet } from './api.js'
 
-let activityLog = [...initialLog]
-
-// Plus tard : GET /api/access-logs/periode?start=...&end=...
-export async function getActivityLog() {
-  return Promise.resolve([...activityLog].sort((a, b) => (a.heure < b.heure ? 1 : -1)))
+function mapLog(log) {
+  const value = log.horodatage
+  const timestamp = Array.isArray(value)
+    ? { date: value.slice(0, 3).map((part) => String(part).padStart(2, '0')).join('-'), time: value.slice(3, 5).map((part) => String(part).padStart(2, '0')).join(':') }
+    : { date: value?.slice(0, 10), time: value?.slice(11, 16) }
+  const accessType = log.typeAcces?.toLowerCase()
+  return {
+    ...log,
+    membreId: log.memberId,
+    membreNom: log.memberNom,
+    date: timestamp.date,
+    heure: timestamp.time,
+    type: log.resultat?.toLowerCase() === 'refuse' ? 'refuse' : accessType === 'sortie' ? 'sortie' : 'entree',
+  }
 }
 
-// Plus tard : GET /api/access-logs/member/{memberId}
+export async function getActivityLog() {
+  return (await apiGet('/api/access-logs')).map(mapLog).sort((a, b) => `${b.date}${b.heure}`.localeCompare(`${a.date}${a.heure}`))
+}
+
 export async function getMemberActivity(memberId) {
-  return Promise.resolve(
-    activityLog
-      .filter((l) => l.membreId === memberId)
-      .sort((a, b) => (a.date + a.heure < b.date + b.heure ? 1 : -1)),
-  )
+  return (await apiGet(`/api/access-logs/member/${memberId}`)).map(mapLog).sort((a, b) => `${b.date}${b.heure}`.localeCompare(`${a.date}${a.heure}`))
 }

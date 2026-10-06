@@ -1,66 +1,88 @@
-import { members as initialMembers } from '../mocks/members.js'
+import { apiGet, apiPost } from './api.js'
 
-const STORAGE_KEY = 'gate.members'
+function fullName(member) {
+  return [member.prenom, member.nom].filter(Boolean).join(' ')
+}
 
-function loadMembers() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || [...initialMembers]
-  } catch {
-    return [...initialMembers]
+function dateOnly(value) {
+  return Array.isArray(value)
+    ? `${value[0]}-${String(value[1]).padStart(2, '0')}-${String(value[2]).padStart(2, '0')}`
+    : value?.slice(0, 10)
+}
+
+function dateTime(value) {
+  if (!Array.isArray(value)) return value
+  const [year, month, day, hour = 0, minute = 0, second = 0] = value
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:${String(second).padStart(2, '0')}`
+}
+
+function mapSubscription(subscription) {
+  if (!subscription) return null
+  return { ...subscription, dateDebut: dateOnly(subscription.dateDebut), dateFin: dateOnly(subscription.dateFin) }
+}
+
+function mapMember(member, subscription = null) {
+  subscription = mapSubscription(subscription)
+  return {
+    ...member,
+    nom: fullName(member),
+    plan: subscription?.planNom || '—',
+    dateInscription: dateTime(member.dateInscription),
+    statut: subscription?.statut?.toLowerCase() === 'actif' ? 'Actif' : 'Inactif',
+    visageEnrole: member.visageEnrole,
+    subscription,
   }
 }
 
-// État en mémoire — représente ce qui viendrait de GET /api/members.
-let members = loadMembers()
-
-function saveMembers() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(members))
-}
-
-function daysAgoLabel(dateStr) {
-  const diffMs = Date.now() - new Date(dateStr).getTime()
-  const days = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)))
-  if (days === 0) return "Inscrit aujourd'hui"
-  if (days === 1) return 'Inscrit il y a 1 jour'
-  return `Inscrit il y a ${days} jours`
-}
-
-// Plus tard : GET /api/members
 export async function getMembers() {
-  return Promise.resolve([...members])
+  const [members, subscriptions] = await Promise.all([
+    apiGet('/api/members'),
+    apiGet('/api/subscriptions'),
+  ])
+  const latestByMember = new Map()
+  subscriptions.map(mapSubscription).forEach((subscription) => {
+    const previous = latestByMember.get(subscription.memberId)
+    if (!previous || subscription.dateDebut > previous.dateDebut) latestByMember.set(subscription.memberId, subscription)
+  })
+  return members.map((member) => mapMember(member, latestByMember.get(member.id)))
 }
 
-// Plus tard : GET /api/members/{id}
 export async function getMemberById(id) {
-  return Promise.resolve(members.find((m) => m.id === id) ?? null)
+  const [member, subscriptions] = await Promise.all([
+    apiGet(`/api/members/${id}`),
+    apiGet(`/api/subscriptions/member/${id}`),
+  ])
+  const subscription = subscriptions.map(mapSubscription).sort((a, b) => b.dateDebut.localeCompare(a.dateDebut))[0]
+  return mapMember(member, subscription)
 }
 
 export async function addMember(member) {
-  members = [...members, member]
-  saveMembers()
-  return Promise.resolve(member)
+  return apiPost('/api/members', {
+    nom: member.nom,
+    prenom: member.prenom,
+    email: member.email,
+    motDePasse: member.password,
+    dateNaissance: member.dateNaissance,
+  })
 }
 
-// Plus tard : GET /api/members?search=...
 export async function searchMembers(query) {
-  const q = query.trim().toLowerCase()
-  if (!q) return Promise.resolve([...members])
-  return Promise.resolve(members.filter((m) => m.nom.toLowerCase().includes(q)))
+  const members = await getMembers()
+  const normalized = query.trim().toLowerCase()
+  return normalized ? members.filter((member) => member.nom.toLowerCase().includes(normalized)) : members
 }
 
-// Dérivé des membres dont visageEnrole === false
-// Plus tard : GET /api/face-embeddings/pending (ou équivalent)
-export async function getPendingEnrollments() {
-  return Promise.resolve(
-    members
-      .filter((m) => !m.visageEnrole)
-      .map((m) => ({ id: m.id, nom: m.nom, since: daysAgoLabel(m.dateInscription) })),
-  )
+export async function getPendingEnrollments(membersList) {
+  const members = membersList || await getMembers()
+  return members.filter((member) => !member.visageEnrole).map((member) => ({
+    id: member.id,
+    nom: member.nom,
+    daysSince: Math.max(0, Math.floor((Date.now() - new Date(member.dateInscription).getTime()) / 86400000)),
+  }))
 }
 
-// Plus tard : POST /api/face-embeddings (avec les photos)
-export async function enrollMember(id) {
-  members = members.map((m) => (m.id === id ? { ...m, visageEnrole: true } : m))
-  saveMembers()
-  return Promise.resolve(members.find((m) => m.id === id) ?? null)
+export async function enrollMember() {
+  const message = 'La capture faciale doit être configurée avant de pouvoir enrôler un membre.'
+  window.dispatchEvent(new CustomEvent('gate:api-error', { detail: message }))
+  throw new Error(message)
 }

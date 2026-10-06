@@ -7,6 +7,7 @@ import * as memberService from '../../services/memberService.js'
 import * as activityService from '../../services/activityService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useT } from '../../context/I18nContext.jsx'
+import { useI18n } from '../../context/I18nContext.jsx'
 
 function pairSessions(entries) {
   const sessions = []
@@ -24,8 +25,9 @@ function pairSessions(entries) {
 
 export default function MyStatus() {
   const { user } = useAuth()
-  const memberId = user?.memberId || 'mem-1'
+  const memberId = user?.id
   const t = useT()
+  const { language } = useI18n()
   const [member, setMember] = useState(null)
   const [sessions, setSessions] = useState([])
 
@@ -49,7 +51,7 @@ export default function MyStatus() {
           <Avatar name={member.nom} size="lg" />
           <div className="flex-1">
             <p className="text-xl font-bold">{member.nom}</p>
-            <p className="text-base font-medium text-text-muted mt-0.5">Plan {member.plan}</p>
+            <p className="text-base font-medium text-text-muted mt-0.5">{t('plan')} {t(member.plan)}</p>
           </div>
           <StatusChip variant={member.statut === 'Actif' ? 'positive' : 'neutral'}>
             {member.statut}
@@ -82,7 +84,7 @@ export default function MyStatus() {
               }`}
             >
               <span className="text-base font-medium text-text-muted">
-                {new Date(s.date).toLocaleDateString('fr-FR')}
+                {new Date(s.date).toLocaleDateString(language)}
               </span>
               <div className="flex items-center gap-3">
                 <span className="text-base font-mono text-text-muted">

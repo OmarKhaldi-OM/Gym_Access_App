@@ -6,7 +6,8 @@ import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import * as memberService from '../../services/memberService.js'
 import * as activityService from '../../services/activityService.js'
-import { useClasses } from '../../context/ClassesContext.jsx'
+import * as classService from '../../services/classService.js'
+import { useI18n, useT } from '../../context/I18nContext.jsx'
 
 function pairSessions(entries) {
   // Regroupe les entrées/sorties consécutives d'un même jour en sessions.
@@ -24,25 +25,28 @@ function pairSessions(entries) {
 }
 
 export default function MemberProfile() {
+  const t = useT()
+  const { language } = useI18n()
   const { id } = useParams()
-  const { myBookings } = useClasses()
   const [member, setMember] = useState(null)
   const [sessions, setSessions] = useState([])
+  const [memberBookings, setMemberBookings] = useState([])
 
   useEffect(() => {
     memberService.getMemberById(id).then(setMember)
     activityService.getMemberActivity(id).then((entries) => setSessions(pairSessions(entries)))
+    classService.getMyBookings(id).then(setMemberBookings)
   }, [id])
 
   if (!member) {
     return (
       <Layout role="admin">
-        <p className="text-base font-medium text-text-muted">Chargement du profil…</p>
+        <p className="text-base font-medium text-text-muted">{t('loading')}</p>
       </Layout>
     )
   }
 
-  const confirmedBookings = myBookings.filter(
+  const confirmedBookings = memberBookings.filter(
     (b) => b.membreId === id && b.statut === 'confirmee' && b.classe,
   )
 
@@ -61,20 +65,20 @@ export default function MemberProfile() {
         </div>
         <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-graphite-line">
           <div>
-            <p className="text-base font-medium text-text-muted">Plan</p>
-            <p className="text-lg font-semibold mt-1">{member.plan}</p>
+            <p className="text-base font-medium text-text-muted">{t('plan')}</p>
+            <p className="text-lg font-semibold mt-1">{t(member.plan)}</p>
           </div>
           <div>
-            <p className="text-base font-medium text-text-muted">Membre depuis</p>
+            <p className="text-base font-medium text-text-muted">{t('memberSince')}</p>
             <p className="text-lg font-mono mt-1">
-              {new Date(member.dateInscription).toLocaleDateString('fr-FR')}
+              {new Date(member.dateInscription).toLocaleDateString(language)}
             </p>
           </div>
           <div>
-            <p className="text-base font-medium text-text-muted">Enrôlement facial</p>
+            <p className="text-base font-medium text-text-muted">{t('facialEnrollment')}</p>
             <div className="mt-1">
               <StatusChip variant={member.visageEnrole ? 'positive' : 'neutral'}>
-                {member.visageEnrole ? 'Enrôlé' : 'Non enrôlé'}
+                {member.visageEnrole ? t('enrolledStatus') : t('notEnrolled')}
               </StatusChip>
             </div>
           </div>
@@ -83,11 +87,11 @@ export default function MemberProfile() {
 
       <div className="grid grid-cols-2 gap-6">
         <Panel>
-          <SectionHeader title="Historique des passages" />
+          <SectionHeader title={t('visitHistory')} />
           <div>
             {sessions.length === 0 && (
               <p className="px-5 py-4 text-base font-medium text-text-muted">
-                Aucun passage enregistré.
+                {t('noPassages')}
               </p>
             )}
             {sessions.map((s, i) => (
@@ -98,14 +102,14 @@ export default function MemberProfile() {
                 }`}
               >
                 <span className="text-base font-medium text-text-muted">
-                  {new Date(s.date).toLocaleDateString('fr-FR')}
+                  {new Date(s.date).toLocaleDateString(language)}
                 </span>
                 <div className="flex items-center gap-3">
                   <span className="text-base font-mono text-text-muted">
-                    Entrée {s.entry}
-                    {s.exit ? ` — Sortie ${s.exit}` : ''}
+                    {t('entry')} {s.entry}
+                    {s.exit ? ` — ${t('exit')} ${s.exit}` : ''}
                   </span>
-                  {!s.exit && <StatusChip variant="positive">En cours</StatusChip>}
+                  {!s.exit && <StatusChip variant="positive">{t('inProgress')}</StatusChip>}
                 </div>
               </div>
             ))}
@@ -113,11 +117,11 @@ export default function MemberProfile() {
         </Panel>
 
         <Panel>
-          <SectionHeader title="Cours réservés" />
+          <SectionHeader title={t('bookedClasses')} />
           <div>
             {confirmedBookings.length === 0 && (
               <p className="px-5 py-4 text-base font-medium text-text-muted">
-                Aucun cours réservé.
+                {t('noBookedClasses')}
               </p>
             )}
             {confirmedBookings.map((b, i) => (

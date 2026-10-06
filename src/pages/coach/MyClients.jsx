@@ -4,22 +4,24 @@ import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import * as coachService from '../../services/coachService.js'
-
-const COACH_NAME = 'Rania Sfar'
+import { useAuth } from '../../context/AuthContext.jsx'
+import { useT } from '../../context/I18nContext.jsx'
 
 export default function MyClients() {
+  const t = useT()
+  const { user } = useAuth()
   const [clients, setClients] = useState([])
 
   useEffect(() => {
-    coachService.getCoachClients(COACH_NAME).then(setClients)
-  }, [])
+    if (user?.displayName) coachService.getCoachClients(user.displayName).then(setClients)
+  }, [user?.displayName])
 
   return (
     <Layout role="coach">
-      <h1 className="text-2xl font-bold mb-6">Mes clients</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('myClients')}</h1>
 
       <Panel>
-        <SectionHeader title={`${clients.length} clients`} />
+        <SectionHeader title={`${clients.length} ${t('members').toLowerCase()}`} />
         <div>
           {clients.map((c, i) => (
             <div
@@ -32,14 +34,14 @@ export default function MyClients() {
                 <Avatar name={c.nom} />
                 <div>
                   <p className="text-lg font-semibold">{c.nom}</p>
-                  <p className="text-base font-medium text-text-muted mt-0.5">Plan {c.plan}</p>
+                  <p className="text-base font-medium text-text-muted mt-0.5">{t('plan')} {t(c.plan)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-base font-mono text-text-muted">
-                  Dernière séance : {c.derniereSeance}
+                  {t('lastSession')}: {c.daysSinceLastSession === 0 ? `${t('today')} ${c.lastSessionTime}` : (c.daysSinceLastSession === 7 ? t('weekAgo') : t('daysAgo').replace('{count}', c.daysSinceLastSession))}
                 </span>
-                <StatusChip variant="positive">Actif</StatusChip>
+                <StatusChip variant="positive">Active</StatusChip>
               </div>
             </div>
           ))}

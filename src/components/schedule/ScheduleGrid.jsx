@@ -1,25 +1,48 @@
 import { days as weekdayKeys, getDaysForWeek, OPEN_HOUR, HOUR_HEIGHT, TOTAL_HEIGHT, hourMarks, toDecimal } from '../../data/scheduleData.js'
-import { useT } from '../../context/I18nContext.jsx'
+import { useI18n, useT } from '../../context/I18nContext.jsx'
 
-function Badge({ badge }) {
+const classTitleKeys = {
+  'Yoga Matinal': 'classYoga', 'Spinning Soirée': 'classSpinning', Cycling: 'classCycling',
+  'Danse Fitness': 'classDance', CrossTraining: 'classCrossTraining', 'CrossTraining Matin': 'classMorningCrossTraining',
+  'Yoga Doux': 'classGentleYoga', 'Yoga Weekend': 'classWeekendYoga', 'Boxe Découverte': 'classIntroBoxing',
+  'Pilates Soir': 'classEveningPilates', 'Pilates Duo': 'classDuoPilates', Boxe: 'classBoxing',
+  Renforcement: 'classStrength', Pilates: 'classPilates', Spinning: 'classSpinning',
+  groupClass: 'groupClass', personalSession: 'personalSession',
+}
+
+export function localizedTitle(title, t) {
+  return classTitleKeys[title] ? t(classTitleKeys[title]) : title
+}
+
+function localizedBadge(text, t) {
+  if (['Complet', 'Full'].includes(text)) return t('complete')
+  if (['Réservé', 'Booked'].includes(text)) return t('reserved')
+  const spots = text.match(/^(\d+) places?$/)
+  if (spots) return `${spots[1]} ${t('spots')}`
+  const clients = text.match(/^(\d+) clients?$/)
+  if (clients) return `${clients[1]} ${t('client')}`
+  return text
+}
+
+function Badge({ badge, t }) {
   if (!badge) return null
   if (badge.tone === 'solid') {
     return (
       <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-sm font-semibold bg-coral text-graphite-bg">
-        {badge.text}
+        {localizedBadge(badge.text, t)}
       </span>
     )
   }
   if (badge.tone === 'muted') {
     return (
       <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-sm font-semibold bg-graphite-hover text-text-muted">
-        {badge.text}
+        {localizedBadge(badge.text, t)}
       </span>
     )
   }
   return (
     <span className="inline-block mt-1 text-sm font-mono font-semibold text-teal">
-      {badge.text}
+      {localizedBadge(badge.text, t)}
     </span>
   )
 }
@@ -64,7 +87,7 @@ function getLayouts(blocks) {
   return layouts
 }
 
-function Block({ b, onClick, layout }) {
+function Block({ b, onClick, layout, t }) {
   const top = (toDecimal(b.start) - OPEN_HOUR) * HOUR_HEIGHT + 4
   const height = Math.max(34, (toDecimal(b.end) - toDecimal(b.start)) * HOUR_HEIGHT - 8)
   const columnWidth = 100 / layout.columns
@@ -74,51 +97,52 @@ function Block({ b, onClick, layout }) {
       style={{
         top,
         height,
-        left: `calc(${layout.column * columnWidth}% + 4px)`,
+        insetInlineStart: `calc(${layout.column * columnWidth}% + 4px)`,
         width: `calc(${columnWidth}% - 8px)`,
       }}
       onClick={onClick ? () => onClick(b) : undefined}
-      className={`schedule-block absolute rounded-md border-l-4 px-2.5 py-1.5 overflow-hidden ${
+      className={`schedule-block absolute rounded-md border-s-4 px-2.5 py-1.5 overflow-hidden ${
         onClick ? 'cursor-pointer hover:brightness-125' : ''
       } ${b.muted ? 'bg-graphite-hover border-coral' : 'bg-coral/10 border-coral'}`}
     >
-      <p className="text-base font-bold leading-tight truncate">{b.title}</p>
+      <p className="text-base font-bold leading-tight truncate">{localizedTitle(b.title, t)}</p>
       {b.subtitle && (
-        <p className="text-sm font-medium text-text-muted leading-tight truncate mt-0.5">{b.subtitle}</p>
+        <p className="text-sm font-medium text-text-muted leading-tight truncate mt-0.5">{localizedTitle(b.subtitle, t)}</p>
       )}
       {b.meta && <p className="text-sm font-mono text-text-muted leading-tight truncate">{b.meta}</p>}
-      <Badge badge={b.badge} />
+      <Badge badge={b.badge} t={t} />
     </div>
   )
 }
 
-function MobileCard({ b, onClick }) {
+function MobileCard({ b, onClick, t }) {
   return (
     <div
       onClick={onClick ? () => onClick(b) : undefined}
-      className={`rounded-md border-l-4 px-3 py-2.5 ${onClick ? 'cursor-pointer' : ''} ${
+      className={`rounded-md border-s-4 px-3 py-2.5 ${onClick ? 'cursor-pointer' : ''} ${
         b.muted ? 'bg-graphite-hover border-coral' : 'bg-coral/10 border-coral'
       }`}
     >
       <div className="flex items-center justify-between gap-3">
-        <p className="text-base font-bold truncate">{b.title}</p>
+        <p className="text-base font-bold truncate">{localizedTitle(b.title, t)}</p>
         <span className="text-sm font-mono text-text-muted whitespace-nowrap">
           {b.start} – {b.end}
         </span>
       </div>
       {(b.subtitle || b.meta) && (
         <p className="text-sm font-medium text-text-muted mt-0.5">
-          {[b.subtitle, b.meta].filter(Boolean).join(' · ')}
+          [b.subtitle && localizedTitle(b.subtitle, t), b.meta].filter(Boolean).join(' · ')
         </p>
       )}
-      <Badge badge={b.badge} />
+      <Badge badge={b.badge} t={t} />
     </div>
   )
 }
 
-export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Aucun créneau cette semaine', weekOffset = 0 }) {
+export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = '', weekOffset = 0 }) {
   const t = useT()
-  const visibleDays = getDaysForWeek(weekOffset)
+  const { language } = useI18n()
+  const visibleDays = getDaysForWeek(weekOffset, language)
   const hasDates = blocks.some((block) => block.date)
   const visibleDateValues = new Set(visibleDays.map((day) => day.dateValue))
   const visibleBlocks = hasDates ? blocks.filter((block) => visibleDateValues.has(block.date)) : (weekOffset === 0 ? blocks : [])
@@ -134,7 +158,7 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
             <div className="w-16 shrink-0" />
             {visibleDays.map((d) => (
               <div key={d.key} className="flex-1 text-center py-3 border-l border-graphite-line">
-                <p className="text-base font-bold">{d.label}</p>
+                <p className="text-base font-bold">{t(({ lundi: 'monday', mardi: 'tuesday', mercredi: 'wednesday', jeudi: 'thursday', vendredi: 'friday', samedi: 'saturday', dimanche: 'sunday' })[d.key])}</p>
                 <p className="text-sm font-mono text-text-muted">{d.date}</p>
               </div>
             ))}
@@ -146,7 +170,7 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
                 <span
                   key={h}
                   style={{ top: (h - OPEN_HOUR) * HOUR_HEIGHT - 8 }}
-                  className="absolute right-2 text-sm font-mono text-text-muted"
+                  className="absolute end-2 text-sm font-mono text-text-muted"
                 >
                   {h}h
                 </span>
@@ -165,19 +189,19 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
                 {visibleBlocks
                   .filter((b) => b.day === d.key)
                   .map((b) => (
-                    <Block key={b.id} b={b} layout={layouts.get(b.id) || { column: 0, columns: 1 }} onClick={onBlockClick} />
+                    <Block key={b.id} b={b} layout={layouts.get(b.id) || { column: 0, columns: 1 }} onClick={onBlockClick} t={t} />
                   ))}
               </div>
             ))}
           </div>
-          {!hasAny && <p className="schedule-empty-state">{emptyMessage === 'Aucun créneau cette semaine' ? t('noSlots') : emptyMessage}</p>}
+          {!hasAny && <p className="schedule-empty-state">{t(emptyMessage || 'noSlots')}</p>}
         </div>
       </div>
 
       {/* Liste par jour — mobile */}
       <div className="md:hidden space-y-6">
         {!hasAny && (
-          <p className="text-base font-medium text-text-muted">{emptyMessage === 'Aucun créneau cette semaine' ? t('noSlots') : emptyMessage}</p>
+          <p className="text-base font-medium text-text-muted">{t(emptyMessage || 'noSlots')}</p>
         )}
         {visibleDays.map((d) => {
           const dayBlocks = visibleBlocks.filter((b) => b.day === d.key)
@@ -185,11 +209,11 @@ export default function ScheduleGrid({ blocks, onBlockClick, emptyMessage = 'Auc
           return (
             <div key={d.key}>
               <h2 className="text-xl font-bold mb-3">
-                {d.label} <span className="text-text-muted font-mono text-base">{d.date}</span>
+                {t(({ lundi: 'monday', mardi: 'tuesday', mercredi: 'wednesday', jeudi: 'thursday', vendredi: 'friday', samedi: 'saturday', dimanche: 'sunday' })[d.key])} <span className="text-text-muted font-mono text-base">{d.date}</span>
               </h2>
               <div className="space-y-3">
                 {dayBlocks.map((b) => (
-                  <MobileCard key={b.id} b={b} onClick={onBlockClick} />
+                  <MobileCard key={b.id} b={b} onClick={onBlockClick} t={t} />
                 ))}
               </div>
             </div>

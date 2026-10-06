@@ -23,8 +23,7 @@ export default function Dashboard() {
   const deniedToday = activity.filter((a) => a.type === 'refuse').length
 
   const handleEnroll = async (id, nom) => {
-    await enroll(id)
-    showToast(`${nom} · ${t('enrolled')}`)
+    if (await enroll(id)) showToast(`${nom} · ${t('enrolled')}`)
   }
 
   return (
@@ -54,7 +53,7 @@ export default function Dashboard() {
             >
               <div>
                 <p className="text-lg font-semibold">{p.nom}</p>
-                <p className="text-base font-medium text-text-muted mt-0.5">{p.since}</p>
+                <p className="text-base font-medium text-text-muted mt-0.5">{p.daysSince === 0 ? t('registeredToday') : (p.daysSince === 1 ? t('registeredOneDay') : t('registeredDays').replace('{count}', p.daysSince))}</p>
               </div>
               <Button onClick={() => handleEnroll(p.id, p.nom)}>{t('enrolled')}</Button>
             </div>

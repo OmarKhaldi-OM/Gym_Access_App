@@ -1,9 +1,9 @@
 import { useI18n, useT } from '../context/I18nContext.jsx'
 
 const languages = [
-  { code: 'en', flag: '🇬🇧', label: 'English' },
-  { code: 'fr', flag: '🇫🇷', label: 'Français' },
-  { code: 'ar', flag: '🇹🇳', label: 'العربية' },
+  { code: 'en',  label: 'En' },
+  { code: 'fr',  label: 'Fr' },
+  { code: 'ar',  label: 'Ar' },
 ]
 
 export default function LanguageControls() {
@@ -11,20 +11,19 @@ export default function LanguageControls() {
   const t = useT()
 
   return (
-    <div className="language-controls" role="group" aria-label={t('language')}>
-      {languages.map((item) => (
-        <button
-          key={item.code}
-          type="button"
-          className={`language-flag ${language === item.code ? 'selected' : ''}`}
-          aria-label={item.label}
-          aria-pressed={language === item.code}
-          title={item.label}
-          onClick={() => setLanguage(item.code)}
-        >
-          {item.flag}
-        </button>
-      ))}
+    <div className="language-controls">
+      <select
+        className="language-select"
+        aria-label={t('language')}
+        value={language}
+        onChange={(event) => setLanguage(event.target.value)}
+      >
+        {languages.map((item) => (
+          <option key={item.code} value={item.code}>
+            {item.label}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

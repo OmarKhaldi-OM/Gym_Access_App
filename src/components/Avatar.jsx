@@ -1,4 +1,4 @@
-export default function Avatar({ name, size = 'md' }) {
+export default function Avatar({ name = '', size = 'md', src = '' }) {
   const initials = name
     .split(' ')
     .map((n) => n[0])
@@ -12,7 +12,7 @@ export default function Avatar({ name, size = 'md' }) {
     <div
       className={`${sizeClass} rounded-full bg-graphite-hover border border-graphite-line flex items-center justify-center font-semibold text-text-primary shrink-0`}
     >
-      {initials}
+      {src ? <img className="h-full w-full rounded-full object-cover" src={src} alt="" /> : initials}
     </div>
   )
 }

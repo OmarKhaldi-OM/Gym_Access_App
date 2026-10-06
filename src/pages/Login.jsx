@@ -11,16 +11,9 @@ const roleHome = {
   reception: '/reception/accueil',
 }
 
-const roleButtons = [
-  { role: 'admin', label: 'Admin' },
-  { role: 'membre', label: 'Membre' },
-  { role: 'coach', label: 'Coach' },
-  { role: 'reception', label: 'Réceptionniste' },
-]
-
 export default function Login() {
   const navigate = useNavigate()
-  const { login, signIn } = useAuth()
+  const { signIn } = useAuth()
   const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -40,11 +33,6 @@ export default function Login() {
     }
   }
 
-  const handleDemoLogin = async (role) => {
-    await login(role)
-    navigate(roleHome[role])
-  }
-
   return (
     <PublicShell>
       <main className="auth-page signin-page">
@@ -58,8 +46,6 @@ export default function Login() {
             {error && <p className="form-error" role="alert">{error}</p>}
             <button className="button button-lime submit-button" disabled={submitting}>{submitting ? t('loading') : t('signIn')} <span aria-hidden="true">↗</span></button>
           </form>
-          <div className="demo-access"><div><span>{t('demo')}</span><p>{t('memberSpace')}</p></div><div className="demo-buttons">{roleButtons.map((role) => <button key={role.role} onClick={() => handleDemoLogin(role.role)}>{t(role.role === 'membre' ? 'member' : role.role)}</button>)}</div></div>
-          <p className="demo-disclaimer">{t('noPayment')}</p>
         </div>
       </main>
     </PublicShell>

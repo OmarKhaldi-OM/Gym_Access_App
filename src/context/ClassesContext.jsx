@@ -1,39 +1,47 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import * as classService from '../services/classService.js'
+import { useAuth } from './AuthContext.jsx'
 
 const ClassesContext = createContext(null)
 
-const MY_MEMBER_ID = 'mem-1' // Sana Mabrouk — compte membre de démo
-
 export function ClassesProvider({ children }) {
+  const { user } = useAuth()
   const [classes, setClasses] = useState([])
   const [personalSessions, setPersonalSessions] = useState([])
   const [myBookings, setMyBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const refresh = useCallback(async () => {
-    const [classesList, personalList, bookings] = await Promise.all([
-      classService.getClasses(),
-      classService.getPersonalSessions(),
-      classService.getMyBookings(MY_MEMBER_ID),
-    ])
-    setClasses(classesList)
-    setPersonalSessions(personalList)
-    setMyBookings(bookings)
-    setLoading(false)
-  }, [])
+    setError('')
+    try {
+      const [classesList, personalList, bookings] = await Promise.all([
+        classService.getClasses(),
+        user?.role === 'membre' ? classService.getPersonalSessions(user.id) : Promise.resolve([]),
+        user?.role === 'membre' ? classService.getMyBookings(user.id) : Promise.resolve([]),
+      ])
+      setClasses(classesList)
+      setPersonalSessions(personalList)
+      setMyBookings(bookings)
+    } catch (requestError) {
+      setError(requestError.message)
+      throw requestError
+    } finally {
+      setLoading(false)
+    }
+  }, [user])
 
   useEffect(() => {
-    refresh()
+    refresh().catch(() => {})
   }, [refresh])
 
   const bookClass = useCallback(
     async (classeId) => {
-      const result = await classService.bookClass(classeId, MY_MEMBER_ID)
+      const result = await classService.bookClass(classeId, user.id)
       await refresh()
       return result
     },
-    [refresh],
+    [refresh, user],
   )
 
   const cancelBooking = useCallback(
@@ -74,7 +82,7 @@ export function ClassesProvider({ children }) {
 
   return (
     <ClassesContext.Provider
-      value={{ classes, personalSessions, myBookings, loading, bookClass, cancelBooking, addClass, updateClass, deleteClass, refresh }}
+      value={{ classes, personalSessions, myBookings, loading, error, bookClass, cancelBooking, addClass, updateClass, deleteClass, refresh }}
     >
       {children}
     </ClassesContext.Provider>

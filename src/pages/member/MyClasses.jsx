@@ -7,10 +7,12 @@ import Button from '../../components/Button.jsx'
 import Toast from '../../components/Toast.jsx'
 import { useClasses } from '../../context/ClassesContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
+import { useT } from '../../context/I18nContext.jsx'
 
 export default function MyClasses() {
   const { classes, myBookings, bookClass, cancelBooking } = useClasses()
   const { toastMessage, showToast } = useToast()
+  const t = useT()
   const [selectedId, setSelectedId] = useState(null)
 
   const myBookingFor = (classeId) =>
@@ -47,37 +49,37 @@ export default function MyClasses() {
   const handleBook = async () => {
     try {
       await bookClass(selectedClass.id)
-      showToast(`Réservé : ${selectedClass.nom}`)
+      showToast(`${t('reserved')}: ${selectedClass.nom}`)
     } catch {
-      showToast('Plus de place disponible pour ce cours')
+      showToast(t('classIsFull'))
     }
     setSelectedId(null)
   }
 
   const handleCancel = async () => {
     await cancelBooking(selectedBooking.id)
-    showToast(`Réservation annulée : ${selectedClass.nom}`)
+    showToast(`${t('bookingCancelled')}: ${selectedClass.nom}`)
     setSelectedId(null)
   }
 
   return (
     <Layout role="membre">
-      <h1 className="text-2xl font-bold mb-4">Mes cours</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('myClasses')}</h1>
       <WeekNav />
       <ScheduleGrid blocks={blocks} onBlockClick={(b) => setSelectedId(b.id)} />
 
       <ClassDetailModal block={selectedBlock} onClose={() => setSelectedId(null)}>
         {selectedBooking ? (
           <Button variant="secondary" className="w-full" onClick={handleCancel}>
-            Annuler ma réservation
+            {t('cancelBooking')}
           </Button>
         ) : selectedClass && selectedClass.placesRestantes > 0 ? (
           <Button className="w-full" onClick={handleBook}>
-            Réserver
+            {t('reserve')}
           </Button>
         ) : (
           <p className="text-base font-medium text-text-muted w-full text-center">
-            Ce cours est complet.
+            {t('classIsFull')}
           </p>
         )}
       </ClassDetailModal>

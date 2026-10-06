@@ -6,8 +6,11 @@ import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
 import * as memberService from '../../services/memberService.js'
+import { useI18n, useT } from '../../context/I18nContext.jsx'
 
 export default function Members() {
+  const t = useT()
+  const { language } = useI18n()
   const { members } = useMembers()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -19,22 +22,23 @@ export default function Members() {
   return (
     <Layout role="admin">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Membres</h1>
+        <h1 className="text-2xl font-bold">{t('members')}</h1>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher un membre..."
+          placeholder={t('searchMember')}
+          aria-label={t('searchMember')}
           className="bg-graphite-panel border border-graphite-line rounded-md px-4 py-2.5 text-base placeholder:text-text-muted w-64"
         />
       </div>
 
       <Panel>
-        <SectionHeader title={`${results.length} membre${results.length > 1 ? 's' : ''}`} />
+        <SectionHeader title={`${results.length} ${results.length === 1 ? t('member') : t('members').toLowerCase()}`} />
         <div>
           {results.length === 0 && (
             <p className="px-5 py-4 text-base font-medium text-text-muted">
-              Aucun membre ne correspond à cette recherche.
+              {t('noMembers')}
             </p>
           )}
           {results.map((m, i) => (
@@ -54,7 +58,7 @@ export default function Members() {
                 {m.statut}
               </StatusChip>
               <span className="text-base font-mono text-text-muted">
-                {new Date(m.dateInscription).toLocaleDateString('fr-FR')}
+                {new Date(m.dateInscription).toLocaleDateString(language)}
               </span>
               <StatusChip variant={m.visageEnrole ? 'positive' : 'neutral'}>
                 {m.visageEnrole ? 'Visage enrôlé' : 'Non enrôlé'}

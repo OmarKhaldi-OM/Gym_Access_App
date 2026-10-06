@@ -11,24 +11,30 @@ export const days = [
   { key: 'samedi', label: 'Samedi', date: '26 sept.' },
 ]
 
-const BASE_WEEK_START = new Date(2026, 8, 21)
+function currentWeekStart() {
+  const start = new Date()
+  start.setHours(0, 0, 0, 0)
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7))
+  return start
+}
 
-export function getDaysForWeek(weekOffset = 0) {
-  const start = new Date(BASE_WEEK_START)
+export function getDaysForWeek(weekOffset = 0, language = document.documentElement.lang || 'en') {
+  const start = currentWeekStart()
   start.setDate(start.getDate() + weekOffset * 7)
   return days.map((day, index) => {
     const date = new Date(start)
     date.setDate(start.getDate() + index)
     return {
       ...day,
-      dateValue: date.toISOString().slice(0, 10),
-      date: date.toLocaleDateString(document.documentElement.lang || 'fr', { day: '2-digit', month: 'short' }),
+      dateValue: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`,
+      label: new Intl.DateTimeFormat(language, { weekday: 'long' }).format(date),
+      date: date.toLocaleDateString(language, { day: '2-digit', month: 'short' }),
     }
   })
 }
 
 export const OPEN_HOUR = 7
-export const CLOSE_HOUR = 21
+export const CLOSE_HOUR = 22
 export const HOUR_HEIGHT = 64 // px par heure
 export const TOTAL_HEIGHT = (CLOSE_HOUR - OPEN_HOUR) * HOUR_HEIGHT
 export const hourMarks = Array.from(
