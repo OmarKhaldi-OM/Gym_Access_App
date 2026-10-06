@@ -90,6 +90,11 @@ public class SecurityConfig {
                             .hasAnyRole("ADMIN", "RECEPTIONIST")
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint((request, response, exception) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"status\":401,\"message\":\"Authentification requise\"}");
+                }))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
