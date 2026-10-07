@@ -66,7 +66,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/members/**").hasAnyRole("ADMIN", "RECEPTIONIST")
                         .requestMatchers("/api/members/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
                         .requestMatchers(HttpMethod.GET, "/api/access-logs/member/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
-                        .requestMatchers("/api/access-logs/**", "/api/face-embeddings/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers("/api/access-logs/**", "/api/face-embeddings/**", "/api/face-recognition/**").hasAnyRole("ADMIN", "RECEPTIONIST")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/member/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
                         .requestMatchers(HttpMethod.POST, "/api/bookings").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
                         .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/cancel").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
