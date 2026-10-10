@@ -4,7 +4,6 @@ import com.example.gym_app.access.dto.FaceEmbeddingRequestDTO;
 import com.example.gym_app.access.dto.FaceEmbeddingResponseDTO;
 import com.example.gym_app.access.service.FaceEmbeddingService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +15,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class FaceEmbeddingController {
 
-    @Autowired
-    private FaceEmbeddingService faceEmbeddingService;
+    private final FaceEmbeddingService faceEmbeddingService;
+
+    public FaceEmbeddingController(
+            FaceEmbeddingService faceEmbeddingService) {
+        this.faceEmbeddingService = faceEmbeddingService;
+    }
 
     @GetMapping("/member/{memberId}")
     public List<FaceEmbeddingResponseDTO> getByMember(@PathVariable UUID memberId) {

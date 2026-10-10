@@ -8,7 +8,6 @@ import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.security.SecurityUtil;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,14 +19,22 @@ import java.util.stream.Collectors;
 @Service
 public class MemberService {
 
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private SecurityUtil securityUtil;
+    private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final SecurityUtil securityUtil;
+
 
     // ---- Mapping entite -> DTO ----
+
+    public MemberService(
+            MemberRepository memberRepository,
+            PasswordEncoder passwordEncoder,
+            SecurityUtil securityUtil) {
+        this.memberRepository = memberRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.securityUtil = securityUtil;
+    }
+
     private MemberResponseDTO toDTO(Member member) {
         MemberResponseDTO dto = new MemberResponseDTO();
         dto.setId(member.getId());

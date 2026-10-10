@@ -12,7 +12,6 @@ import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,16 +23,23 @@ import java.util.stream.Collectors;
 @Service
 public class BookingService {
 
-    @Autowired
-    private BookingRepository bookingRepository;
+    private final BookingRepository bookingRepository;
 
-    @Autowired
-    private MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
 
-    @Autowired
-    private ClassScheduleRepository classScheduleRepository;
-    @Autowired
-    private SecurityUtil securityUtil;
+    private final ClassScheduleRepository classScheduleRepository;
+    private final SecurityUtil securityUtil;
+
+    public BookingService(
+            BookingRepository bookingRepository,
+            MemberRepository memberRepository,
+            ClassScheduleRepository classScheduleRepository,
+            SecurityUtil securityUtil) {
+        this.bookingRepository = bookingRepository;
+        this.memberRepository = memberRepository;
+        this.classScheduleRepository = classScheduleRepository;
+        this.securityUtil = securityUtil;
+    }
 
     private BookingResponseDTO toDTO(Booking booking) {
         BookingResponseDTO dto = new BookingResponseDTO();

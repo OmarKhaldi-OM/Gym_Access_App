@@ -1,6 +1,5 @@
 package com.example.gym_app.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,11 +23,16 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
-    @Autowired
-    private JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthFilter jwtAuthFilter;
+
+    public SecurityConfig(
+            CustomUserDetailsService userDetailsService,
+            JwtAuthFilter jwtAuthFilter) {
+        this.userDetailsService = userDetailsService;
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -54,7 +58,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/face-login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/classes/**", "/api/schedules/**", "/api/plans/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bookings/counts").permitAll()
                         .requestMatchers("/api/staff/**").hasRole("ADMIN")
@@ -66,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/members/**").hasAnyRole("ADMIN", "RECEPTIONIST")
                         .requestMatchers("/api/members/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
                         .requestMatchers(HttpMethod.GET, "/api/access-logs/member/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
+                        .requestMatchers("/api/face-recognition/enroll-account").authenticated()
                         .requestMatchers("/api/access-logs/**", "/api/face-embeddings/**", "/api/face-recognition/**").hasAnyRole("ADMIN", "RECEPTIONIST")
                         .requestMatchers(HttpMethod.GET, "/api/bookings/member/**").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")
                         .requestMatchers(HttpMethod.POST, "/api/bookings").hasAnyRole("ADMIN", "RECEPTIONIST", "MEMBER")

@@ -4,7 +4,6 @@ import com.example.gym_app.user.dto.MemberRequestDTO;
 import com.example.gym_app.user.dto.MemberResponseDTO;
 import com.example.gym_app.user.service.MemberService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +15,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class MemberController {
 
-    @Autowired
-    private MemberService memberService;
+    private final MemberService memberService;
+
+    public MemberController(
+            MemberService memberService) {
+        this.memberService = memberService;
+    }
 
     @GetMapping
     public List<MemberResponseDTO> getAll() {

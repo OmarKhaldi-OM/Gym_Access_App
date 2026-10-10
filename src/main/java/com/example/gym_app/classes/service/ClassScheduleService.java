@@ -10,7 +10,6 @@ import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.user.entity.Trainer;
 import com.example.gym_app.user.repository.TrainerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,14 +20,20 @@ import java.util.stream.Collectors;
 @Service
 public class ClassScheduleService {
 
-    @Autowired
-    private ClassScheduleRepository classScheduleRepository;
+    private final ClassScheduleRepository classScheduleRepository;
 
-    @Autowired
-    private GymClassRepository gymClassRepository;
+    private final GymClassRepository gymClassRepository;
 
-    @Autowired
-    private TrainerRepository trainerRepository;
+    private final TrainerRepository trainerRepository;
+
+    public ClassScheduleService(
+            ClassScheduleRepository classScheduleRepository,
+            GymClassRepository gymClassRepository,
+            TrainerRepository trainerRepository) {
+        this.classScheduleRepository = classScheduleRepository;
+        this.gymClassRepository = gymClassRepository;
+        this.trainerRepository = trainerRepository;
+    }
 
     private ClassScheduleResponseDTO toDTO(Class_Schedule schedule) {
         ClassScheduleResponseDTO dto = new ClassScheduleResponseDTO();

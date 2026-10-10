@@ -4,7 +4,6 @@ import com.example.gym_app.classes.dto.GymClassRequestDTO;
 import com.example.gym_app.classes.dto.GymClassResponseDTO;
 import com.example.gym_app.classes.service.GymClassService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +15,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class GymClassController {
 
-    @Autowired
-    private GymClassService gymClassService;
+    private final GymClassService gymClassService;
+
+    public GymClassController(
+            GymClassService gymClassService) {
+        this.gymClassService = gymClassService;
+    }
 
     @GetMapping
     public List<GymClassResponseDTO> getAll() {

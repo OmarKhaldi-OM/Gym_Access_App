@@ -12,7 +12,6 @@ import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.user.repository.StaffRepository;
 import com.example.gym_app.security.SecurityUtil;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,16 +22,23 @@ import java.util.stream.Collectors;
 @Service
 public class AccessLogService {
 
-    @Autowired
-    private AccessLogRepository accessLogRepository;
+    private final AccessLogRepository accessLogRepository;
 
-    @Autowired
-    private MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
 
-    @Autowired
-    private StaffRepository staffRepository;
-    @Autowired
-    private SecurityUtil securityUtil;
+    private final StaffRepository staffRepository;
+    private final SecurityUtil securityUtil;
+
+    public AccessLogService(
+            AccessLogRepository accessLogRepository,
+            MemberRepository memberRepository,
+            StaffRepository staffRepository,
+            SecurityUtil securityUtil) {
+        this.accessLogRepository = accessLogRepository;
+        this.memberRepository = memberRepository;
+        this.staffRepository = staffRepository;
+        this.securityUtil = securityUtil;
+    }
 
     private AccessLogResponseDTO toDTO(Access_Log log) {
         AccessLogResponseDTO dto = new AccessLogResponseDTO();

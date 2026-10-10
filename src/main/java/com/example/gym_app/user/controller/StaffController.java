@@ -4,7 +4,6 @@ import com.example.gym_app.user.dto.StaffRequestDTO;
 import com.example.gym_app.user.dto.StaffResponseDTO;
 import com.example.gym_app.user.service.StaffService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +15,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class StaffController {
 
-    @Autowired
-    private StaffService staffService;
+    private final StaffService staffService;
+
+    public StaffController(
+            StaffService staffService) {
+        this.staffService = staffService;
+    }
 
     @GetMapping
     public List<StaffResponseDTO> getAll() {

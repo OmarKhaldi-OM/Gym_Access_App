@@ -13,7 +13,6 @@ import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.Trainer;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.user.repository.TrainerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,16 +22,23 @@ import java.util.stream.Collectors;
 @Service
 public class TrainerBookingService {
 
-    @Autowired
-    private TrainerBookingRepository trainerBookingRepository;
+    private final TrainerBookingRepository trainerBookingRepository;
 
-    @Autowired
-    private MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
 
-    @Autowired
-    private TrainerRepository trainerRepository;
-    @Autowired
-    private SecurityUtil securityUtil;
+    private final TrainerRepository trainerRepository;
+    private final SecurityUtil securityUtil;
+
+    public TrainerBookingService(
+            TrainerBookingRepository trainerBookingRepository,
+            MemberRepository memberRepository,
+            TrainerRepository trainerRepository,
+            SecurityUtil securityUtil) {
+        this.trainerBookingRepository = trainerBookingRepository;
+        this.memberRepository = memberRepository;
+        this.trainerRepository = trainerRepository;
+        this.securityUtil = securityUtil;
+    }
 
     private TrainerBookingResponseDTO toDTO(Trainer_Booking tb) {
         TrainerBookingResponseDTO dto = new TrainerBookingResponseDTO();

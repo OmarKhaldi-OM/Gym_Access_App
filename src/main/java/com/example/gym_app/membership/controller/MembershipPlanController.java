@@ -4,7 +4,6 @@ import com.example.gym_app.membership.dto.MembershipPlanRequestDTO;
 import com.example.gym_app.membership.dto.MembershipPlanResponseDTO;
 import com.example.gym_app.membership.service.MembershipPlanService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +15,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class MembershipPlanController {
 
-    @Autowired
-    private MembershipPlanService membershipPlanService;
+    private final MembershipPlanService membershipPlanService;
+
+    public MembershipPlanController(
+            MembershipPlanService membershipPlanService) {
+        this.membershipPlanService = membershipPlanService;
+    }
 
     @GetMapping
     public List<MembershipPlanResponseDTO> getAll() {

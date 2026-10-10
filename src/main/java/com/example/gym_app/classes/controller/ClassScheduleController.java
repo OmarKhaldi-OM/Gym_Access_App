@@ -4,7 +4,6 @@ import com.example.gym_app.classes.dto.ClassScheduleRequestDTO;
 import com.example.gym_app.classes.dto.ClassScheduleResponseDTO;
 import com.example.gym_app.classes.service.ClassScheduleService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +15,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class ClassScheduleController {
 
-    @Autowired
-    private ClassScheduleService classScheduleService;
+    private final ClassScheduleService classScheduleService;
+
+    public ClassScheduleController(
+            ClassScheduleService classScheduleService) {
+        this.classScheduleService = classScheduleService;
+    }
 
     @GetMapping
     public List<ClassScheduleResponseDTO> getAll() {

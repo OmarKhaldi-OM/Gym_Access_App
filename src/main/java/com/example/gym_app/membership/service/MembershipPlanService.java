@@ -5,7 +5,6 @@ import com.example.gym_app.membership.dto.MembershipPlanRequestDTO;
 import com.example.gym_app.membership.dto.MembershipPlanResponseDTO;
 import com.example.gym_app.membership.entity.Membership_Plan;
 import com.example.gym_app.membership.repository.MembershipPlanRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,8 +14,12 @@ import java.util.stream.Collectors;
 @Service
 public class MembershipPlanService {
 
-    @Autowired
-    private MembershipPlanRepository membershipPlanRepository;
+    private final MembershipPlanRepository membershipPlanRepository;
+
+    public MembershipPlanService(
+            MembershipPlanRepository membershipPlanRepository) {
+        this.membershipPlanRepository = membershipPlanRepository;
+    }
 
     private MembershipPlanResponseDTO toDTO(Membership_Plan plan) {
         MembershipPlanResponseDTO dto = new MembershipPlanResponseDTO();

@@ -10,7 +10,6 @@ import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.security.SecurityUtil;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,13 +19,19 @@ import java.util.stream.Collectors;
 @Service
 public class ProgressLogService {
 
-    @Autowired
-    private ProgressLogRepository progressLogRepository;
+    private final ProgressLogRepository progressLogRepository;
 
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private SecurityUtil securityUtil;
+    private final MemberRepository memberRepository;
+    private final SecurityUtil securityUtil;
+
+    public ProgressLogService(
+            ProgressLogRepository progressLogRepository,
+            MemberRepository memberRepository,
+            SecurityUtil securityUtil) {
+        this.progressLogRepository = progressLogRepository;
+        this.memberRepository = memberRepository;
+        this.securityUtil = securityUtil;
+    }
 
     private void requireMemberAccess(UUID memberId) {
         if (!securityUtil.hasRole(Role.ADMIN) && !memberRepository.findById(memberId)

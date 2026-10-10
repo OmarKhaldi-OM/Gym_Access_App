@@ -4,7 +4,6 @@ import com.example.gym_app.training.dto.ProgressLogRequestDTO;
 import com.example.gym_app.training.dto.ProgressLogResponseDTO;
 import com.example.gym_app.training.service.ProgressLogService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,8 +15,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class ProgressLogController {
 
-    @Autowired
-    private ProgressLogService progressLogService;
+    private final ProgressLogService progressLogService;
+
+    public ProgressLogController(
+            ProgressLogService progressLogService) {
+        this.progressLogService = progressLogService;
+    }
 
     @GetMapping("/member/{memberId}")
     public List<ProgressLogResponseDTO> getByMember(@PathVariable UUID memberId) {

@@ -7,7 +7,6 @@ import com.example.gym_app.access.repository.FaceEmbeddingRepository;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.repository.MemberRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,11 +17,16 @@ import java.util.stream.Collectors;
 @Service
 public class FaceEmbeddingService {
 
-    @Autowired
-    private FaceEmbeddingRepository faceEmbeddingRepository;
+    private final FaceEmbeddingRepository faceEmbeddingRepository;
 
-    @Autowired
-    private MemberRepository memberRepository;
+    private final MemberRepository memberRepository;
+
+    public FaceEmbeddingService(
+            FaceEmbeddingRepository faceEmbeddingRepository,
+            MemberRepository memberRepository) {
+        this.faceEmbeddingRepository = faceEmbeddingRepository;
+        this.memberRepository = memberRepository;
+    }
 
     private FaceEmbeddingResponseDTO toDTO(Face_Embedding fe) {
         FaceEmbeddingResponseDTO dto = new FaceEmbeddingResponseDTO();

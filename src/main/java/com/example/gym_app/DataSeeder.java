@@ -12,7 +12,6 @@ import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.user.repository.StaffRepository;
 import com.example.gym_app.user.repository.TrainerRepository;
 import com.example.gym_app.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -24,31 +23,41 @@ import java.time.LocalDateTime;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private StaffRepository staffRepository;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
-    private TrainerRepository trainerRepository;
-
-    @Autowired
-    private MembershipPlanRepository membershipPlanRepository;
-
-    @Autowired
-    private GymClassRepository gymClassRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     private static final String ADMIN_EMAIL = "admin@gym.com";
     private static final String ADMIN_PASSWORD = "admin1234";
     private static final String RECEPTIONIST_EMAIL = "reception@gym.com";
     private static final String RECEPTIONIST_PASSWORD = "reception1234";
+
+    private final UserRepository userRepository;
+
+    private final StaffRepository staffRepository;
+
+    private final MemberRepository memberRepository;
+
+    private final TrainerRepository trainerRepository;
+
+    private final MembershipPlanRepository membershipPlanRepository;
+
+    private final GymClassRepository gymClassRepository;
+
+    private final PasswordEncoder passwordEncoder;
+
+    public DataSeeder(
+            UserRepository userRepository,
+            StaffRepository staffRepository,
+            MemberRepository memberRepository,
+            TrainerRepository trainerRepository,
+            MembershipPlanRepository membershipPlanRepository,
+            GymClassRepository gymClassRepository,
+            PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.staffRepository = staffRepository;
+        this.memberRepository = memberRepository;
+        this.trainerRepository = trainerRepository;
+        this.membershipPlanRepository = membershipPlanRepository;
+        this.gymClassRepository = gymClassRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public void run(String... args) {

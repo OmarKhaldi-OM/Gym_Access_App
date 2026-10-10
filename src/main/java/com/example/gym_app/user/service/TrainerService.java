@@ -6,7 +6,6 @@ import com.example.gym_app.user.dto.TrainerResponseDTO;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.Trainer;
 import com.example.gym_app.user.repository.TrainerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +17,15 @@ import java.util.stream.Collectors;
 @Service
 public class TrainerService {
 
-    @Autowired
-    private TrainerRepository trainerRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final TrainerRepository trainerRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public TrainerService(
+            TrainerRepository trainerRepository,
+            PasswordEncoder passwordEncoder) {
+        this.trainerRepository = trainerRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     private TrainerResponseDTO toDTO(Trainer trainer) {
         TrainerResponseDTO dto = new TrainerResponseDTO();

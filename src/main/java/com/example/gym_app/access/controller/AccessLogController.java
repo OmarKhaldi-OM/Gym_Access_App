@@ -4,7 +4,6 @@ import com.example.gym_app.access.dto.AccessLogRequestDTO;
 import com.example.gym_app.access.dto.AccessLogResponseDTO;
 import com.example.gym_app.access.service.AccessLogService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +17,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173")
 public class AccessLogController {
 
-    @Autowired
-    private AccessLogService accessLogService;
+    private final AccessLogService accessLogService;
+
+    public AccessLogController(
+            AccessLogService accessLogService) {
+        this.accessLogService = accessLogService;
+    }
 
     @GetMapping
     public List<AccessLogResponseDTO> getAll() {

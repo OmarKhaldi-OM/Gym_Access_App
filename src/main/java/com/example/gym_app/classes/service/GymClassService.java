@@ -6,7 +6,6 @@ import com.example.gym_app.classes.entity.Gym_Class;
 import com.example.gym_app.classes.repository.GymClassRepository;
 import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.exception.ResourceNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,8 +15,12 @@ import java.util.stream.Collectors;
 @Service
 public class GymClassService {
 
-    @Autowired
-    private GymClassRepository gymClassRepository;
+    private final GymClassRepository gymClassRepository;
+
+    public GymClassService(
+            GymClassRepository gymClassRepository) {
+        this.gymClassRepository = gymClassRepository;
+    }
 
     private GymClassResponseDTO toDTO(Gym_Class gymClass) {
         GymClassResponseDTO dto = new GymClassResponseDTO();
