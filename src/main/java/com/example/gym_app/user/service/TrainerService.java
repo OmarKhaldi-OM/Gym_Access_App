@@ -1,6 +1,7 @@
 package com.example.gym_app.user.service;
 
 import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.dto.TrainerRequestDTO;
 import com.example.gym_app.user.dto.TrainerResponseDTO;
 import com.example.gym_app.user.entity.Role;
@@ -19,12 +20,15 @@ public class TrainerService {
 
     private final TrainerRepository trainerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityUtil securityUtil;
 
     public TrainerService(
             TrainerRepository trainerRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            SecurityUtil securityUtil) {
         this.trainerRepository = trainerRepository;
         this.passwordEncoder = passwordEncoder;
+        this.securityUtil = securityUtil;
     }
 
     private TrainerResponseDTO toDTO(Trainer trainer) {
@@ -52,20 +56,24 @@ public class TrainerService {
     }
 
     public List<TrainerResponseDTO> findAll() {
+        securityUtil.requireRole(Role.values());
         return trainerRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public TrainerResponseDTO findById(UUID id) {
+        securityUtil.requireRole(Role.values());
         Trainer trainer = trainerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Trainer introuvable avec id: " + id));
         return toDTO(trainer);
     }
 
     public TrainerResponseDTO create(TrainerRequestDTO dto) {
+        securityUtil.requireRole(Role.ADMIN);
         return toDTO(trainerRepository.save(toEntity(dto)));
     }
 
     public TrainerResponseDTO update(UUID id, TrainerRequestDTO dto) {
+        securityUtil.requireRole(Role.ADMIN);
         Trainer existing = trainerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Trainer introuvable avec id: " + id));
         existing.setNom(dto.getNom());
@@ -77,6 +85,7 @@ public class TrainerService {
     }
 
     public void delete(UUID id) {
+        securityUtil.requireRole(Role.ADMIN);
         trainerRepository.deleteById(id);
     }
 }

@@ -5,6 +5,7 @@ import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.training.dto.MemberGoalDTO;
 import com.example.gym_app.training.entity.MemberGoal;
 import com.example.gym_app.training.repository.MemberGoalRepository;
+import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,9 @@ public class MemberGoalService {
     }
 
     private void requireOwner(UUID memberId) {
-        if (!memberRepository.findById(memberId).map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        securityUtil.requireRole(Role.MEMBER);
+        if (!memberRepository.findById(memberId)
+                .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new AccessDeniedException("Acces refuse");
         }
     }

@@ -69,10 +69,12 @@ public class SubscriptionService {
     }
 
     public List<SubscriptionResponseDTO> findAll() {
+        securityUtil.requireStaff();
         return subscriptionRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public SubscriptionResponseDTO findById(UUID id) {
+        securityUtil.requireStaff();
         Subscription subscription = subscriptionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription introuvable avec id: " + id));
         return toDTO(subscription);
@@ -84,9 +86,12 @@ public class SubscriptionService {
     }
 
     private void requireMemberAccess(UUID memberId) {
-        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        if (!staff && !memberRepository.findById(memberId)
-                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            return;
+        }
+        securityUtil.requireRole(Role.MEMBER);
+        if (!memberRepository.findById(memberId)
+                .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new AccessDeniedException("Acces refuse");
         }
     }
@@ -102,6 +107,7 @@ public class SubscriptionService {
     }
 
     public SubscriptionResponseDTO update(UUID id, SubscriptionRequestDTO dto) {
+        securityUtil.requireStaff();
         Subscription existing = subscriptionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Subscription introuvable avec id: " + id));
         // memberId et planId ne sont volontairement pas modifiables ici :
@@ -112,6 +118,7 @@ public class SubscriptionService {
     }
 
     public void delete(UUID id) {
+        securityUtil.requireStaff();
         subscriptionRepository.deleteById(id);
     }
 }

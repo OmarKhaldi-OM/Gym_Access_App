@@ -61,6 +61,7 @@ public class MemberService {
     }
 
     public List<MemberResponseDTO> findAll() {
+        securityUtil.requireStaff();
         return memberRepository.findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -69,19 +70,24 @@ public class MemberService {
     public MemberResponseDTO findById(UUID id) {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + id));
-        if (!securityUtil.hasRole(Role.ADMIN) && !securityUtil.hasRole(Role.RECEPTIONIST)
-            && !member.getEmail().equals(securityUtil.getCurrentUserEmail())) {
+        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            securityUtil.requireRole(Role.MEMBER);
+        }
+        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)
+                && !securityUtil.isCurrentUser(member.getEmail())) {
             throw new AccessDeniedException("Acces refuse");
         }
         return toDTO(member);
     }
 
     public MemberResponseDTO create(MemberRequestDTO dto) {
+        securityUtil.requireStaff();
         Member saved = memberRepository.save(toEntity(dto));
         return toDTO(saved);
     }
 
     public MemberResponseDTO update(UUID id, MemberRequestDTO dto) {
+        securityUtil.requireStaff();
         Member existing = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + id));
         existing.setNom(dto.getNom());
@@ -92,6 +98,7 @@ public class MemberService {
     }
 
     public void delete(UUID id) {
+        securityUtil.requireStaff();
         memberRepository.deleteById(id);
     }
 }

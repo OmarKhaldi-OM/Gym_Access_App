@@ -2,8 +2,12 @@ package com.example.gym_app.security;
 
 import com.example.gym_app.user.entity.Role;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 @Component
 public class SecurityUtil {
@@ -19,7 +23,26 @@ public class SecurityUtil {
 
     public boolean hasRole(Role role) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role.name()));
+        return authentication != null && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals(role.authority()));
+    }
+
+    public boolean hasAnyRole(Role... roles) {
+        return Arrays.stream(roles).anyMatch(this::hasRole);
+    }
+
+    public boolean isCurrentUser(String email) {
+        return Objects.equals(email, getCurrentUserEmail());
+    }
+
+    public void requireRole(Role... roles) {
+        if (!hasAnyRole(roles)) {
+            throw new AccessDeniedException("Acces refuse");
+        }
+    }
+
+    public void requireStaff() {
+        requireRole(Role.ADMIN, Role.RECEPTIONIST);
     }
 }

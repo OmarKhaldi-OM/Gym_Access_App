@@ -53,6 +53,7 @@ public class BookingService {
     }
 
     public List<BookingResponseDTO> findAll() {
+        securityUtil.requireStaff();
         return bookingRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
@@ -64,6 +65,7 @@ public class BookingService {
     }
 
     public BookingResponseDTO findById(UUID id) {
+        securityUtil.requireStaff();
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking introuvable avec id: " + id));
         return toDTO(booking);
@@ -75,9 +77,12 @@ public class BookingService {
     }
 
     private void requireMemberAccess(UUID memberId) {
-        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        if (!staff && !memberRepository.findById(memberId)
-                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            return;
+        }
+        securityUtil.requireRole(Role.MEMBER);
+        if (!memberRepository.findById(memberId)
+                .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
     }
@@ -124,12 +129,13 @@ public class BookingService {
         }
 
         // Un Member ne peut annuler que sa propre reservation ; ADMIN/RECEPTIONIST peuvent tout annuler
-        boolean isStaffOrAdmin = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        if (!isStaffOrAdmin) {
-            String currentEmail = securityUtil.getCurrentUserEmail();
-            if (!booking.getMember().getEmail().equals(currentEmail)) {
-                throw new org.springframework.security.access.AccessDeniedException("Vous ne pouvez annuler que vos propres reservations");
-            }
+        if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            booking.setStatut("CANCELLED");
+            return toDTO(bookingRepository.save(booking));
+        }
+        securityUtil.requireRole(Role.MEMBER);
+        if (!securityUtil.isCurrentUser(booking.getMember().getEmail())) {
+            throw new org.springframework.security.access.AccessDeniedException("Vous ne pouvez annuler que vos propres reservations");
         }
 
         booking.setStatut("CANCELLED");
@@ -137,6 +143,7 @@ public class BookingService {
     }
 
     public void delete(UUID id) {
+        securityUtil.requireStaff();
         bookingRepository.deleteById(id);
     }
 }

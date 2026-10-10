@@ -72,23 +72,29 @@ public class AccessLogService {
     }
 
     public List<AccessLogResponseDTO> findAll() {
+        securityUtil.requireStaff();
         return accessLogRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public List<AccessLogResponseDTO> findByMember(UUID memberId) {
-        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        if (!staff && !memberRepository.findById(memberId)
-                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            securityUtil.requireRole(Role.MEMBER);
+        }
+        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)
+                && !memberRepository.findById(memberId)
+                .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new AccessDeniedException("Acces refuse");
         }
         return accessLogRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public List<AccessLogResponseDTO> findByPeriode(LocalDateTime start, LocalDateTime end) {
+        securityUtil.requireStaff();
         return accessLogRepository.findByHorodatageBetween(start, end).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public AccessLogResponseDTO create(AccessLogRequestDTO dto) {
+        securityUtil.requireStaff();
         return toDTO(accessLogRepository.save(toEntity(dto)));
     }
 }

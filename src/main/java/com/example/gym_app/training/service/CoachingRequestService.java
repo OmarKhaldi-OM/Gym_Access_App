@@ -56,8 +56,12 @@ public class CoachingRequestService {
     }
 
     private void requireMember(UUID memberId) {
-        if (!securityUtil.hasRole(Role.ADMIN) && !securityUtil.hasRole(Role.RECEPTIONIST)
-                && !memberRepository.findById(memberId).map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            return;
+        }
+        securityUtil.requireRole(Role.MEMBER);
+        if (!memberRepository.findById(memberId)
+                .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
     }
@@ -68,8 +72,12 @@ public class CoachingRequestService {
     }
 
     public List<CoachingRequestResponseDTO> findByTrainer(UUID trainerId) {
-        if (!securityUtil.hasRole(Role.ADMIN) && !securityUtil.hasRole(Role.RECEPTIONIST)
-                && !trainerRepository.findById(trainerId).map(trainer -> trainer.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            securityUtil.requireRole(Role.TRAINER);
+        }
+        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)
+                && !trainerRepository.findById(trainerId)
+                .map(trainer -> securityUtil.isCurrentUser(trainer.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
         return requestRepository.findByTrainerIdOrderByCreatedAtDesc(trainerId).stream().map(this::toDTO).toList();
@@ -95,9 +103,11 @@ public class CoachingRequestService {
         CoachingRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande introuvable"));
         String status = dto.getStatus().trim().toUpperCase();
-        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        boolean member = request.getMember().getEmail().equals(securityUtil.getCurrentUserEmail());
-        boolean trainer = request.getTrainer().getEmail().equals(securityUtil.getCurrentUserEmail());
+        boolean staff = securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST);
+        boolean member = securityUtil.hasRole(Role.MEMBER)
+                && securityUtil.isCurrentUser(request.getMember().getEmail());
+        boolean trainer = securityUtil.hasRole(Role.TRAINER)
+                && securityUtil.isCurrentUser(request.getTrainer().getEmail());
         if ("CANCELLED".equals(status)) {
             if (!staff && !member) throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         } else if (!staff && !trainer) {

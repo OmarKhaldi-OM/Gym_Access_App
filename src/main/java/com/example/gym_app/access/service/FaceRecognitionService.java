@@ -12,6 +12,7 @@ import com.example.gym_app.access.repository.FaceEmbeddingRepository;
 import com.example.gym_app.exception.BadRequestException;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.membership.service.SubscriptionService;
+import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.User;
@@ -58,6 +59,8 @@ public class FaceRecognitionService {
 
     private final SubscriptionService subscriptionService;
 
+    private final SecurityUtil securityUtil;
+
     private final String faceRecognitionUrl;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder().build();
@@ -70,6 +73,7 @@ public class FaceRecognitionService {
             AccessLogRepository accessLogRepository,
             AccessLogService accessLogService,
             SubscriptionService subscriptionService,
+            SecurityUtil securityUtil,
             @Value("${app.face-recognition.url:http://localhost:8001}") String faceRecognitionUrl) {
         this.faceEmbeddingRepository = faceEmbeddingRepository;
         this.faceAuthenticationRepository = faceAuthenticationRepository;
@@ -78,11 +82,13 @@ public class FaceRecognitionService {
         this.accessLogRepository = accessLogRepository;
         this.accessLogService = accessLogService;
         this.subscriptionService = subscriptionService;
+        this.securityUtil = securityUtil;
         this.faceRecognitionUrl = faceRecognitionUrl;
     }
 
     @Transactional
     public FaceRecognitionResponseDTO enrollAccountFace(String imageBase64) {
+        securityUtil.requireRole(Role.MEMBER, Role.ADMIN, Role.RECEPTIONIST);
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
@@ -113,6 +119,7 @@ public class FaceRecognitionService {
     }
 
     public FaceRecognitionResponseDTO enroll(UUID memberId, String imageBase64) {
+        securityUtil.requireStaff();
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + memberId));
 
@@ -136,6 +143,7 @@ public class FaceRecognitionService {
     }
 
     public FaceRecognitionResponseDTO recognize(String imageBase64, TypeAcces typeAcces) {
+        securityUtil.requireStaff();
         float[] sourceEmbedding = requestEmbedding(imageBase64);
         MatchResult bestMatch = findBestMatch(sourceEmbedding);
 

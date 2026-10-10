@@ -1,6 +1,8 @@
 package com.example.gym_app.user.service;
 
 import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.security.SecurityUtil;
+import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.dto.StaffRequestDTO;
 import com.example.gym_app.user.dto.StaffResponseDTO;
 import com.example.gym_app.user.entity.Staff;
@@ -18,12 +20,15 @@ public class StaffService {
 
     private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityUtil securityUtil;
 
     public StaffService(
             StaffRepository staffRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            SecurityUtil securityUtil) {
         this.staffRepository = staffRepository;
         this.passwordEncoder = passwordEncoder;
+        this.securityUtil = securityUtil;
     }
 
     private StaffResponseDTO toDTO(Staff staff) {
@@ -50,20 +55,24 @@ public class StaffService {
     }
 
     public List<StaffResponseDTO> findAll() {
+        securityUtil.requireRole(Role.ADMIN);
         return staffRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public StaffResponseDTO findById(UUID id) {
+        securityUtil.requireRole(Role.ADMIN);
         Staff staff = staffRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff introuvable avec id: " + id));
         return toDTO(staff);
     }
 
     public StaffResponseDTO create(StaffRequestDTO dto) {
+        securityUtil.requireRole(Role.ADMIN);
         return toDTO(staffRepository.save(toEntity(dto)));
     }
 
     public StaffResponseDTO update(UUID id, StaffRequestDTO dto) {
+        securityUtil.requireRole(Role.ADMIN);
         Staff existing = staffRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff introuvable avec id: " + id));
         existing.setNom(dto.getNom());
@@ -75,6 +84,7 @@ public class StaffService {
     }
 
     public void delete(UUID id) {
+        securityUtil.requireRole(Role.ADMIN);
         staffRepository.deleteById(id);
     }
 }

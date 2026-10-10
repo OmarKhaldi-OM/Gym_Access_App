@@ -6,6 +6,7 @@ import com.example.gym_app.classes.entity.Gym_Class;
 import com.example.gym_app.classes.repository.GymClassRepository;
 import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.security.SecurityUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,10 +17,13 @@ import java.util.stream.Collectors;
 public class GymClassService {
 
     private final GymClassRepository gymClassRepository;
+    private final SecurityUtil securityUtil;
 
     public GymClassService(
-            GymClassRepository gymClassRepository) {
+            GymClassRepository gymClassRepository,
+            SecurityUtil securityUtil) {
         this.gymClassRepository = gymClassRepository;
+        this.securityUtil = securityUtil;
     }
 
     private GymClassResponseDTO toDTO(Gym_Class gymClass) {
@@ -51,6 +55,7 @@ public class GymClassService {
 
     // Empeche la creation de deux classes avec le meme nom
     public GymClassResponseDTO create(GymClassRequestDTO dto) {
+        securityUtil.requireStaff();
         if (gymClassRepository.existsByNom(dto.getNom())) {
             throw new ConflictException("Une classe avec ce nom existe deja");
         }
@@ -58,6 +63,7 @@ public class GymClassService {
     }
 
     public GymClassResponseDTO update(UUID id, GymClassRequestDTO dto) {
+        securityUtil.requireStaff();
         Gym_Class existing = gymClassRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("GymClass introuvable avec id: " + id));
 
@@ -73,6 +79,7 @@ public class GymClassService {
     }
 
     public void delete(UUID id) {
+        securityUtil.requireStaff();
         gymClassRepository.deleteById(id);
     }
 }

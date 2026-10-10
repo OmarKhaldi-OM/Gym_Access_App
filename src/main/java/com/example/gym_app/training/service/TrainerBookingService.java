@@ -1,6 +1,5 @@
 package com.example.gym_app.training.service;
 
-import com.example.gym_app.exception.BadRequestException;
 import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.security.SecurityUtil;
@@ -44,9 +43,9 @@ public class TrainerBookingService {
         TrainerBookingResponseDTO dto = new TrainerBookingResponseDTO();
         dto.setId(tb.getId());
         dto.setMemberId(tb.getMember().getId());
-        dto.setMemberNom(tb.getMember().getNom());
+        dto.setMemberNom(tb.getMember().getPrenom() + " " + tb.getMember().getNom());
         dto.setTrainerId(tb.getTrainer().getId());
-        dto.setTrainerNom(tb.getTrainer().getNom());
+        dto.setTrainerNom(tb.getTrainer().getPrenom() + " " + tb.getTrainer().getNom());
         dto.setDateHeure(tb.getDateHeure());
         dto.setStatut(tb.getStatut());
         return dto;
@@ -67,34 +66,41 @@ public class TrainerBookingService {
     }
 
     public List<TrainerBookingResponseDTO> findAll() {
-        if (!securityUtil.hasRole(Role.ADMIN) && !securityUtil.hasRole(Role.RECEPTIONIST)) {
-            throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
-        }
+        securityUtil.requireStaff();
         return trainerBookingRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public List<TrainerBookingResponseDTO> findByMember(UUID memberId) {
-        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        if (!staff && !memberRepository.findById(memberId)
-                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            return trainerBookingRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
+        }
+        securityUtil.requireRole(Role.MEMBER);
+        if (!memberRepository.findById(memberId)
+                .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
         return trainerBookingRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public List<TrainerBookingResponseDTO> findByTrainer(UUID trainerId) {
-        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        if (!staff && !trainerRepository.findById(trainerId)
-                .map(trainer -> trainer.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            return trainerBookingRepository.findByTrainerId(trainerId).stream().map(this::toDTO).collect(Collectors.toList());
+        }
+        securityUtil.requireRole(Role.TRAINER);
+        if (!trainerRepository.findById(trainerId)
+                .map(trainer -> securityUtil.isCurrentUser(trainer.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
         return trainerBookingRepository.findByTrainerId(trainerId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public TrainerBookingResponseDTO create(TrainerBookingRequestDTO dto) {
-        boolean staff = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        if (!staff && !memberRepository.findById(dto.getMemberId())
-                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            securityUtil.requireRole(Role.MEMBER);
+        }
+        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)
+                && !memberRepository.findById(dto.getMemberId())
+                .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
         Trainer_Booking tb = toEntity(dto);
@@ -119,12 +125,13 @@ public class TrainerBookingService {
             throw new ConflictException("Cette reservation est deja annulee");
         }
 
-        boolean isStaffOrAdmin = securityUtil.hasRole(Role.ADMIN) || securityUtil.hasRole(Role.RECEPTIONIST);
-        if (!isStaffOrAdmin) {
-            String currentEmail = securityUtil.getCurrentUserEmail();
-            if (!trainerBooking.getMember().getEmail().equals(currentEmail)) {
-                throw new BadRequestException("Vous ne pouvez annuler que vos propres reservations");
-            }
+        if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+            trainerBooking.setStatut("CANCELLED");
+            return toDTO(trainerBookingRepository.save(trainerBooking));
+        }
+        securityUtil.requireRole(Role.MEMBER);
+        if (!securityUtil.isCurrentUser(trainerBooking.getMember().getEmail())) {
+            throw new org.springframework.security.access.AccessDeniedException("Vous ne pouvez annuler que vos propres reservations");
         }
 
         trainerBooking.setStatut("CANCELLED");
@@ -132,6 +139,7 @@ public class TrainerBookingService {
     }
 
     public void delete(UUID id) {
+        securityUtil.requireStaff();
         trainerBookingRepository.deleteById(id);
     }
 }

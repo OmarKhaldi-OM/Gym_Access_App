@@ -5,6 +5,7 @@ import com.example.gym_app.access.dto.FaceEmbeddingResponseDTO;
 import com.example.gym_app.access.entity.Face_Embedding;
 import com.example.gym_app.access.repository.FaceEmbeddingRepository;
 import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.repository.MemberRepository;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,15 @@ public class FaceEmbeddingService {
     private final FaceEmbeddingRepository faceEmbeddingRepository;
 
     private final MemberRepository memberRepository;
+    private final SecurityUtil securityUtil;
 
     public FaceEmbeddingService(
             FaceEmbeddingRepository faceEmbeddingRepository,
-            MemberRepository memberRepository) {
+            MemberRepository memberRepository,
+            SecurityUtil securityUtil) {
         this.faceEmbeddingRepository = faceEmbeddingRepository;
         this.memberRepository = memberRepository;
+        this.securityUtil = securityUtil;
     }
 
     private FaceEmbeddingResponseDTO toDTO(Face_Embedding fe) {
@@ -48,16 +52,19 @@ public class FaceEmbeddingService {
     }
 
     public List<FaceEmbeddingResponseDTO> findByMember(UUID memberId) {
+        securityUtil.requireStaff();
         return faceEmbeddingRepository.findByMemberId(memberId).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     public FaceEmbeddingResponseDTO enroll(FaceEmbeddingRequestDTO dto) {
+        securityUtil.requireStaff();
         return toDTO(faceEmbeddingRepository.save(toEntity(dto)));
     }
 
     public void delete(UUID id) {
+        securityUtil.requireStaff();
         faceEmbeddingRepository.deleteById(id);
     }
 }

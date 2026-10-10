@@ -8,6 +8,7 @@ import com.example.gym_app.classes.repository.ClassScheduleRepository;
 import com.example.gym_app.classes.repository.GymClassRepository;
 import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.entity.Trainer;
 import com.example.gym_app.user.repository.TrainerRepository;
 import org.springframework.stereotype.Service;
@@ -25,14 +26,17 @@ public class ClassScheduleService {
     private final GymClassRepository gymClassRepository;
 
     private final TrainerRepository trainerRepository;
+    private final SecurityUtil securityUtil;
 
     public ClassScheduleService(
             ClassScheduleRepository classScheduleRepository,
             GymClassRepository gymClassRepository,
-            TrainerRepository trainerRepository) {
+            TrainerRepository trainerRepository,
+            SecurityUtil securityUtil) {
         this.classScheduleRepository = classScheduleRepository;
         this.gymClassRepository = gymClassRepository;
         this.trainerRepository = trainerRepository;
+        this.securityUtil = securityUtil;
     }
 
     private ClassScheduleResponseDTO toDTO(Class_Schedule schedule) {
@@ -62,6 +66,7 @@ public class ClassScheduleService {
     }
 
     public ClassScheduleResponseDTO create(ClassScheduleRequestDTO dto) {
+        securityUtil.requireStaff();
         Gym_Class gymClass = gymClassRepository.findById(dto.getClassId())
                 .orElseThrow(() -> new ResourceNotFoundException("GymClass introuvable avec id: " + dto.getClassId()));
         Trainer trainer = trainerRepository.findById(dto.getTrainerId())
@@ -91,6 +96,7 @@ public class ClassScheduleService {
         return toDTO(classScheduleRepository.save(schedule));
     }
     public ClassScheduleResponseDTO update(UUID id, ClassScheduleRequestDTO dto) {
+        securityUtil.requireStaff();
         Class_Schedule existing = classScheduleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ClassSchedule introuvable avec id: " + id));
 
@@ -124,6 +130,7 @@ public class ClassScheduleService {
     }
 
     public void delete(UUID id) {
+        securityUtil.requireStaff();
         classScheduleRepository.deleteById(id);
     }
 }

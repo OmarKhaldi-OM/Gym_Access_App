@@ -34,8 +34,12 @@ public class ProgressLogService {
     }
 
     private void requireMemberAccess(UUID memberId) {
-        if (!securityUtil.hasRole(Role.ADMIN) && !memberRepository.findById(memberId)
-                .map(member -> member.getEmail().equals(securityUtil.getCurrentUserEmail())).orElse(false)) {
+        if (securityUtil.hasRole(Role.ADMIN)) {
+            return;
+        }
+        securityUtil.requireRole(Role.MEMBER);
+        if (!memberRepository.findById(memberId)
+                .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new AccessDeniedException("Acces refuse");
         }
     }

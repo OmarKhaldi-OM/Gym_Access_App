@@ -5,6 +5,7 @@ import com.example.gym_app.membership.dto.MembershipPlanRequestDTO;
 import com.example.gym_app.membership.dto.MembershipPlanResponseDTO;
 import com.example.gym_app.membership.entity.Membership_Plan;
 import com.example.gym_app.membership.repository.MembershipPlanRepository;
+import com.example.gym_app.security.SecurityUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,10 +16,13 @@ import java.util.stream.Collectors;
 public class MembershipPlanService {
 
     private final MembershipPlanRepository membershipPlanRepository;
+    private final SecurityUtil securityUtil;
 
     public MembershipPlanService(
-            MembershipPlanRepository membershipPlanRepository) {
+            MembershipPlanRepository membershipPlanRepository,
+            SecurityUtil securityUtil) {
         this.membershipPlanRepository = membershipPlanRepository;
+        this.securityUtil = securityUtil;
     }
 
     private MembershipPlanResponseDTO toDTO(Membership_Plan plan) {
@@ -48,6 +52,7 @@ public class MembershipPlanService {
         return toDTO(plan);
     }
     public MembershipPlanResponseDTO update(UUID id, MembershipPlanRequestDTO dto) {
+        securityUtil.requireStaff();
         Membership_Plan existing = membershipPlanRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Plan introuvable avec id: " + id));
         existing.setNom(dto.getNom());
@@ -57,10 +62,12 @@ public class MembershipPlanService {
     }
 
     public MembershipPlanResponseDTO create(MembershipPlanRequestDTO dto) {
+        securityUtil.requireStaff();
         return toDTO(membershipPlanRepository.save(toEntity(dto)));
     }
 
     public void delete(UUID id) {
+        securityUtil.requireStaff();
         membershipPlanRepository.deleteById(id);
     }
 }

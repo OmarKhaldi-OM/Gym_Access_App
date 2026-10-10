@@ -4,5 +4,9 @@ public enum Role {
     MEMBER,
     ADMIN,
     RECEPTIONIST,
-    TRAINER
+    TRAINER;
+
+    public String authority() {
+        return "ROLE_" + name();
+    }
 }
