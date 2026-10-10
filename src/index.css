@@ -257,6 +257,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .management-main .management-panel, .management-main [class~="bg-graphite-panel"] { background-color: var(--surface, #f3f3eb) !important; color: var(--ink); }
 .management-main [class~="bg-graphite-bg"] { background-color: var(--paper) !important; }
 .management-main [class~="bg-graphite-hover"] { background-color: var(--surface-soft, #e2e4d8) !important; }
+.management-main .face-recognition-result--success { border-color: #15803d; background-color: #dcfce7; color: #14532d; }
+.management-main .face-recognition-result--denied { border-color: #b45309; background-color: #fef3c7; color: #78350f; }
+[data-theme='dark'] .management-main .face-recognition-result--success { border-color: #34d399; background-color: #064e3b; color: #d1fae5; }
+[data-theme='dark'] .management-main .face-recognition-result--denied { border-color: #fbbf24; background-color: #78350f; color: #fef3c7; }
 .management-main [class~="text-text-primary"] { color: var(--ink) !important; }
 .management-main [class~="text-text-muted"] { color: var(--muted) !important; }
 .management-main [class~="bg-coral"] { background-color: var(--lime) !important; color: var(--on-accent, #191c18) !important; }

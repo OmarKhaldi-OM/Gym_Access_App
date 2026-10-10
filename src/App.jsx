@@ -22,6 +22,7 @@ import AdminClassSchedule from './pages/admin/ClassSchedule.jsx'
 import AdminTrainerBookings from './pages/admin/TrainerBookings.jsx'
 
 import MyStatus from './pages/member/MyStatus.jsx'
+import MyMembership from './pages/member/MyMembership.jsx'
 import MyClasses from './pages/member/MyClasses.jsx'
 import MyTrainerSessions from './pages/member/MyTrainerSessions.jsx'
 
@@ -30,6 +31,7 @@ import CoachClients from './pages/coach/MyClients.jsx'
 
 import FrontDesk from './pages/reception/FrontDesk.jsx'
 import ReceptionSchedule from './pages/reception/Schedule.jsx'
+import FaceRecognitionPage from './pages/FaceRecognitionPage.jsx'
 import CoachingRequests from './pages/member/CoachingRequests.jsx'
 import MemberProgress from './pages/member/Progress.jsx'
 import CoachRequests from './pages/coach/Requests.jsx'
@@ -71,13 +73,16 @@ function AppRoutes() {
       <Route path="/admin/members/:id" element={<RequireRole><AdminMemberProfile /></RequireRole>} />
       <Route path="/admin/schedule" element={<RequireRole><AdminClassSchedule /></RequireRole>} />
       <Route path="/admin/trainer-bookings" element={<RequireRole><AdminTrainerBookings /></RequireRole>} />
+      <Route path="/admin/face-recognition" element={<RequireRole><FaceRecognitionPage /></RequireRole>} />
       <Route path="/admin/profile" element={<RequireRole><ProfileEdit /></RequireRole>} />
 
       {/* Membre (personal) view */}
       <Route path="/membre" element={<Navigate to="/membre/dashboard" replace />} />
       <Route path="/membre/dashboard" element={<RequireRole><MyStatus /></RequireRole>} />
+      <Route path="/membre/membership" element={<RequireRole><MyMembership /></RequireRole>} />
       <Route path="/membre/bookings" element={<RequireRole><MyClasses /></RequireRole>} />
       <Route path="/membre/trainer-sessions" element={<RequireRole><MyTrainerSessions /></RequireRole>} />
+      <Route path="/membre/face-recognition" element={<RequireRole><FaceRecognitionPage /></RequireRole>} />
       <Route path="/membre/profile" element={<RequireRole><ProfileEdit /></RequireRole>} />
       <Route path="/membre/coaching" element={<RequireRole><CoachingRequests /></RequireRole>} />
       <Route path="/membre/progress" element={<RequireRole><MemberProgress /></RequireRole>} />
@@ -93,6 +98,7 @@ function AppRoutes() {
       <Route path="/reception" element={<Navigate to="/reception/accueil" replace />} />
       <Route path="/reception/accueil" element={<RequireRole><FrontDesk /></RequireRole>} />
       <Route path="/reception/planning" element={<RequireRole><ReceptionSchedule /></RequireRole>} />
+      <Route path="/reception/face-recognition" element={<RequireRole><FaceRecognitionPage /></RequireRole>} />
       <Route path="/reception/profil" element={<RequireRole><ProfileEdit /></RequireRole>} />
     </Routes>
     </>

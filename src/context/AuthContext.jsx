@@ -42,6 +42,12 @@ export function AuthProvider({ children }) {
     return loggedInUser
   }, [])
 
+  const signInWithFace = useCallback(async (imageBase64) => {
+    const loggedInUser = await authService.signInWithFace(imageBase64)
+    setUser(loggedInUser)
+    return loggedInUser
+  }, [])
+
   const signUp = useCallback(async (details) => {
     const registeredUser = await authService.signUp(details)
     setUser(registeredUser)
@@ -53,7 +59,7 @@ export function AuthProvider({ children }) {
     setUser(null)
   }, [])
 
-  return <AuthContext.Provider value={{ user, ready, signIn, signUp, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, ready, signIn, signInWithFace, signUp, logout }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

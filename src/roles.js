@@ -37,14 +37,14 @@ const roleDefinitions = Object.freeze({
     homePath: '/admin/dashboard',
     label: 'admin',
     navigation: [
-      { to: '/admin/dashboard', key: 'dashboard' }, { to: '/admin/activity', key: 'activity' }, { to: '/admin/members', key: 'members' }, { to: '/admin/schedule', key: 'schedule' }, { to: '/admin/trainer-bookings', key: 'trainerBookings' }, { to: '/admin/profile', key: 'profile' },
+      { to: '/admin/dashboard', key: 'dashboard' }, { to: '/admin/activity', key: 'activity' }, { to: '/admin/members', key: 'members' }, { to: '/admin/schedule', key: 'schedule' }, { to: '/admin/trainer-bookings', key: 'trainerBookings' }, { to: '/admin/face-recognition', key: 'faceRecognition' }, { to: '/admin/profile', key: 'profile' },
     ],
   },
   [ROLES.RECEPTIONIST]: {
     homePath: '/reception/accueil',
     label: 'reception',
     navigation: [
-      { to: '/reception/accueil', key: 'home' }, { to: '/reception/planning', key: 'schedule' }, { to: '/reception/profil', key: 'profile' },
+      { to: '/reception/accueil', key: 'home' }, { to: '/reception/planning', key: 'schedule' }, { to: '/reception/face-recognition', key: 'faceRecognition' }, { to: '/reception/profil', key: 'profile' },
     ],
   },
   [ROLES.TRAINER]: {
@@ -58,7 +58,7 @@ const roleDefinitions = Object.freeze({
     homePath: '/membre/dashboard',
     label: 'member',
     navigation: [
-      { to: '/membre/dashboard', key: 'status' }, { to: '/membre/bookings', key: 'bookings' }, { to: '/membre/trainer-sessions', key: 'trainerSessions' }, { to: '/membre/coaching', key: 'coachingRequests' }, { to: '/membre/progress', key: 'progress' }, { to: '/membre/profile', key: 'profile' },
+      { to: '/membre/dashboard', key: 'status' }, { to: '/membre/membership', key: 'subscription' }, { to: '/membre/bookings', key: 'bookings' }, { to: '/membre/trainer-sessions', key: 'trainerSessions' }, { to: '/membre/coaching', key: 'coachingRequests' }, { to: '/membre/progress', key: 'progress' }, { to: '/membre/face-recognition', key: 'faceRecognition' }, { to: '/membre/profile', key: 'profile' },
     ],
   },
 })

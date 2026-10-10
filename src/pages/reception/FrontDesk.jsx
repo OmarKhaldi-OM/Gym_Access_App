@@ -52,7 +52,8 @@ export default function FrontDesk() {
   const handleEnroll = async (id, nom) => {
     setEnrollingId(id)
     try {
-      if (await enroll(id)) showToast(`${nom} · ${t('enrolled')}`)
+      window.location.href = `/reception/face-recognition?memberId=${encodeURIComponent(id)}`
+      showToast(`${nom} · ${t('enrolled')}`)
     } finally {
       setEnrollingId(null)
     }

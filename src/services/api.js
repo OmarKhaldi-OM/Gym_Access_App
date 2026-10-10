@@ -59,7 +59,9 @@ export async function apiRequest(path, options = {}) {
     const message = response.status === 401
       ? path === '/api/auth/login'
         ? 'Adresse e-mail ou mot de passe incorrect.'
-        : 'Votre session a expiré. Connectez-vous à nouveau.'
+        : path === '/api/auth/face-login'
+          ? 'Face not recognized or not enrolled. Try again or use your password.'
+          : 'Votre session a expiré. Connectez-vous à nouveau.'
       : response.status === 403
         ? 'Vous n’avez pas les droits pour effectuer cette action.'
         : safeServerMessage || 'La requête a échoué. Veuillez réessayer.'

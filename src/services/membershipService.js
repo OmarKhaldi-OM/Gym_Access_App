@@ -4,9 +4,13 @@ export function getPlans() {
   return apiGet('/api/plans')
 }
 
+export function getMemberSubscriptions(memberId) {
+  return apiGet(`/api/subscriptions/member/${memberId}`)
+}
+
 export async function getMemberSubscription(memberId) {
-  const subscriptions = await apiGet(`/api/subscriptions/member/${memberId}`)
-  return subscriptions.sort((a, b) => b.dateDebut.localeCompare(a.dateDebut))[0] || null
+  const subscriptions = await getMemberSubscriptions(memberId)
+  return [...subscriptions].sort((a, b) => b.dateDebut.localeCompare(a.dateDebut))[0] || null
 }
 
 export async function createSubscription(memberId, plan) {

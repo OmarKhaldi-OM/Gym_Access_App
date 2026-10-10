@@ -34,6 +34,10 @@ export async function signIn({ email, password }) {
   return authenticate('/api/auth/login', { email: email.trim().toLowerCase(), motDePasse: password })
 }
 
+export async function signInWithFace(imageBase64) {
+  return authenticate('/api/auth/face-login', { imageBase64 })
+}
+
 export async function signUp({ name, email, password }) {
   const names = name.trim().split(/\s+/)
   const prenom = names.shift()
