@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,7 +26,7 @@ public class Face_Authentication {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Lob
+    @JdbcTypeCode(Types.LONGVARBINARY)
     @Column(name = "vecteur_facial", nullable = false)
     private byte[] vecteurFacial;
 

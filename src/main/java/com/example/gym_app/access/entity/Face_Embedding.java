@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,7 +26,7 @@ public class Face_Embedding {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Lob
+    @JdbcTypeCode(Types.LONGVARBINARY)
     @Column(name = "vecteur_facial", nullable = false)
     private byte[] vecteurFacial;
 
