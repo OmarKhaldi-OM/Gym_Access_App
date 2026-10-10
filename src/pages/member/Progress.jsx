@@ -8,6 +8,11 @@ import { useAuth } from '../../context/AuthContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
 import * as progressService from '../../services/progressService.js'
 
+function localDate() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+}
+
 export default function Progress() {
   const t = useT()
   const { language } = useI18n()
@@ -16,6 +21,9 @@ export default function Progress() {
   const [progress, setProgress] = useState(null)
   const [goals, setGoals] = useState([])
   const [goal, setGoal] = useState({ name: '', target: 5, deadline: '' })
+  const [measurement, setMeasurement] = useState({ dateMesure: localDate(), poids: '' })
+  const [measurementError, setMeasurementError] = useState(null)
+  const [savingMeasurement, setSavingMeasurement] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -53,6 +61,21 @@ export default function Progress() {
     }
   }
 
+  const addMeasurement = async (event) => {
+    event.preventDefault()
+    setSavingMeasurement(true)
+    setMeasurementError(null)
+    try {
+      await progressService.addProgressLog(memberId, measurement)
+      setMeasurement({ dateMesure: localDate(), poids: '' })
+      await refresh()
+    } catch (requestError) {
+      setMeasurementError(requestError)
+    } finally {
+      setSavingMeasurement(false)
+    }
+  }
+
   if (loading) return <Layout role="membre"><ApiLoading message={t('loading')} /></Layout>
   if (error || !progress) return <Layout role="membre"><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger votre progression.'))} onRetry={() => refresh().catch(() => {})} /></Layout>
 
@@ -68,9 +91,15 @@ export default function Progress() {
       </div>
       <Panel className="mb-6">
         <SectionHeader title={t('weightProgress')} />
+        <form onSubmit={addMeasurement} className="grid gap-3 p-5 md:grid-cols-[1fr_1fr_auto]">
+          <label className="text-sm font-medium">{t('measurementDate', 'Measurement date')}<input required type="date" max={localDate()} value={measurement.dateMesure} onChange={(event) => setMeasurement({ ...measurement, dateMesure: event.target.value })} className="mt-1 w-full rounded-md border border-graphite-line bg-graphite-bg px-3 py-2.5" /></label>
+          <label className="text-sm font-medium">{t('weight', 'Weight (kg)')}<input required type="number" min="1" step="0.1" value={measurement.poids} onChange={(event) => setMeasurement({ ...measurement, poids: event.target.value })} className="mt-1 w-full rounded-md border border-graphite-line bg-graphite-bg px-3 py-2.5" /></label>
+          <Button disabled={savingMeasurement}>{savingMeasurement ? t('loading') : t('recordMeasurement', 'Record measurement')}</Button>
+        </form>
+        <ApiError error={measurementError} />
         <div className="flex min-h-48 items-end gap-3 p-5">
           {progress.weight.length === 0 && <ApiEmpty message={t('noProgressData', 'Aucune mesure enregistrée.')} />}
-          {progress.weight.map((point) => <div key={point.date} className="flex flex-1 flex-col items-center gap-2"><span className="text-sm font-semibold">{point.value} kg</span><div className="w-full max-w-16 rounded-t-md bg-coral" style={{ height: `${point.value * 2}px` }} /><span className="text-xs text-text-muted"><span dir="ltr">{new Date(`${point.date}T12:00:00`).toLocaleDateString(language, { month: 'short', year: 'numeric' })}</span></span></div>)}
+          {progress.weight.map((point) => <div key={point.id} className="flex flex-1 flex-col items-center gap-2"><span className="text-sm font-semibold">{point.value} kg</span><div className="w-full max-w-16 rounded-t-md bg-coral" style={{ height: `${point.value * 2}px` }} /><span className="text-xs text-text-muted"><span dir="ltr">{new Date(`${point.date}T12:00:00`).toLocaleDateString(language, { month: 'short', year: 'numeric' })}</span></span></div>)}
         </div>
       </Panel>
       <Panel>

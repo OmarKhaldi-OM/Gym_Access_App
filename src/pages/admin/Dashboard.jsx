@@ -1,18 +1,17 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout.jsx'
 import StatCard from '../../components/StatCard.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import Button from '../../components/Button.jsx'
-import Toast from '../../components/Toast.jsx'
 import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
-import { useToast } from '../../hooks/useToast.js'
 import * as activityService from '../../services/activityService.js'
 import { useT } from '../../context/I18nContext.jsx'
 
 export default function Dashboard() {
-  const { pendingEnrollments, enroll, loading: membersLoading, error: membersError, refresh: refreshMembers } = useMembers()
-  const { toastMessage, showToast } = useToast()
+  const { pendingEnrollments, loading: membersLoading, error: membersError, refresh: refreshMembers } = useMembers()
+  const navigate = useNavigate()
   const [activity, setActivity] = useState([])
   const [activityLoading, setActivityLoading] = useState(true)
   const [activityError, setActivityError] = useState(null)
@@ -31,10 +30,6 @@ export default function Dashboard() {
   const todayActivity = activity.filter((item) => item.date === todayKey)
   const checkInsToday = todayActivity.filter((a) => a.type === 'entree').length
   const deniedToday = todayActivity.filter((a) => a.type === 'refuse').length
-
-  const handleEnroll = async (id, nom) => {
-    if (await enroll(id)) showToast(`${nom} · ${t('enrolled')}`)
-  }
 
   return (
     <Layout role="admin">
@@ -64,13 +59,11 @@ export default function Dashboard() {
                 <p className="text-lg font-semibold">{p.nom}</p>
                 <p className="text-base font-medium text-text-muted mt-0.5">{p.daysSince === 0 ? t('registeredToday') : (p.daysSince === 1 ? t('registeredOneDay') : t('registeredDays').replace('{count}', p.daysSince))}</p>
               </div>
-              <Button disabled={membersLoading} onClick={() => handleEnroll(p.id, p.nom)}>{t('enrolled')}</Button>
+              <Button disabled={membersLoading} onClick={() => navigate(`/admin/face-recognition?memberId=${encodeURIComponent(p.id)}`)}>{t('register')}</Button>
             </div>
           ))}
         </div>
       </Panel>
-
-      <Toast message={toastMessage} />
     </Layout>
   )
 }

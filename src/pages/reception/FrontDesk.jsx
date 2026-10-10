@@ -1,13 +1,12 @@
 import { useMemo, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import Button from '../../components/Button.jsx'
-import Toast from '../../components/Toast.jsx'
 import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
-import { useToast } from '../../hooks/useToast.js'
 import * as activityService from '../../services/activityService.js'
 import { useT } from '../../context/I18nContext.jsx'
 
@@ -31,13 +30,12 @@ function pairTodaySessions(entries) {
 
 export default function FrontDesk() {
   const t = useT()
-  const { members, pendingEnrollments, loading: membersLoading, error: membersError, refresh, enroll } = useMembers()
-  const { toastMessage, showToast } = useToast()
+  const { members, pendingEnrollments, loading: membersLoading, error: membersError, refresh } = useMembers()
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [todaySessions, setTodaySessions] = useState([])
   const [activityLoading, setActivityLoading] = useState(true)
   const [activityError, setActivityError] = useState(null)
-  const [enrollingId, setEnrollingId] = useState(null)
 
   useEffect(() => {
     activityService.getActivityLog()
@@ -48,16 +46,6 @@ export default function FrontDesk() {
 
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const results = useMemo(() => members.filter((member) => member.nom.toLocaleLowerCase().includes(normalizedQuery)), [members, normalizedQuery])
-
-  const handleEnroll = async (id, nom) => {
-    setEnrollingId(id)
-    try {
-      window.location.href = `/reception/face-recognition?memberId=${encodeURIComponent(id)}`
-      showToast(`${nom} · ${t('enrolled')}`)
-    } finally {
-      setEnrollingId(null)
-    }
-  }
 
   return (
     <Layout role="reception">
@@ -150,14 +138,12 @@ export default function FrontDesk() {
                   <p className="text-lg font-semibold">{p.nom}</p>
                   <p className="text-base font-medium text-text-muted mt-0.5">{p.daysSince === 0 ? t('registeredToday') : (p.daysSince === 1 ? t('registeredOneDay') : t('registeredDays').replace('{count}', p.daysSince))}</p>
                 </div>
-                <Button disabled={enrollingId === p.id} onClick={() => handleEnroll(p.id, p.nom)}>{t('register')}</Button>
+                <Button disabled={membersLoading} onClick={() => navigate(`/reception/face-recognition?memberId=${encodeURIComponent(p.id)}`)}>{t('register')}</Button>
               </div>
             ))}
           </div>
         </Panel>
       </div>
-
-      <Toast message={toastMessage} />
     </Layout>
   )
 }

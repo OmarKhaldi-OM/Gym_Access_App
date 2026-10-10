@@ -43,24 +43,11 @@ export function MembersProvider({ children }) {
     refresh().catch(() => {})
   }, [refresh])
 
-  const enroll = useCallback(
-    async (id) => {
-      try {
-        await memberService.enrollMember(id)
-        await refresh()
-        return true
-      } catch {
-        return false
-      }
-    },
-    [refresh],
-  )
-
   const search = useCallback((query) => memberService.searchMembers(query), [])
 
   return (
     <MembersContext.Provider
-      value={{ members, pendingEnrollments, loading, error, enroll, search, refresh }}
+      value={{ members, pendingEnrollments, loading, error, search, refresh }}
     >
       {children}
     </MembersContext.Provider>

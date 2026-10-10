@@ -5,6 +5,7 @@ import Layout from '../components/Layout.jsx'
 import { Panel } from '../components/Panel.jsx'
 import Button from '../components/Button.jsx'
 import { enrollAccountFace, enrollFace, recognizeFace } from '../services/faceRecognitionService.js'
+import { getRoleDefinition, hasRole, ROLES } from '../roles.js'
 
 const MODES = {
   ENROLL_MEMBER: 'enroll-member',
@@ -14,14 +15,16 @@ const MODES = {
 
 export default function FaceRecognitionPage() {
   const { user } = useAuth()
-  const { members, loading: membersLoading } = useMembers()
-  const isMember = user?.role === 'MEMBER'
+  const { members, loading: membersLoading, refresh: refreshMembers } = useMembers()
+  const isMember = hasRole(user, ROLES.MEMBER)
+  const layoutRole = getRoleDefinition(user?.role)?.label || 'member'
   const [mode, setMode] = useState(isMember ? MODES.ENROLL_ACCOUNT : MODES.ENROLL_MEMBER)
   const [selectedMemberId, setSelectedMemberId] = useState('')
   const [cameraReady, setCameraReady] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [cameraError, setCameraError] = useState('')
   const [result, setResult] = useState(null)
+  const [accessType, setAccessType] = useState('ENTREE')
 
   const videoRef = useRef(null)
   const streamRef = useRef(null)
@@ -51,7 +54,7 @@ export default function FaceRecognitionPage() {
   const memberOptions = useMemo(
     () => members.filter((member) => member && member.id).map((member) => ({
       id: member.id,
-      label: `${member.prenom || ''} ${member.nom || ''}`.trim() || member.email || 'Membre',
+      label: member.nom || [member.prenom, member.nom].filter(Boolean).join(' ') || member.email || 'Membre',
     })),
     [members],
   )
@@ -120,12 +123,26 @@ export default function FaceRecognitionPage() {
       setResult(null)
       const image = captureFrame()
       const response = await enrollFace(selectedMemberId, image)
+      if (response.status !== 'ENROLLED') {
+        throw new Error(response.message || 'Face enrollment was not confirmed by the server.')
+      }
       setResult({
         status: response.status || 'ENROLLED',
         message: response.message || 'Face successfully enrolled.',
         success: true,
       })
+      try {
+        await refreshMembers()
+      } catch (refreshError) {
+        setResult((current) => ({
+          ...current,
+          message: `${current.message} Enrollment succeeded, but the queue could not be refreshed: ${refreshError.message}`,
+        }))
+      }
     } catch (error) {
+      if (response.status !== 'ENROLLED') {
+        throw new Error(response.message || 'Account face enrollment was not confirmed by the server.')
+      }
       setResult({
         status: 'DENIED',
         message: error?.message || 'Enrollment failed.',
@@ -162,7 +179,7 @@ export default function FaceRecognitionPage() {
       setIsLoading(true)
       setResult(null)
       const image = captureFrame()
-      const response = await recognizeFace(image, 'ENTREE')
+      const response = await recognizeFace(image, accessType)
       setResult({
         status: response.status || 'DENIED',
         message: response.message || 'Recognition failed.',
@@ -183,7 +200,7 @@ export default function FaceRecognitionPage() {
   }
 
   return (
-    <Layout role={user?.role === 'ADMIN' ? 'admin' : isMember ? 'member' : 'reception'}>
+    <Layout role={layoutRole}>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-text-muted">Access Control</p>
@@ -303,7 +320,14 @@ export default function FaceRecognitionPage() {
               <p className="text-sm text-text-muted">Recognition mode</p>
               <div className="mt-3 rounded-xl border border-graphite-line bg-graphite-bg p-4">
                 <p className="text-base font-semibold">Access type</p>
-                <p className="mt-2 text-lg font-mono text-teal">ENTREE</p>
+                <select
+                  value={accessType}
+                  onChange={(event) => setAccessType(event.target.value)}
+                  className="mt-2 w-full rounded-md border border-graphite-line bg-graphite-bg px-3 py-2.5 text-base text-white"
+                >
+                  <option value="ENTREE">Entry</option>
+                  <option value="SORTIE">Exit</option>
+                </select>
               </div>
               <p className="mt-4 text-sm text-text-muted">
                 The system detects a face, computes a biometric embedding, compares it to enrolled members, validates the subscription, and records the access log.

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
-import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as coachService from '../../services/coachService.js'
@@ -16,13 +15,13 @@ export default function MyClients() {
   const [error, setError] = useState(null)
 
   const loadClients = () => {
-    if (!user?.displayName) return
+    if (!user?.id) return
     setLoading(true)
     setError(null)
-    coachService.getCoachClients(user.displayName).then(setClients).catch(setError).finally(() => setLoading(false))
+    coachService.getCoachClients(user.id).then(setClients).catch(setError).finally(() => setLoading(false))
   }
 
-  useEffect(() => { loadClients() }, [user?.displayName])
+  useEffect(() => { loadClients() }, [user?.id])
 
   return (
     <Layout role="coach">
@@ -45,14 +44,10 @@ export default function MyClients() {
                 <Avatar name={c.nom} />
                 <div>
                   <p className="text-lg font-semibold">{c.nom}</p>
-                  <p className="text-base font-medium text-text-muted mt-0.5">{t('plan')} {t(c.plan)}</p>
+                  <p className="text-base font-medium text-text-muted mt-0.5">{t('scheduledSessions')}: {c.bookingCount}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="text-base font-mono text-text-muted">
-                  {t('lastSession')}: {c.daysSinceLastSession === 0 ? `${t('today')} ${c.lastSessionTime}` : (c.daysSinceLastSession === 7 ? t('weekAgo') : t('daysAgo').replace('{count}', c.daysSinceLastSession))}
-                </span>
-                <StatusChip variant="positive">Active</StatusChip>
               </div>
             </div>
           ))}

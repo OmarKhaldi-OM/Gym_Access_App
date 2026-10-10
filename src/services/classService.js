@@ -149,10 +149,11 @@ export async function getPersonalSessions(memberId) {
 }
 
 export async function getClassesForTrainer(trainerId) {
-  const [schedules, classes] = await Promise.all([
+  const [schedules, classes, bookingCounts] = await Promise.all([
     apiGet(`/api/schedules/trainer/${trainerId}`),
     apiGet('/api/classes'),
+    apiGet('/api/bookings/counts'),
   ])
   const classById = new Map(classes.map((item) => [item.id, item]))
-  return schedules.map((schedule) => mapSchedule(schedule, classById.get(schedule.classId), 0))
+  return schedules.map((schedule) => mapSchedule(schedule, classById.get(schedule.classId), bookingCounts[schedule.id] || 0))
 }

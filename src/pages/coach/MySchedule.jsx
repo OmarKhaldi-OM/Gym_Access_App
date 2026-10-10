@@ -19,10 +19,10 @@ export default function MySchedule() {
   const [error, setError] = useState(null)
 
   const loadSchedule = () => {
-    if (!user?.displayName) return
+    if (!user?.id) return
     setLoading(true)
     setError(null)
-    coachService.getCoachSchedule(user.displayName)
+    coachService.getCoachSchedule(user.id)
       .then((data) => {
         setClasses(data.classes)
         setPersonalSessions(data.personalSessions)
@@ -31,7 +31,7 @@ export default function MySchedule() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { loadSchedule() }, [user?.displayName])
+  useEffect(() => { loadSchedule() }, [user?.id])
 
   const classBlocks = classes.map((c) => ({
     id: c.id,

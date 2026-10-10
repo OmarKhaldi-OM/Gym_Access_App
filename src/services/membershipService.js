@@ -17,7 +17,7 @@ export async function createSubscription(memberId, plan) {
   const dateDebut = new Date()
   const dateFin = new Date(dateDebut)
   dateFin.setDate(dateFin.getDate() + plan.dureeJours)
-  const format = (date) => date.toISOString().slice(0, 10)
+  const format = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
   return apiPost('/api/subscriptions', {
     memberId,
     planId: plan.id,

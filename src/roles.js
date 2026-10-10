@@ -34,6 +34,7 @@ const featureRoles = Object.freeze({
 
 const roleDefinitions = Object.freeze({
   [ROLES.ADMIN]: {
+    routeKey: 'admin',
     homePath: '/admin/dashboard',
     label: 'admin',
     navigation: [
@@ -41,6 +42,7 @@ const roleDefinitions = Object.freeze({
     ],
   },
   [ROLES.RECEPTIONIST]: {
+    routeKey: 'reception',
     homePath: '/reception/accueil',
     label: 'reception',
     navigation: [
@@ -48,6 +50,7 @@ const roleDefinitions = Object.freeze({
     ],
   },
   [ROLES.TRAINER]: {
+    routeKey: 'coach',
     homePath: '/coach/planning',
     label: 'coach',
     navigation: [
@@ -55,6 +58,7 @@ const roleDefinitions = Object.freeze({
     ],
   },
   [ROLES.MEMBER]: {
+    routeKey: 'membre',
     homePath: '/membre/dashboard',
     label: 'member',
     navigation: [
@@ -63,12 +67,12 @@ const roleDefinitions = Object.freeze({
   },
 })
 
-const protectedRoutePatterns = Object.freeze({
-  [ROLES.ADMIN]: /^\/admin(?:\/|$)/,
-  [ROLES.RECEPTIONIST]: /^\/reception(?:\/|$)/,
-  [ROLES.TRAINER]: /^\/coach(?:\/|$)/,
-  [ROLES.MEMBER]: /^\/membre(?:\/|$)/,
-})
+const protectedRoutePatterns = Object.freeze(Object.fromEntries(
+  Object.entries(roleDefinitions).map(([role, definition]) => [
+    role,
+    new RegExp(`^/${definition.routeKey}(?:/|$)`),
+  ]),
+))
 
 export function normalizeRole(role) {
   if (typeof role !== 'string') return null

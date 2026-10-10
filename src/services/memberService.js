@@ -80,9 +80,3 @@ export async function getPendingEnrollments(membersList) {
     daysSince: Math.max(0, Math.floor((Date.now() - new Date(member.dateInscription).getTime()) / 86400000)),
   }))
 }
-
-export async function enrollMember() {
-  const message = 'La capture faciale doit être configurée avant de pouvoir enrôler un membre.'
-  window.dispatchEvent(new CustomEvent('gate:api-error', { detail: message }))
-  throw new Error(message)
-}
