@@ -42,8 +42,10 @@ import java.util.UUID;
 @Service
 public class FaceRecognitionService {
 
+    // face_recognition compares embeddings by Euclidean distance, not a custom similarity score.
+    // A face is considered a match when the distance is <= 0.60, which corresponds to a similarity of >= 0.40.
     private static final float MIN_ACCEPTED_SIMILARITY = 0.40f;
-    private static final float MIN_ACCOUNT_MATCH_MARGIN = 0.02f;
+    private static final float MIN_ACCOUNT_MATCH_MARGIN = 0.05f;
 
     private final FaceEmbeddingRepository faceEmbeddingRepository;
 
@@ -201,22 +203,28 @@ public class FaceRecognitionService {
     }
 
     public float computeSimilarity(float[] left, float[] right) {
-        if (left == null || right == null || left.length == 0 || right.length == 0 || left.length != right.length) {
+        double distance = computeDistance(left, right);
+        if (Double.isInfinite(distance) || Double.isNaN(distance)) {
             return 0.0F;
+        }
+        return (float) Math.max(0.0d, 1.0d - Math.min(1.0d, distance));
+    }
+
+    private double computeDistance(float[] left, float[] right) {
+        if (left == null || right == null || left.length == 0 || right.length == 0 || left.length != right.length) {
+            return Double.POSITIVE_INFINITY;
         }
 
         double sum = 0.0d;
         for (int i = 0; i < left.length; i++) {
             if (!Float.isFinite(left[i]) || !Float.isFinite(right[i])) {
-                return 0.0F;
+                return Double.POSITIVE_INFINITY;
             }
             double delta = left[i] - right[i];
             sum += delta * delta;
         }
 
-        double distance = Math.sqrt(sum);
-        double similarity = 1.0d - Math.min(1.0d, distance);
-        return (float) Math.max(0.0d, similarity);
+        return Math.sqrt(sum);
     }
 
     Optional<User> findBestAccountMatch(

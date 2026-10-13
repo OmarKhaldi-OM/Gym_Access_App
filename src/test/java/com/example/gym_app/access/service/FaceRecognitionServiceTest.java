@@ -43,6 +43,45 @@ class FaceRecognitionServiceTest {
     }
 
     @Test
+    void shouldRejectDifferentPeopleEvenWhenTheyAreCloserThanAThirdCandidate() {
+        FaceRecognitionService service = createService();
+        float[] personA = new float[] {0.10f, 0.20f, 0.30f, 0.40f};
+        float[] personB = new float[] {0.80f, 0.90f, 1.00f, 1.10f};
+        float[] personC = new float[] {0.90f, 0.95f, 1.05f, 1.15f};
+
+        assertTrue(service.computeSimilarity(personA, personB) < 0.40f,
+                "A genuinely different face should not clear the same-person threshold");
+        assertTrue(service.computeSimilarity(personA, personC) < 0.40f,
+                "A different face should not be accepted as the same identity");
+        assertTrue(service.findBestAccountMatch(personA,
+                List.of(
+                        credential(Role.MEMBER, "member@example.com", personA),
+                        credential(Role.ADMIN, "admin@example.com", personB),
+                        credential(Role.RECEPTIONIST, "reception@example.com", personC)
+                ),
+                List.of()
+        ).isPresent());
+    }
+
+    @Test
+    void shouldRejectAmbiguousMatchesWhenTheTopTwoCandidatesStayTooClose() {
+        FaceRecognitionService service = createService();
+        float[] source = new float[] {0.25f, 0.35f, 0.45f, 0.55f};
+        float[] nearMatchOne = new float[] {0.28f, 0.33f, 0.42f, 0.56f};
+        float[] nearMatchTwo = new float[] {0.29f, 0.34f, 0.43f, 0.57f};
+
+        var match = service.findBestAccountMatch(source,
+                List.of(
+                        credential(Role.MEMBER, "member@example.com", nearMatchOne),
+                        credential(Role.ADMIN, "admin@example.com", nearMatchTwo)
+                ),
+                List.of()
+        );
+
+        assertTrue(match.isEmpty(), "Ambiguous matches should not be treated as a confirmed identity");
+    }
+
+    @Test
     void shouldMatchTheEnrolledMemberAdminAndReceptionistAccounts() {
         FaceRecognitionService service = createService();
         List<Role> roles = List.of(Role.MEMBER, Role.ADMIN, Role.RECEPTIONIST);
