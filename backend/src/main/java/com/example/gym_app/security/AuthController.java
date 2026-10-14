@@ -186,7 +186,10 @@ public class AuthController {
     }
 
     private CurrentUserDTO toCurrentUserDTO(User user, String token) {
+        String filename = user.getProfilePhotoFilename();
+        boolean hasProfilePhoto = filename != null
+                && Files.isRegularFile(profilePhotoStorageService.pathFor(filename));
         return new CurrentUserDTO(user.getId(), user.getNom(), user.getPrenom(), user.getEmail(), user.getRole().name(),
-                user.getTelephone(), user.getBio(), user.getProfilePhotoFilename() != null, token);
+                user.getTelephone(), user.getBio(), hasProfilePhoto, token);
     }
 }
