@@ -14,19 +14,22 @@ import com.example.gym_app.user.repository.TrainerRepository;
 import com.example.gym_app.user.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.security.SecureRandom;
+import java.util.Base64;
 
 @Component
+@Profile("dev")
 public class DataSeeder implements CommandLineRunner {
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String ADMIN_EMAIL = "admin@gym.com";
-    private static final String ADMIN_PASSWORD = "admin1234";
     private static final String RECEPTIONIST_EMAIL = "reception@gym.com";
-    private static final String RECEPTIONIST_PASSWORD = "reception1234";
 
     private final UserRepository userRepository;
 
@@ -75,12 +78,11 @@ public class DataSeeder implements CommandLineRunner {
             admin.setNom("Admin");
             admin.setPrenom("Principal");
             admin.setEmail(ADMIN_EMAIL);
-            admin.setMotDePasse(passwordEncoder.encode(ADMIN_PASSWORD));
+            admin.setMotDePasse(passwordEncoder.encode(seedPassword("SEED_ADMIN_PASSWORD")));
             admin.setRole(Role.ADMIN);
             admin.setDateEmbauche(LocalDate.now());
             admin.setDateCreation(LocalDateTime.now());
             staffRepository.save(admin);
-            System.out.println(">>> Admin cree : " + ADMIN_EMAIL + " / " + ADMIN_PASSWORD);
         }
     }
 
@@ -90,12 +92,11 @@ public class DataSeeder implements CommandLineRunner {
             receptionist.setNom("Cherni");
             receptionist.setPrenom("Ines");
             receptionist.setEmail(RECEPTIONIST_EMAIL);
-            receptionist.setMotDePasse(passwordEncoder.encode(RECEPTIONIST_PASSWORD));
+            receptionist.setMotDePasse(passwordEncoder.encode(seedPassword("SEED_RECEPTIONIST_PASSWORD")));
             receptionist.setRole(Role.RECEPTIONIST);
             receptionist.setDateEmbauche(LocalDate.now());
             receptionist.setDateCreation(LocalDateTime.now());
             staffRepository.save(receptionist);
-            System.out.println(">>> Receptionist cree : " + RECEPTIONIST_EMAIL + " / " + RECEPTIONIST_PASSWORD);
         }
     }
 
@@ -105,13 +106,12 @@ public class DataSeeder implements CommandLineRunner {
             trainer.setNom("Jlassi");
             trainer.setPrenom("Wassim");
             trainer.setEmail("wassim@gym.com");
-            trainer.setMotDePasse(passwordEncoder.encode("trainer1234"));
+            trainer.setMotDePasse(passwordEncoder.encode(seedPassword("SEED_TRAINER_PASSWORD")));
             trainer.setRole(Role.TRAINER);
             trainer.setDateEmbauche(LocalDate.of(2023, 6, 1));
             trainer.setSpecialite("Musculation");
             trainer.setDateCreation(LocalDateTime.now());
             trainerRepository.save(trainer);
-            System.out.println(">>> Trainer cree : wassim@gym.com / trainer1234");
         }
     }
 
@@ -121,14 +121,24 @@ public class DataSeeder implements CommandLineRunner {
             member.setNom("Ben Ali");
             member.setPrenom("Sara");
             member.setEmail("sara@test.com");
-            member.setMotDePasse(passwordEncoder.encode("test1234"));
+            member.setMotDePasse(passwordEncoder.encode(seedPassword("SEED_MEMBER_PASSWORD")));
             member.setRole(Role.MEMBER);
             member.setDateNaissance(LocalDate.of(2000, 5, 14));
             member.setDateInscription(LocalDateTime.now());
             member.setDateCreation(LocalDateTime.now());
             memberRepository.save(member);
-            System.out.println(">>> Member cree : sara@test.com / test1234");
         }
+    }
+
+    private String seedPassword(String environmentVariable) {
+        String configuredPassword = System.getenv(environmentVariable);
+        if (configuredPassword != null && !configuredPassword.isBlank()) {
+            return configuredPassword;
+        }
+
+        byte[] randomPassword = new byte[32];
+        SECURE_RANDOM.nextBytes(randomPassword);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomPassword);
     }
 
     private void seedPlans() {
