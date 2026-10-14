@@ -64,7 +64,7 @@ export default function MemberProfile() {
   if (error || !member) return <Layout role="admin"><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger ce membre.'))} onRetry={loadMember} /></Layout>
 
   const confirmedBookings = memberBookings.filter(
-    (b) => b.membreId === id && b.statut === 'confirmee' && b.classe,
+    (b) => b.membreId === id && b.statut === 'CONFIRMED' && b.classe,
   )
 
   return (

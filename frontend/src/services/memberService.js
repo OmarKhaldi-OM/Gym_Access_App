@@ -28,7 +28,7 @@ function mapMember(member, subscription = null) {
     nom: fullName(member),
     plan: subscription?.planNom || '—',
     dateInscription: dateTime(member.dateInscription),
-    statut: subscription?.statut?.toLowerCase() === 'actif' ? 'Actif' : 'Inactif',
+    statut: subscription?.statut?.toUpperCase() === 'ACTIVE' ? 'Actif' : 'Inactif',
     visageEnrole: member.visageEnrole,
     subscription,
   }

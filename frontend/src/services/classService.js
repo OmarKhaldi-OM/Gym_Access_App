@@ -57,7 +57,7 @@ export async function getMyBookings(memberId) {
       ...booking,
       classeId: booking.scheduleId,
       membreId: booking.memberId,
-      statut: booking.statut?.toLowerCase() === 'cancelled' ? 'annulee' : 'confirmee',
+      statut: booking.statut?.toUpperCase() === 'CANCELLED' ? 'CANCELLED' : 'CONFIRMED',
       classe: schedule
         ? mapSchedule(schedule, classById.get(schedule.classId), bookings.filter((item) => item.scheduleId === schedule.id && item.statut?.toLowerCase() !== 'cancelled').length)
         : null,
@@ -121,7 +121,7 @@ export async function deleteClass(id) {
 }
 
 export async function bookClass(scheduleId, memberId) {
-  return apiPost('/api/bookings', { memberId, scheduleId, statut: 'CONFIRMEE' })
+  return apiPost('/api/bookings', { memberId, scheduleId, statut: 'CONFIRMED' })
 }
 
 export async function cancelBooking(bookingId) {

@@ -96,7 +96,7 @@ const contentMessages = {
 const additionalMessages = {
   en: {
     primaryNavigation: 'Main navigation', managementNavigation: 'Management navigation',
-    progress: 'Progress', coachingRequests: 'Coaching requests',
+    progress: 'Progress',
     footerTagline: 'Train your way. Go further.', confirmed: 'Confirmed', present: 'Present',
     bookingCancelled: 'Booking cancelled', registeredToday: 'Registered today', registeredOneDay: 'Registered 1 day ago', registeredDays: 'Registered {count} days ago',
     yesterday: 'Yesterday', specialtyPilatesStrength: 'Pilates, strength training',
@@ -170,7 +170,7 @@ const additionalMessages = {
   },
   fr: {
     primaryNavigation: 'Navigation principale', managementNavigation: 'Navigation de gestion',
-    progress: 'Progrès', coachingRequests: 'Demandes de coaching',
+    progress: 'Progrès',
     footerTagline: 'Entraîne-toi à ta façon. Va plus loin.', confirmed: 'Confirmée', present: 'Présent',
     bookingCancelled: 'Réservation annulée', registeredToday: "Inscrit aujourd'hui", registeredOneDay: 'Inscrit il y a 1 jour', registeredDays: 'Inscrit il y a {count} jours',
     yesterday: 'Hier', specialtyPilatesStrength: 'Pilates, renforcement',
@@ -244,7 +244,7 @@ const additionalMessages = {
   },
   ar: {
     primaryNavigation: 'التنقل الرئيسي', managementNavigation: 'تنقل الإدارة',
-    progress: 'التقدم', coachingRequests: 'طلبات التدريب',
+    progress: 'التقدم',
     footerTagline: 'تمرّن بطريقتك وواصل التقدم.', confirmed: 'مؤكد', present: 'حاضر',
     bookingCancelled: 'تم إلغاء الحجز', registeredToday: 'تم التسجيل اليوم', registeredOneDay: 'تم التسجيل منذ يوم واحد', registeredDays: 'تم التسجيل منذ {count} أيام',
     yesterday: 'أمس', specialtyPilatesStrength: 'بيلاتس وتمارين القوة',

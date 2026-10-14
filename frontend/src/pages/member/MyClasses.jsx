@@ -18,7 +18,7 @@ export default function MyClasses() {
   const [weekOffset, setWeekOffset] = useState(0)
 
   const myBookingFor = (classeId) =>
-    myBookings.find((b) => b.classeId === classeId && b.statut === 'confirmee')
+    myBookings.find((b) => b.classeId === classeId && b.statut === 'CONFIRMED')
 
   const blocks = classes.map((c) => {
     const booking = myBookingFor(c.id)

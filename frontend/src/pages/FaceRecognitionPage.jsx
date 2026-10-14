@@ -142,9 +142,6 @@ export default function FaceRecognitionPage() {
         }))
       }
     } catch (error) {
-      if (response.status !== 'ENROLLED') {
-        throw new Error(response.message || 'Account face enrollment was not confirmed by the server.')
-      }
       setResult({
         status: 'DENIED',
         message: error?.message || 'Enrollment failed.',

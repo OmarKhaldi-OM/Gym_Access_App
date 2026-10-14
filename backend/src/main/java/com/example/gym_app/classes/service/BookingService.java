@@ -59,8 +59,7 @@ public class BookingService {
 
     public Map<UUID, Long> countActiveBySchedule() {
         return bookingRepository.findAll().stream()
-                .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut())
-                        && !"ANNULEE".equalsIgnoreCase(booking.getStatut()))
+                .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut()))
                 .collect(Collectors.groupingBy(booking -> booking.getClassSchedule().getId(), Collectors.counting()));
     }
 
@@ -98,14 +97,13 @@ public class BookingService {
         // Empeche un membre de reserver deux fois la meme seance
         boolean dejaReserve = bookingRepository.findByMemberId(member.getId()).stream()
                 .anyMatch(b -> b.getClassSchedule().getId().equals(schedule.getId())
-                        && !"CANCELLED".equals(b.getStatut()));
+                        && !"CANCELLED".equalsIgnoreCase(b.getStatut()));
         if (dejaReserve) {
             throw new ConflictException("Vous avez deja reserve cette seance");
         }
 
         long currentBookings = bookingRepository.findByClassScheduleId(schedule.getId()).stream()
-            .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut())
-                && !"ANNULEE".equalsIgnoreCase(booking.getStatut()))
+            .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut()))
             .count();
         if (currentBookings >= schedule.getGymClass().getCapaciteMax()) {
             throw new ConflictException("Capacite maximale atteinte pour ce cours");
@@ -124,7 +122,7 @@ public class BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking introuvable avec id: " + id));
 
-        if ("CANCELLED".equals(booking.getStatut())) {
+        if ("CANCELLED".equalsIgnoreCase(booking.getStatut())) {
             throw new ConflictException("Cette reservation est deja annulee");
         }
 
