@@ -14,10 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,23 +45,54 @@ class AuthControllerFaceLoginTest {
     private AuthController authController;
 
     @Test
-    void shouldIssueTheRecognizedAccountRoleInTheStandardJwtResponse() {
+    void shouldIssueFaceLoginJwtForEnrolledMembersAndReceptionists() {
         FaceLoginRequestDTO request = new FaceLoginRequestDTO();
         request.setImageBase64("capture");
 
-        for (Role role : Role.values()) {
+        for (Role role : List.of(Role.MEMBER, Role.RECEPTIONIST)) {
             String email = role.name().toLowerCase() + "@example.com";
             when(faceRecognitionService.authenticateAccount("capture"))
                     .thenReturn(Optional.of(new FaceRecognitionService.RecognizedAccount(email, role)));
             when(jwtUtil.generateToken(email, role.name())).thenReturn("token-" + role.name());
 
-            ResponseEntity<AuthResponseDTO> response = authController.faceLogin(request);
+            ResponseEntity<?> response = authController.faceLogin(request);
 
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals(email, response.getBody().getEmail());
-            assertEquals(role.name(), response.getBody().getRole());
-            assertEquals("token-" + role.name(), response.getBody().getToken());
+            AuthResponseDTO body = (AuthResponseDTO) response.getBody();
+            assertEquals(email, body.getEmail());
+            assertEquals(role.name(), body.getRole());
+            assertEquals("token-" + role.name(), body.getToken());
         }
+    }
+
+    @Test
+    void shouldReturnGenericUnauthorizedForAdminFaceLoginByDefault() {
+        FaceLoginRequestDTO request = new FaceLoginRequestDTO();
+        request.setImageBase64("capture");
+        when(faceRecognitionService.authenticateAccount("capture"))
+                .thenReturn(Optional.of(new FaceRecognitionService.RecognizedAccount("admin@example.com", Role.ADMIN)));
+
+        ResponseEntity<?> response = authController.faceLogin(request);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals(Map.of("message", "Email ou mot de passe incorrect"), response.getBody());
+    }
+
+    @Test
+    void shouldAllowAdminFaceLoginWhenTheGuardIsDisabled() {
+        ReflectionTestUtils.setField(authController, "blockAdminFaceLogin", false);
+        FaceLoginRequestDTO request = new FaceLoginRequestDTO();
+        request.setImageBase64("capture");
+        when(faceRecognitionService.authenticateAccount("capture"))
+                .thenReturn(Optional.of(new FaceRecognitionService.RecognizedAccount("admin@example.com", Role.ADMIN)));
+        when(jwtUtil.generateToken("admin@example.com", Role.ADMIN.name())).thenReturn("admin-token");
+
+        ResponseEntity<?> response = authController.faceLogin(request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        AuthResponseDTO body = (AuthResponseDTO) response.getBody();
+        assertEquals("admin@example.com", body.getEmail());
+        assertEquals("ADMIN", body.getRole());
     }
 
     @Test
@@ -92,7 +125,7 @@ class AuthControllerFaceLoginTest {
         request.setImageBase64("unrecognized");
         when(faceRecognitionService.authenticateAccount("unrecognized")).thenReturn(Optional.empty());
 
-        ResponseEntity<AuthResponseDTO> response = authController.faceLogin(request);
+        ResponseEntity<?> response = authController.faceLogin(request);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }

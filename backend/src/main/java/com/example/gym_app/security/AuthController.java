@@ -24,11 +24,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -41,6 +43,9 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final ProfilePhotoStorageService profilePhotoStorageService;
     private final FaceRecognitionService faceRecognitionService;
+
+    @Value("${app.auth.face-login.block-admin:true}")
+    private boolean blockAdminFaceLogin = true;
 
 
     // Inscription publique : uniquement pour les Members. Staff/Trainer sont crees par un ADMIN
@@ -99,13 +104,21 @@ public class AuthController {
     }
 
     @PostMapping("/face-login")
-    public ResponseEntity<AuthResponseDTO> faceLogin(@Valid @RequestBody FaceLoginRequestDTO dto) {
+    public ResponseEntity<?> faceLogin(@Valid @RequestBody FaceLoginRequestDTO dto) {
         return faceRecognitionService.authenticateAccount(dto.getImageBase64())
                 .map(account -> {
+                    if (blockAdminFaceLogin && account.role() == Role.ADMIN) {
+                        return unauthorizedFaceLogin();
+                    }
                     String token = jwtUtil.generateToken(account.email(), account.role().name());
                     return ResponseEntity.ok(new AuthResponseDTO(token, account.email(), account.role().name()));
                 })
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+                .orElseGet(this::unauthorizedFaceLogin);
+    }
+
+    private ResponseEntity<?> unauthorizedFaceLogin() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "Email ou mot de passe incorrect"));
     }
 
     @GetMapping("/me")

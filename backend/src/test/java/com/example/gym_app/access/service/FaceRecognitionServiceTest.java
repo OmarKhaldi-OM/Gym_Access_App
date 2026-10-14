@@ -167,6 +167,6 @@ class FaceRecognitionServiceTest {
     }
 
     private FaceRecognitionService createService() {
-        return new FaceRecognitionService(null, null, null, null, null, null, null, null, null);
+        return new FaceRecognitionService(null, null, null, null, null, null, null, null, null, 0.40f, 0.05f);
     }
 }

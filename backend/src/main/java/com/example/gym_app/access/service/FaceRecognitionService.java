@@ -43,9 +43,9 @@ import java.util.UUID;
 public class FaceRecognitionService {
 
     // face_recognition compares embeddings by Euclidean distance, not a custom similarity score.
-    // A face is considered a match when the distance is <= 0.60, which corresponds to a similarity of >= 0.40.
-    private static final float MIN_ACCEPTED_SIMILARITY = 0.40f;
-    private static final float MIN_ACCOUNT_MATCH_MARGIN = 0.05f;
+    // With the configured default threshold, a match requires a distance <= 0.60.
+    private final float minAcceptedSimilarity;
+    private final float minAccountMatchMargin;
 
     private final FaceEmbeddingRepository faceEmbeddingRepository;
 
@@ -76,7 +76,9 @@ public class FaceRecognitionService {
             AccessLogService accessLogService,
             SubscriptionService subscriptionService,
             SecurityUtil securityUtil,
-            @Value("${app.face-recognition.url:http://localhost:8001}") String faceRecognitionUrl) {
+            @Value("${app.face-recognition.url:http://localhost:8001}") String faceRecognitionUrl,
+            @Value("${app.face-recognition.minimum-accepted-similarity}") float minAcceptedSimilarity,
+            @Value("${app.face-recognition.minimum-account-match-margin}") float minAccountMatchMargin) {
         this.faceEmbeddingRepository = faceEmbeddingRepository;
         this.faceAuthenticationRepository = faceAuthenticationRepository;
         this.memberRepository = memberRepository;
@@ -86,6 +88,8 @@ public class FaceRecognitionService {
         this.subscriptionService = subscriptionService;
         this.securityUtil = securityUtil;
         this.faceRecognitionUrl = faceRecognitionUrl;
+        this.minAcceptedSimilarity = minAcceptedSimilarity;
+        this.minAccountMatchMargin = minAccountMatchMargin;
     }
 
     @Transactional
@@ -169,7 +173,7 @@ public class FaceRecognitionService {
         response.setMemberNom(bestMatch.memberNom());
         response.setConfidence(roundToTwoDecimals(similarity));
 
-        if (similarity < MIN_ACCEPTED_SIMILARITY) {
+        if (similarity < minAcceptedSimilarity) {
             response.setMatched(Boolean.FALSE);
             response.setAccessGranted(Boolean.FALSE);
             response.setStatus("DENIED");
@@ -255,9 +259,9 @@ public class FaceRecognitionService {
             }
         }
 
-        if (bestMatch == null || bestMatch.similarity() < MIN_ACCEPTED_SIMILARITY
+        if (bestMatch == null || bestMatch.similarity() < minAcceptedSimilarity
                 || (secondBestSimilarity >= 0.0f
-                && bestMatch.similarity() - secondBestSimilarity < MIN_ACCOUNT_MATCH_MARGIN)) {
+                && bestMatch.similarity() - secondBestSimilarity < minAccountMatchMargin)) {
             return Optional.empty();
         }
         return Optional.of(bestMatch.user());

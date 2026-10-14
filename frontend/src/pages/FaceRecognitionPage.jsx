@@ -6,6 +6,7 @@ import { Panel } from '../components/Panel.jsx'
 import Button from '../components/Button.jsx'
 import { enrollAccountFace, enrollFace, recognizeFace } from '../services/faceRecognitionService.js'
 import { getRoleDefinition, hasRole, ROLES } from '../roles.js'
+import { useT } from '../context/I18nContext.jsx'
 
 const MODES = {
   ENROLL_MEMBER: 'enroll-member',
@@ -15,6 +16,7 @@ const MODES = {
 
 export default function FaceRecognitionPage() {
   const { user } = useAuth()
+  const t = useT()
   const { members, loading: membersLoading, refresh: refreshMembers } = useMembers()
   const isMember = hasRole(user, ROLES.MEMBER)
   const layoutRole = getRoleDefinition(user?.role)?.label || 'member'
@@ -205,6 +207,9 @@ export default function FaceRecognitionPage() {
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-text-muted">Access Control</p>
           <h1 className="text-3xl font-bold mt-2">Face Recognition</h1>
+          <p className="mt-3 max-w-3xl rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100" role="alert">
+            {t('faceLivenessWarning')}
+          </p>
         </div>
         <div className="flex flex-wrap gap-3">
           {!isMember && (
