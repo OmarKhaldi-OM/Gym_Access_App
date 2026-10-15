@@ -44,10 +44,14 @@ export function MembersProvider({ children }) {
   }, [refresh])
 
   const search = useCallback((query) => memberService.searchMembers(query), [])
+  const removeMember = useCallback((memberId) => {
+    setMembers((current) => current.filter((member) => member.id !== memberId))
+    setPendingEnrollments((current) => current.filter((member) => member.id !== memberId))
+  }, [])
 
   return (
     <MembersContext.Provider
-      value={{ members, pendingEnrollments, loading, error, search, refresh }}
+      value={{ members, pendingEnrollments, loading, error, search, refresh, removeMember }}
     >
       {children}
     </MembersContext.Provider>

@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
+import Button from '../../components/Button.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as memberService from '../../services/memberService.js'
 import * as activityService from '../../services/activityService.js'
 import * as classService from '../../services/classService.js'
+import { useMembers } from '../../context/MembersContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
 
 function pairSessions(entries) {
@@ -29,11 +31,15 @@ export default function MemberProfile() {
   const t = useT()
   const { language } = useI18n()
   const { id } = useParams()
+  const navigate = useNavigate()
+  const { removeMember } = useMembers()
   const [member, setMember] = useState(null)
   const [sessions, setSessions] = useState([])
   const [memberBookings, setMemberBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [deleteError, setDeleteError] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const loadMember = () => {
     setLoading(true)
@@ -54,6 +60,22 @@ export default function MemberProfile() {
 
   useEffect(() => { loadMember() }, [id])
 
+  async function handleDeleteMember() {
+    if (!window.confirm(t('confirmAnonymizeMember'))) return
+
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      await memberService.deleteMember(id)
+      removeMember(id)
+      navigate('/admin/members', { replace: true })
+    } catch (requestError) {
+      setDeleteError(requestError)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   if (loading) {
     return (
       <Layout role="admin">
@@ -69,6 +91,7 @@ export default function MemberProfile() {
 
   return (
     <Layout role="admin">
+      {deleteError && <ApiError error={deleteError} />}
       <Panel className="p-6 mb-6">
         <div className="flex items-center gap-4">
           <Avatar name={member.nom} size="lg" />
@@ -79,6 +102,15 @@ export default function MemberProfile() {
           <StatusChip variant={member.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
             {member.statut}
           </StatusChip>
+          <Button
+            type="button"
+            variant="secondary"
+            className="!bg-red-700 !text-white"
+            onClick={handleDeleteMember}
+            disabled={deleting}
+          >
+            {deleting ? t('loading') : t('deleteMember')}
+          </Button>
         </div>
         <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-graphite-line">
           <div>

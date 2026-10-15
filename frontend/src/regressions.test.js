@@ -73,3 +73,16 @@ test('trainer sessions imports the empty state used when there are no sessions',
   assert.match(source, /import \{ ApiEmpty, ApiError, ApiLoading \} from '\.\.\/\.\.\/components\/ApiState\.jsx'/)
   assert.match(source, /<ApiEmpty message=\{t\('noSessions'\)\} \/>/)
 })
+
+test('member deletion anonymizes through the admin profile action and retains access logs', () => {
+  const memberService = readSource('./services/memberService.js')
+  const memberProfile = readSource('./pages/admin/MemberProfile.jsx')
+  const memberServiceBackend = readSource('../../backend/src/main/java/com/example/gym_app/user/service/MemberService.java')
+
+  assert.match(memberService, /apiDelete\(`\/api\/members\/\$\{id\}`\)/)
+  assert.match(memberProfile, /memberService\.deleteMember\(id\)/)
+  assert.match(memberProfile, /removeMember\(id\)/)
+  assert.match(memberServiceBackend, /member\.setArchived\(true\)/)
+  assert.match(memberServiceBackend, /member\.setNom\("Membre anonymisé"\)/)
+  assert.doesNotMatch(memberServiceBackend, /accessLogRepository|deleteById\(id\)/)
+})

@@ -29,6 +29,9 @@ public class Member extends User {
     @Column(name = "date_inscription")
     private LocalDateTime dateInscription = LocalDateTime.now();
 
+    @Column(nullable = false)
+    private boolean archived = false;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Subscription> subscriptions;

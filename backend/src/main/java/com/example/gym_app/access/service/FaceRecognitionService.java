@@ -312,10 +312,10 @@ public class FaceRecognitionService {
         accessLogService.create(accessLog);
     }
 
-    private boolean hasDuplicateAccess(UUID memberId, TypeAcces typeAcces) {
+    boolean hasDuplicateAccess(UUID memberId, TypeAcces typeAcces) {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(5);
-        return accessLogRepository.findByMemberId(memberId).stream()
-                .filter(log -> log.getTypeAcces() == typeAcces)
+        return accessLogRepository.findByMemberIdAndTypeAccesAndResultatIgnoreCase(
+                        memberId, typeAcces, "AUTORISE").stream()
                 .anyMatch(log -> log.getHorodatage().isAfter(cutoff));
     }
 

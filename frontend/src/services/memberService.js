@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from './api.js'
+import { apiDelete, apiGet, apiPost } from './api.js'
 
 function fullName(member) {
   return [member.prenom, member.nom].filter(Boolean).join(' ')
@@ -64,6 +64,10 @@ export async function addMember(member) {
     motDePasse: member.password,
     dateNaissance: member.dateNaissance,
   })
+}
+
+export function deleteMember(id) {
+  return apiDelete(`/api/members/${id}`)
 }
 
 export async function searchMembers(query) {

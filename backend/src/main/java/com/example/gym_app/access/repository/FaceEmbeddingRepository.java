@@ -10,5 +10,6 @@ import java.util.UUID;
 
 public interface FaceEmbeddingRepository extends JpaRepository<Face_Embedding, UUID> {
     List<Face_Embedding> findByMemberId(UUID memberId);
+    void deleteAllByMemberId(UUID memberId);
     List<Face_Embedding> findAll();
 }

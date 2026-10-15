@@ -13,4 +13,8 @@ public interface AccessLogRepository extends JpaRepository<Access_Log, UUID> {
     List<Access_Log> findByHorodatageBetween(LocalDateTime start, LocalDateTime end);
     List<Access_Log> findByResultat(String resultat);
     List<Access_Log> findByMemberIdAndTypeAcces(UUID memberId, com.example.gym_app.access.entity.TypeAcces typeAcces);
+    List<Access_Log> findByMemberIdAndTypeAccesAndResultatIgnoreCase(
+            UUID memberId,
+            com.example.gym_app.access.entity.TypeAcces typeAcces,
+            String resultat);
 }

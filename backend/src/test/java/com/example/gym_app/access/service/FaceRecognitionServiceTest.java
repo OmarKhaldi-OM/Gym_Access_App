@@ -2,10 +2,13 @@ package com.example.gym_app.access.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.example.gym_app.access.entity.Access_Log;
 import com.example.gym_app.access.entity.Face_Authentication;
 import com.example.gym_app.access.entity.Face_Embedding;
+import com.example.gym_app.access.entity.TypeAcces;
 import com.example.gym_app.exception.BadRequestException;
 import com.example.gym_app.exception.FaceRecognitionUnavailableException;
+import com.example.gym_app.access.repository.AccessLogRepository;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.Staff;
@@ -17,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -154,6 +158,32 @@ class FaceRecognitionServiceTest {
     }
 
     @Test
+    void deniedAccessDoesNotBlockRetryWithinDuplicateWindow() {
+        AccessLogRepository accessLogRepository = mock(AccessLogRepository.class);
+        UUID memberId = UUID.randomUUID();
+        when(accessLogRepository.findByMemberIdAndTypeAccesAndResultatIgnoreCase(
+                memberId, TypeAcces.ENTREE, "AUTORISE")).thenReturn(List.of());
+        FaceRecognitionService service = createServiceWithAccessLogRepository(accessLogRepository);
+
+        assertFalse(service.hasDuplicateAccess(memberId, TypeAcces.ENTREE));
+    }
+
+    @Test
+    void recentAuthorizedAccessStillBlocksDuplicateWithinWindow() {
+        AccessLogRepository accessLogRepository = mock(AccessLogRepository.class);
+        UUID memberId = UUID.randomUUID();
+        Access_Log authorizedAccess = new Access_Log();
+        authorizedAccess.setResultat("AUTORISE");
+        authorizedAccess.setTypeAcces(TypeAcces.ENTREE);
+        authorizedAccess.setHorodatage(LocalDateTime.now().minusMinutes(1));
+        when(accessLogRepository.findByMemberIdAndTypeAccesAndResultatIgnoreCase(
+                memberId, TypeAcces.ENTREE, "AUTORISE")).thenReturn(List.of(authorizedAccess));
+        FaceRecognitionService service = createServiceWithAccessLogRepository(accessLogRepository);
+
+        assertTrue(service.hasDuplicateAccess(memberId, TypeAcces.ENTREE));
+    }
+
+    @Test
     void sendsSharedKeyToFaceEmbeddingService() throws Exception {
         AtomicReference<String> receivedKey = new AtomicReference<>();
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
@@ -267,5 +297,10 @@ class FaceRecognitionServiceTest {
 
     private FaceRecognitionService createService() {
         return new FaceRecognitionService(null, null, null, null, null, null, null, null, null, "", 0.40f, 0.05f);
+    }
+
+    private FaceRecognitionService createServiceWithAccessLogRepository(AccessLogRepository accessLogRepository) {
+        return new FaceRecognitionService(
+                null, null, null, null, accessLogRepository, null, null, null, null, "", 0.40f, 0.05f);
     }
 }

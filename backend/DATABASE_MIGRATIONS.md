@@ -41,3 +41,7 @@ modifier une migration déjà appliquée. Préserver les données avec des
 changements progressifs et tester la migration sur une copie de la base avant
 déploiement. Garder `spring.jpa.hibernate.ddl-auto=validate` afin que les
 mappings restent vérifiés au démarrage.
+
+La migration `V3__archive_anonymized_members.sql` ajoute le marqueur
+`member.archived`. L'archivage anonymise le profil et conserve les journaux
+d'accès liés, qui affichent alors l'identité anonymisée.
