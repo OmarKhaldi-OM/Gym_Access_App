@@ -1,11 +1,9 @@
 import base64
+import hmac
 import os
 from io import BytesIO
 
-import face_recognition
-import numpy as np
 from flask import Flask, jsonify, request
-from PIL import Image
 
 app = Flask(__name__)
 
@@ -17,6 +15,21 @@ def health():
 
 @app.post("/api/face/embed")
 def embed_face():
+    configured_key = os.environ.get("FACE_SERVICE_KEY")
+    if not configured_key:
+        return jsonify({"status": "error", "message": "Face service key is not configured."}), 503
+
+    supplied_key = request.headers.get("X-Internal-Key", "")
+    if not hmac.compare_digest(
+        configured_key.encode("utf-8"),
+        supplied_key.encode("utf-8"),
+    ):
+        return jsonify({"status": "error", "message": "Unauthorized."}), 401
+
+    import face_recognition
+    import numpy as np
+    from PIL import Image
+
     payload = request.get_json(silent=True) or {}
     image_base64 = payload.get("imageBase64") or payload.get("image")
 
@@ -53,4 +66,5 @@ def embed_face():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "8001"))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    host = os.getenv("HOST", "127.0.0.1")
+    app.run(host=host, port=port, debug=False)

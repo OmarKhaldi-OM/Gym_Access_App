@@ -10,11 +10,19 @@ import com.example.gym_app.user.entity.Staff;
 import com.example.gym_app.user.entity.User;
 import org.junit.jupiter.api.Test;
 
+import com.sun.net.httpserver.HttpServer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class FaceRecognitionServiceTest {
 
@@ -143,6 +151,41 @@ class FaceRecognitionServiceTest {
         assertEquals(Role.MEMBER, recognized.orElseThrow().getRole());
     }
 
+    @Test
+    void sendsSharedKeyToFaceEmbeddingService() throws Exception {
+        AtomicReference<String> receivedKey = new AtomicReference<>();
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/api/face/embed", exchange -> {
+            receivedKey.set(exchange.getRequestHeaders().getFirst("X-Internal-Key"));
+            byte[] response = ("{\"embedding\":["
+                    + String.join(",", java.util.Collections.nCopies(128, "0.0")) + "]}")
+                    .getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+
+        try {
+            var authenticationRepository = mock(
+                    com.example.gym_app.access.repository.FaceAuthenticationRepository.class);
+            var embeddingRepository = mock(
+                    com.example.gym_app.access.repository.FaceEmbeddingRepository.class);
+            when(authenticationRepository.findAll()).thenReturn(List.of());
+            when(embeddingRepository.findAll()).thenReturn(List.of());
+
+            FaceRecognitionService service = new FaceRecognitionService(
+                    embeddingRepository, authenticationRepository, null, null, null, null, null, null,
+                    "http://127.0.0.1:" + server.getAddress().getPort(), "shared-test-key", 0.40f, 0.05f);
+
+            service.authenticateAccount("aGVsbG8=");
+
+            assertEquals("shared-test-key", receivedKey.get());
+        } finally {
+            server.stop(0);
+        }
+    }
+
     private Face_Authentication credential(Role role, String email, float[] embedding) {
         Face_Authentication credential = new Face_Authentication();
         credential.setUser(createUser(role, email));
@@ -167,6 +210,6 @@ class FaceRecognitionServiceTest {
     }
 
     private FaceRecognitionService createService() {
-        return new FaceRecognitionService(null, null, null, null, null, null, null, null, null, 0.40f, 0.05f);
+        return new FaceRecognitionService(null, null, null, null, null, null, null, null, null, "", 0.40f, 0.05f);
     }
 }

@@ -6,6 +6,7 @@ import com.example.gym_app.classes.entity.Class_Schedule;
 import com.example.gym_app.classes.entity.Gym_Class;
 import com.example.gym_app.classes.repository.BookingRepository;
 import com.example.gym_app.classes.repository.ClassScheduleRepository;
+import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
@@ -23,6 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,5 +91,70 @@ class BookingServiceTest {
         verify(bookingRepository).save(savedBooking.capture());
         assertEquals("CONFIRMED", savedBooking.getValue().getStatut());
         assertEquals(Map.of(), bookingService.countActiveBySchedule());
+    }
+
+    @Test
+    void rejectsBookingWhenClassCapacityIsReached() {
+        UUID memberId = UUID.randomUUID();
+        UUID scheduleId = UUID.randomUUID();
+        Member member = new Member();
+        member.setId(memberId);
+
+        Class_Schedule schedule = new Class_Schedule();
+        schedule.setId(scheduleId);
+        Gym_Class gymClass = new Gym_Class();
+        gymClass.setCapaciteMax(1);
+        schedule.setGymClass(gymClass);
+
+        Booking existingBooking = new Booking();
+        Member existingMember = new Member();
+        existingMember.setId(UUID.randomUUID());
+        existingBooking.setMember(existingMember);
+        existingBooking.setClassSchedule(schedule);
+        existingBooking.setStatut("CONFIRMED");
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)).thenReturn(true);
+        when(classScheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+        when(bookingRepository.findByMemberId(memberId)).thenReturn(List.of());
+        when(bookingRepository.findByClassScheduleId(scheduleId)).thenReturn(List.of(existingBooking));
+
+        BookingRequestDTO request = new BookingRequestDTO();
+        request.setMemberId(memberId);
+        request.setScheduleId(scheduleId);
+        request.setStatut("CONFIRMED");
+
+        assertThrows(ConflictException.class, () -> bookingService.create(request));
+    }
+
+    @Test
+    void rejectsDuplicateActiveBookingForSameMemberAndSchedule() {
+        UUID memberId = UUID.randomUUID();
+        UUID scheduleId = UUID.randomUUID();
+        Member member = new Member();
+        member.setId(memberId);
+
+        Class_Schedule schedule = new Class_Schedule();
+        schedule.setId(scheduleId);
+        Gym_Class gymClass = new Gym_Class();
+        gymClass.setCapaciteMax(10);
+        schedule.setGymClass(gymClass);
+
+        Booking existingBooking = new Booking();
+        existingBooking.setMember(member);
+        existingBooking.setClassSchedule(schedule);
+        existingBooking.setStatut("CONFIRMED");
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)).thenReturn(true);
+        when(classScheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+        when(bookingRepository.findByMemberId(memberId)).thenReturn(List.of(existingBooking));
+
+        BookingRequestDTO request = new BookingRequestDTO();
+        request.setMemberId(memberId);
+        request.setScheduleId(scheduleId);
+        request.setStatut("CONFIRMED");
+
+        assertThrows(ConflictException.class, () -> bookingService.create(request));
     }
 }

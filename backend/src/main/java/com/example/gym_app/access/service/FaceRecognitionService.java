@@ -64,6 +64,7 @@ public class FaceRecognitionService {
     private final SecurityUtil securityUtil;
 
     private final String faceRecognitionUrl;
+    private final String faceServiceKey;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder().build();
 
@@ -76,7 +77,8 @@ public class FaceRecognitionService {
             AccessLogService accessLogService,
             SubscriptionService subscriptionService,
             SecurityUtil securityUtil,
-            @Value("${app.face-recognition.url:http://localhost:8001}") String faceRecognitionUrl,
+            @Value("${app.face-recognition.url:http://127.0.0.1:8001}") String faceRecognitionUrl,
+            @Value("${app.face-recognition.key:}") String faceServiceKey,
             @Value("${app.face-recognition.minimum-accepted-similarity}") float minAcceptedSimilarity,
             @Value("${app.face-recognition.minimum-account-match-margin}") float minAccountMatchMargin) {
         this.faceEmbeddingRepository = faceEmbeddingRepository;
@@ -88,6 +90,7 @@ public class FaceRecognitionService {
         this.subscriptionService = subscriptionService;
         this.securityUtil = securityUtil;
         this.faceRecognitionUrl = faceRecognitionUrl;
+        this.faceServiceKey = faceServiceKey;
         this.minAcceptedSimilarity = minAcceptedSimilarity;
         this.minAccountMatchMargin = minAccountMatchMargin;
     }
@@ -332,6 +335,7 @@ public class FaceRecognitionService {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(faceRecognitionUrl + "/api/face/embed"))
                     .header("Content-Type", "application/json")
+                    .header("X-Internal-Key", faceServiceKey)
                     .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(payload)))
                     .build();
 
