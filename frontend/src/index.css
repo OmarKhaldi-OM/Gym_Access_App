@@ -440,6 +440,19 @@ html[lang='ar'] body { font-family: Tahoma, 'Noto Sans Arabic', sans-serif; lett
   .language-controls + .theme-toggle { margin-inline-start: 2px; }
 }
 
+.signin-page .auth-form input:autofill,
+.signin-page .auth-form input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, .48) inset;
+  box-shadow: 0 0 0 1000px rgba(255, 255, 255, .48) inset;
+  -webkit-text-fill-color: var(--ink);
+  caret-color: var(--ink);
+}
+[data-theme='dark'] .signin-page .auth-form input:autofill,
+[data-theme='dark'] .signin-page .auth-form input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface-soft) inset;
+  box-shadow: 0 0 0 1000px var(--surface-soft) inset;
+}
+
 .public-nav .nav-join { color: var(--paper); white-space: nowrap; flex: 0 0 auto; }
 @media (max-width: 680px) {
   .public-header { height: auto; min-height: 66px; padding-block: 8px; gap: 8px; }

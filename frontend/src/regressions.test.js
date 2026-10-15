@@ -67,6 +67,16 @@ test('initial browser preference is applied before the application module loads'
   assert.ok(source.indexOf('<script>') < source.indexOf('<script type="module"'))
 })
 
+test('sign-in autofill keeps the normal input background in both themes', () => {
+  const source = readSource('./index.css')
+
+  assert.match(source, /\.signin-page \.auth-form input:-webkit-autofill/)
+  assert.match(source, /-webkit-box-shadow: 0 0 0 1000px rgba\(255, 255, 255, \.48\) inset/)
+  assert.match(source, /\[data-theme='dark'\] \.signin-page \.auth-form input:-webkit-autofill/)
+  assert.match(source, /-webkit-box-shadow: 0 0 0 1000px var\(--surface-soft\) inset/)
+  assert.match(source, /-webkit-text-fill-color: var\(--ink\)/)
+})
+
 test('trainer sessions imports the empty state used when there are no sessions', () => {
   const source = readSource('./pages/member/MyTrainerSessions.jsx')
 
