@@ -16,15 +16,15 @@ def health():
 @app.post("/api/face/embed")
 def embed_face():
     configured_key = os.environ.get("FACE_SERVICE_KEY")
-    if not configured_key:
-        return jsonify({"status": "error", "message": "Face service key is not configured."}), 503
-
     supplied_key = request.headers.get("X-Internal-Key", "")
-    if not hmac.compare_digest(
-        configured_key.encode("utf-8"),
-        supplied_key.encode("utf-8"),
-    ):
-        return jsonify({"status": "error", "message": "Unauthorized."}), 401
+    if request.remote_addr not in {"127.0.0.1", "::1"}:
+        if not configured_key:
+            return jsonify({"status": "error", "message": "A face service key is required for non-local requests."}), 503
+        if not hmac.compare_digest(
+            configured_key.encode("utf-8"),
+            supplied_key.encode("utf-8"),
+        ):
+            return jsonify({"status": "error", "message": "Unauthorized."}), 401
 
     import face_recognition
     import numpy as np

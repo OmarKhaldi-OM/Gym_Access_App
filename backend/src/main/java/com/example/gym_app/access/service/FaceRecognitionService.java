@@ -10,6 +10,7 @@ import com.example.gym_app.access.repository.AccessLogRepository;
 import com.example.gym_app.access.repository.FaceAuthenticationRepository;
 import com.example.gym_app.access.repository.FaceEmbeddingRepository;
 import com.example.gym_app.exception.BadRequestException;
+import com.example.gym_app.exception.FaceRecognitionUnavailableException;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.membership.service.SubscriptionService;
 import com.example.gym_app.security.SecurityUtil;
@@ -340,11 +341,30 @@ public class FaceRecognitionService {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 400) {
+                JsonNode error = objectMapper.readTree(response.body());
+                String message = error.path("message").asText();
+                throw new BadRequestException(switch (message) {
+                    case "No face detected." ->
+                            "No face detected. Center your face in the frame and try again with good lighting.";
+                    case "Multiple faces detected." ->
+                            "Multiple faces detected. Make sure only one face is visible.";
+                    case "Face could not be encoded." ->
+                            "The face could not be processed. Adjust your position and lighting, then try again.";
+                    default -> "Capture must contain exactly one clear face.";
+                });
+            }
+            if (response.statusCode() == 401 || response.statusCode() == 403) {
+                throw new FaceRecognitionUnavailableException(
+                        "Face recognition service rejected the request. Check the face service configuration and restart it.");
+            }
+            if (response.statusCode() >= 500) {
+                throw new FaceRecognitionUnavailableException(
+                        "Face recognition service failed to process the capture.");
+            }
             if (response.statusCode() >= 400) {
-                if (response.statusCode() < 500) {
-                    throw new BadRequestException("Capture must contain exactly one clear face.");
-                }
-                throw new IllegalStateException("Face recognition service failed to process the capture.");
+                throw new FaceRecognitionUnavailableException(
+                        "Face recognition service rejected the request.");
             }
 
             JsonNode root = objectMapper.readTree(response.body());

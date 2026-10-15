@@ -28,12 +28,12 @@ public class SubscriptionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SubscriptionResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<SubscriptionResponseDTO> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(subscriptionService.findById(id));
     }
 
     @GetMapping("/member/{memberId}")
-    public List<SubscriptionResponseDTO> getByMember(@PathVariable UUID memberId) {
+    public List<SubscriptionResponseDTO> getByMember(@PathVariable("memberId") UUID memberId) {
         return subscriptionService.findByMember(memberId);
     }
 
@@ -43,12 +43,12 @@ public class SubscriptionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SubscriptionResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody SubscriptionRequestDTO dto) {
+    public ResponseEntity<SubscriptionResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody SubscriptionRequestDTO dto) {
         return ResponseEntity.ok(subscriptionService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         subscriptionService.delete(id);
         return ResponseEntity.noContent().build();
     }

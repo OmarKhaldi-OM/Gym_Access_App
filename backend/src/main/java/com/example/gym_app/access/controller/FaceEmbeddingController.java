@@ -23,7 +23,7 @@ public class FaceEmbeddingController {
     }
 
     @GetMapping("/member/{memberId}")
-    public List<FaceEmbeddingResponseDTO> getByMember(@PathVariable UUID memberId) {
+    public List<FaceEmbeddingResponseDTO> getByMember(@PathVariable("memberId") UUID memberId) {
         return faceEmbeddingService.findByMember(memberId);
     }
 
@@ -33,7 +33,7 @@ public class FaceEmbeddingController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         faceEmbeddingService.delete(id);
         return ResponseEntity.noContent().build();
     }

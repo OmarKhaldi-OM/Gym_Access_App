@@ -28,7 +28,7 @@ public class StaffController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StaffResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<StaffResponseDTO> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(staffService.findById(id));
     }
 
@@ -38,12 +38,12 @@ public class StaffController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<StaffResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody StaffRequestDTO dto) {
+    public ResponseEntity<StaffResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody StaffRequestDTO dto) {
         return ResponseEntity.ok(staffService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         staffService.delete(id);
         return ResponseEntity.noContent().build();
     }

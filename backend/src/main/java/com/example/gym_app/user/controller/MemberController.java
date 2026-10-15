@@ -28,7 +28,7 @@ public class MemberController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MemberResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<MemberResponseDTO> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(memberService.findById(id));
     }
 
@@ -38,12 +38,12 @@ public class MemberController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MemberResponseDTO> update(@PathVariable UUID id,@Valid @RequestBody MemberRequestDTO dto) {
+    public ResponseEntity<MemberResponseDTO> update(@PathVariable("id") UUID id,@Valid @RequestBody MemberRequestDTO dto) {
         return ResponseEntity.ok(memberService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         memberService.delete(id);
         return ResponseEntity.noContent().build();
     }

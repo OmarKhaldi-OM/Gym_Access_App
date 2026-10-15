@@ -20,22 +20,22 @@ public class MemberGoalController {
     }
 
     @GetMapping("/member/{memberId}")
-    public List<MemberGoalDTO> getByMember(@PathVariable UUID memberId) {
+    public List<MemberGoalDTO> getByMember(@PathVariable("memberId") UUID memberId) {
         return goalService.findByMember(memberId);
     }
 
     @PostMapping("/member/{memberId}")
-    public ResponseEntity<MemberGoalDTO> create(@PathVariable UUID memberId, @Valid @RequestBody MemberGoalDTO dto) {
+    public ResponseEntity<MemberGoalDTO> create(@PathVariable("memberId") UUID memberId, @Valid @RequestBody MemberGoalDTO dto) {
         return ResponseEntity.ok(goalService.create(memberId, dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MemberGoalDTO> update(@PathVariable UUID id, @Valid @RequestBody MemberGoalDTO dto) {
+    public ResponseEntity<MemberGoalDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody MemberGoalDTO dto) {
         return ResponseEntity.ok(goalService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         goalService.delete(id);
         return ResponseEntity.noContent().build();
     }

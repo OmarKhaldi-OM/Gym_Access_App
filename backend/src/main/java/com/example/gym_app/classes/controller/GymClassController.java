@@ -28,7 +28,7 @@ public class GymClassController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GymClassResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<GymClassResponseDTO> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(gymClassService.findById(id));
     }
 
@@ -38,12 +38,12 @@ public class GymClassController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<GymClassResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody GymClassRequestDTO dto) {
+    public ResponseEntity<GymClassResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody GymClassRequestDTO dto) {
         return ResponseEntity.ok(gymClassService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         gymClassService.delete(id);
         return ResponseEntity.noContent().build();
     }

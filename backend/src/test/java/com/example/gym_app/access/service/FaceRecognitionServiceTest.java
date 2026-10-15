@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.gym_app.access.entity.Face_Authentication;
 import com.example.gym_app.access.entity.Face_Embedding;
+import com.example.gym_app.exception.BadRequestException;
+import com.example.gym_app.exception.FaceRecognitionUnavailableException;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.Staff;
@@ -181,6 +183,60 @@ class FaceRecognitionServiceTest {
             service.authenticateAccount("aGVsbG8=");
 
             assertEquals("shared-test-key", receivedKey.get());
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void reportsFaceServiceAuthenticationFailureAsUnavailable() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/api/face/embed", exchange -> {
+            byte[] response = "{\"status\":\"error\",\"message\":\"Unauthorized.\"}"
+                    .getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(401, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+
+        try {
+            FaceRecognitionService service = new FaceRecognitionService(
+                    null, null, null, null, null, null, null, null,
+                    "http://127.0.0.1:" + server.getAddress().getPort(), "wrong-test-key", 0.40f, 0.05f);
+
+            FaceRecognitionUnavailableException exception = assertThrows(
+                    FaceRecognitionUnavailableException.class,
+                    () -> service.authenticateAccount("aGVsbG8="));
+
+            assertTrue(exception.getMessage().contains("face service configuration"));
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void explainsWhenFaceServiceCannotFindFaceInCapture() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/api/face/embed", exchange -> {
+            byte[] response = "{\"status\":\"error\",\"message\":\"No face detected.\"}"
+                    .getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(400, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+
+        try {
+            FaceRecognitionService service = new FaceRecognitionService(
+                    null, null, null, null, null, null, null, null,
+                    "http://127.0.0.1:" + server.getAddress().getPort(), "", 0.40f, 0.05f);
+
+            BadRequestException exception = assertThrows(
+                    BadRequestException.class,
+                    () -> service.authenticateAccount("aGVsbG8="));
+
+            assertTrue(exception.getMessage().contains("No face detected"));
         } finally {
             server.stop(0);
         }

@@ -23,7 +23,7 @@ public class ProgressLogController {
     }
 
     @GetMapping("/member/{memberId}")
-    public List<ProgressLogResponseDTO> getByMember(@PathVariable UUID memberId) {
+    public List<ProgressLogResponseDTO> getByMember(@PathVariable("memberId") UUID memberId) {
         return progressLogService.findByMember(memberId);
     }
 
@@ -32,12 +32,12 @@ public class ProgressLogController {
         return ResponseEntity.ok(progressLogService.create(dto));
     }
     @PutMapping("/{id}")
-    public ResponseEntity<ProgressLogResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody ProgressLogRequestDTO dto) {
+    public ResponseEntity<ProgressLogResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody ProgressLogRequestDTO dto) {
         return ResponseEntity.ok(progressLogService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         progressLogService.delete(id);
         return ResponseEntity.noContent().build();
     }

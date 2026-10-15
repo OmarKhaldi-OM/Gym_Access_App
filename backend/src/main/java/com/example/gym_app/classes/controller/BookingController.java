@@ -34,12 +34,12 @@ public class BookingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookingResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<BookingResponseDTO> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(bookingService.findById(id));
     }
 
     @GetMapping("/member/{memberId}")
-    public List<BookingResponseDTO> getByMember(@PathVariable UUID memberId) {
+    public List<BookingResponseDTO> getByMember(@PathVariable("memberId") UUID memberId) {
         return bookingService.findByMember(memberId);
     }
 
@@ -49,12 +49,12 @@ public class BookingController {
     }
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<BookingResponseDTO> cancel(@PathVariable UUID id) {
+    public ResponseEntity<BookingResponseDTO> cancel(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(bookingService.cancel(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         bookingService.delete(id);
         return ResponseEntity.noContent().build();
     }

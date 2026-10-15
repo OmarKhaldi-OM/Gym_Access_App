@@ -30,7 +30,7 @@ public class AccessLogController {
     }
 
     @GetMapping("/member/{memberId}")
-    public List<AccessLogResponseDTO> getByMember(@PathVariable UUID memberId) {
+    public List<AccessLogResponseDTO> getByMember(@PathVariable("memberId") UUID memberId) {
         return accessLogService.findByMember(memberId);
     }
 

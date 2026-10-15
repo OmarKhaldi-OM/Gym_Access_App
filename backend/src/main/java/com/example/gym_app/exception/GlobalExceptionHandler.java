@@ -43,6 +43,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
     }
 
+    @ExceptionHandler(FaceRecognitionUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleFaceRecognitionUnavailable(
+            FaceRecognitionUnavailableException ex) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), null);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleForbidden(AccessDeniedException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, "Vous n'avez pas les droits pour effectuer cette action", null);

@@ -64,6 +64,9 @@ export async function apiRequest(path, options = {}) {
           : 'Votre session a expiré. Connectez-vous à nouveau.'
       : response.status === 403
         ? 'Vous n’avez pas les droits pour effectuer cette action.'
+        : response.status === 503
+          && (path.startsWith('/api/face-recognition/') || path === '/api/auth/face-login')
+          ? 'Face recognition is unavailable. Make sure the face recognition service is running, then retry.'
         : safeServerMessage || 'La requête a échoué. Veuillez réessayer.'
     const error = new Error(message)
     error.status = response.status

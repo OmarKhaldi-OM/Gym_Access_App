@@ -28,7 +28,7 @@ public class MembershipPlanController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MembershipPlanResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<MembershipPlanResponseDTO> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(membershipPlanService.findById(id));
     }
 
@@ -38,12 +38,12 @@ public class MembershipPlanController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MembershipPlanResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody MembershipPlanRequestDTO dto) {
+    public ResponseEntity<MembershipPlanResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody MembershipPlanRequestDTO dto) {
         return ResponseEntity.ok(membershipPlanService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         membershipPlanService.delete(id);
         return ResponseEntity.noContent().build();
     }

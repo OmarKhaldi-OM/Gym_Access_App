@@ -28,12 +28,12 @@ public class TrainerBookingController {
     }
 
     @GetMapping("/member/{memberId}")
-    public List<TrainerBookingResponseDTO> getByMember(@PathVariable UUID memberId) {
+    public List<TrainerBookingResponseDTO> getByMember(@PathVariable("memberId") UUID memberId) {
         return trainerBookingService.findByMember(memberId);
     }
 
     @GetMapping("/trainer/{trainerId}")
-    public List<TrainerBookingResponseDTO> getByTrainer(@PathVariable UUID trainerId) {
+    public List<TrainerBookingResponseDTO> getByTrainer(@PathVariable("trainerId") UUID trainerId) {
         return trainerBookingService.findByTrainer(trainerId);
     }
 
@@ -43,12 +43,12 @@ public class TrainerBookingController {
     }
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<TrainerBookingResponseDTO> cancel(@PathVariable UUID id) {
+    public ResponseEntity<TrainerBookingResponseDTO> cancel(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(trainerBookingService.cancel(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         trainerBookingService.delete(id);
         return ResponseEntity.noContent().build();
     }

@@ -28,12 +28,12 @@ public class ClassScheduleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClassScheduleResponseDTO> getById(@PathVariable UUID id) {
+    public ResponseEntity<ClassScheduleResponseDTO> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(classScheduleService.findById(id));
     }
 
     @GetMapping("/trainer/{trainerId}")
-    public List<ClassScheduleResponseDTO> getByTrainer(@PathVariable UUID trainerId) {
+    public List<ClassScheduleResponseDTO> getByTrainer(@PathVariable("trainerId") UUID trainerId) {
         return classScheduleService.findByTrainer(trainerId);
     }
 
@@ -43,12 +43,12 @@ public class ClassScheduleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ClassScheduleResponseDTO> update(@PathVariable UUID id, @Valid @RequestBody ClassScheduleRequestDTO dto) {
+    public ResponseEntity<ClassScheduleResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody ClassScheduleRequestDTO dto) {
         return ResponseEntity.ok(classScheduleService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") UUID id) {
         classScheduleService.delete(id);
         return ResponseEntity.noContent().build();
     }
