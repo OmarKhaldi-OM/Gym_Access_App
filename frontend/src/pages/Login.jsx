@@ -110,7 +110,7 @@ export default function Login() {
           <section className="mt-6 border-t border-graphite-line pt-5" aria-label={t('faceSignIn')}>
             <h2 className="text-lg font-semibold">{t('faceSignIn')}</h2>
             <p className="mt-2 text-sm text-text-muted">{t('faceLoginSetup')}</p>
-            <p className="mt-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100" role="alert">
+            <p className="face-liveness-warning mt-3 rounded-md border px-3 py-2 text-sm" role="alert">
               {t('faceLivenessWarning')}
             </p>
             <video

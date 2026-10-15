@@ -204,7 +204,7 @@ export default function FaceRecognitionPage() {
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-text-muted">Access Control</p>
           <h1 className="text-3xl font-bold mt-2">Face Recognition</h1>
-          <p className="mt-3 max-w-3xl rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100" role="alert">
+          <p className="face-liveness-warning mt-3 max-w-3xl rounded-md border px-3 py-2 text-sm" role="alert">
             {t('faceLivenessWarning')}
           </p>
         </div>

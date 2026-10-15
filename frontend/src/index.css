@@ -292,6 +292,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .management-main .management-panel, .management-main [class~="bg-graphite-panel"] { background-color: var(--surface, #f3f3eb) !important; color: var(--ink); }
 .management-main [class~="bg-graphite-bg"] { background-color: var(--paper) !important; }
 .management-main [class~="bg-graphite-hover"] { background-color: var(--surface-soft, #e2e4d8) !important; }
+.face-liveness-warning { border-color: #d6b45b; background-color: #fff7dc; color: #6b4f12; }
+.management-main [role='alert'].face-liveness-warning { border-color: #d6b45b; background-color: #fff7dc; color: #6b4f12; }
+[data-theme='dark'] .face-liveness-warning,
+[data-theme='dark'] .management-main [role='alert'].face-liveness-warning { border-color: rgba(251, 191, 36, .4); background-color: rgba(245, 158, 11, .1); color: #fde68a; }
 .management-main .face-recognition-result--success { border-color: #15803d; background-color: #dcfce7; color: #14532d; }
 .management-main .face-recognition-result--denied { border-color: #b45309; background-color: #fef3c7; color: #78350f; }
 [data-theme='dark'] .management-main .face-recognition-result--success { border-color: #34d399; background-color: #064e3b; color: #d1fae5; }
