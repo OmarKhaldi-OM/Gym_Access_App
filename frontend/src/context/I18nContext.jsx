@@ -95,6 +95,11 @@ const contentMessages = {
 
 const additionalMessages = {
   en: {
+    managePlans: 'Manage plans', createPlan: 'Create plan', editPlan: 'Edit plan', deletePlan: 'Delete plan',
+    confirmDeletePlan: 'Delete this plan?', planName: 'Plan name', planPrice: 'Price (TND)',
+    planDuration: 'Duration (days)', planCreated: 'Plan created.', planUpdated: 'Plan updated.',
+    planDeleted: 'Plan deleted.', noPlansAvailable: 'No membership plans are available.',
+    retry: 'Retry', cancel: 'Cancel',
     primaryNavigation: 'Main navigation', managementNavigation: 'Management navigation',
     progress: 'Progress',
     footerTagline: 'Train your way. Go further.', confirmed: 'Confirmed', present: 'Present',
@@ -169,6 +174,11 @@ const additionalMessages = {
     planEssentialName: 'Essential', planUnlimitedName: 'Unlimited', planCoachingName: 'Coaching+',
   },
   fr: {
+    managePlans: 'Gérer les formules', createPlan: 'Créer une formule', editPlan: 'Modifier la formule', deletePlan: 'Supprimer la formule',
+    confirmDeletePlan: 'Supprimer cette formule ?', planName: 'Nom de la formule', planPrice: 'Prix (TND)',
+    planDuration: 'Durée (jours)', planCreated: 'Formule créée.', planUpdated: 'Formule mise à jour.',
+    planDeleted: 'Formule supprimée.', noPlansAvailable: 'Aucune formule disponible.',
+    retry: 'Réessayer', cancel: 'Annuler',
     primaryNavigation: 'Navigation principale', managementNavigation: 'Navigation de gestion',
     progress: 'Progrès',
     footerTagline: 'Entraîne-toi à ta façon. Va plus loin.', confirmed: 'Confirmée', present: 'Présent',
@@ -243,6 +253,11 @@ const additionalMessages = {
     planEssentialName: 'Essential', planUnlimitedName: 'Unlimited', planCoachingName: 'Coaching+',
   },
   ar: {
+    managePlans: 'إدارة الباقات', createPlan: 'إنشاء باقة', editPlan: 'تعديل الباقة', deletePlan: 'حذف الباقة',
+    confirmDeletePlan: 'هل تريد حذف هذه الباقة؟', planName: 'اسم الباقة', planPrice: 'السعر (دينار تونسي)',
+    planDuration: 'المدة (بالأيام)', planCreated: 'تم إنشاء الباقة.', planUpdated: 'تم تحديث الباقة.',
+    planDeleted: 'تم حذف الباقة.', noPlansAvailable: 'لا توجد باقات اشتراك متاحة.',
+    retry: 'إعادة المحاولة', cancel: 'إلغاء',
     primaryNavigation: 'التنقل الرئيسي', managementNavigation: 'تنقل الإدارة',
     progress: 'التقدم',
     footerTagline: 'تمرّن بطريقتك وواصل التقدم.', confirmed: 'مؤكد', present: 'حاضر',

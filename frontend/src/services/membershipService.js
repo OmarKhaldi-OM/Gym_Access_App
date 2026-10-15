@@ -1,7 +1,19 @@
-import { apiGet, apiPost } from './api.js'
+import { apiDelete, apiGet, apiPost, apiPut } from './api.js'
 
 export function getPlans() {
   return apiGet('/api/plans')
+}
+
+export function createPlan(plan) {
+  return apiPost('/api/plans', plan)
+}
+
+export function updatePlan(planId, plan) {
+  return apiPut(`/api/plans/${planId}`, plan)
+}
+
+export function deletePlan(planId) {
+  return apiDelete(`/api/plans/${planId}`)
 }
 
 export function getMemberSubscriptions(memberId) {

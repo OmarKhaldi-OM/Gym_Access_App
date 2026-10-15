@@ -26,3 +26,10 @@ test('allows each role only within its route key and sends it to its home route'
     }
   }
 })
+
+test('allows only admin and receptionist to manage membership plans', () => {
+  assert.equal(canAccessRoute({ role: 'ADMIN' }, '/admin/plans'), true)
+  assert.equal(canAccessRoute({ role: 'RECEPTIONIST' }, '/admin/plans'), true)
+  assert.equal(canAccessRoute({ role: 'TRAINER' }, '/admin/plans'), false)
+  assert.equal(canAccessRoute({ role: 'MEMBER' }, '/admin/plans'), false)
+})
