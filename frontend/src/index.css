@@ -129,7 +129,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .management-sidebar-brand { padding-block-end: 14px; border-block-end: 1px solid var(--line); }
 .management-brand { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; color: var(--ink); text-decoration: none; font: 700 20px var(--display); }
 .management-mark { width: 28px; height: 28px; display: grid; place-items: center; background: var(--lime); color: #191c18; font-size: 14px; }
-.management-preferences { display: flex; align-items: center; gap: 7px; }
+.management-preferences { display: flex; align-items: center; gap: 12px; }
 .management-preferences .theme-toggle { width: 54px !important; height: 30px !important; padding-inline: 6px; }
 .management-preferences .theme-toggle .theme-icon { font-size: 13px; }
 .management-preferences .theme-thumb { width: 22px; height: 22px; }
@@ -177,7 +177,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .management-mobile-bar .management-brand-controls { gap: 7px; }
   .management-mobile-bar .management-brand { gap: 6px; font-size: 18px; }
   .management-mobile-bar .management-mark { width: 26px; height: 26px; font-size: 13px; }
-  .management-mobile-bar .management-preferences { gap: 4px; }
+  .management-mobile-bar .management-preferences { gap: 12px; }
   .management-mobile-bar .language-select { min-height: 30px; padding-inline: 5px; font-size: 11px; }
   .management-mobile-bar .theme-toggle { width: 49px !important; height: 29px !important; padding-inline: 5px; }
   .management-mobile-bar .theme-toggle .theme-icon { font-size: 12px; }
@@ -368,19 +368,24 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 /* Compact, accessible language switcher and shared RTL flow adjustments. */
 .language-controls {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
   flex: 0 0 auto;
-  padding: 3px 5px;
   border: 1px solid var(--line);
   border-radius: 5px;
   background: var(--surface, #f3f3eb);
 }
+.language-trigger { width: 34px; height: 34px; display: inline-grid; place-items: center; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--ink); cursor: pointer; transition: background-color .18s ease, box-shadow .18s ease; }
+.language-trigger:hover, .language-trigger[aria-expanded='true'] { background: var(--surface-soft, #e2e4d8); }
+.language-trigger:focus-visible { outline: 2px solid var(--lime, #ccf05a); outline-offset: 1px; }
 .language-globe { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.language-controls .language-select { width: 46px; min-height: 26px; padding: 0 1px; border: 0; background: transparent; font-size: 10px; text-align: center; }
-.language-controls .language-select:hover { background: transparent; }
-.language-controls .language-select:focus-visible { border-radius: 3px; outline-offset: 1px; }
+.language-menu { position: fixed; z-index: 20; width: min(160px, calc(100vw - 16px)); padding: 4px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface, #f3f3eb); color: var(--ink); box-shadow: 0 8px 22px rgba(25, 28, 24, .16); }
+.language-menu-option { width: 100%; min-height: 34px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 9px; border: 0; border-radius: 3px; background: transparent; color: var(--ink); text-align: start; font: 500 12px var(--display); cursor: pointer; }
+.language-menu-option:hover, .language-menu-option:focus-visible { background: var(--surface-soft, #e2e4d8); }
+.language-menu-option:focus-visible { outline: 2px solid var(--lime, #ccf05a); outline-offset: -2px; }
+.language-menu-option[aria-checked='true'] { background: var(--accent-soft, #eef4d8); font-weight: 700; }
+.language-menu-check { min-width: 14px; color: var(--ink); text-align: center; }
 .language-controls + .theme-toggle { margin-inline-start: 3px; }
 .management-preferences .language-controls + .management-theme-toggle { margin-inline-start: 0; }
 .management-preferences .management-theme-toggle {
@@ -388,6 +393,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   height: 34px !important;
   display: inline-grid !important;
   place-items: center;
+  justify-content: center;
   padding: 0;
   border-radius: 5px;
   background: transparent;
