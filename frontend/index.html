@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#e8e9de" />
+    <script>
+      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+      document.documentElement.dataset.theme = prefersDark ? 'dark' : 'light'
+      document.querySelector('meta[name="theme-color"]').content = prefersDark ? '#171b18' : '#e8e9de'
+    </script>
     <meta name="description" content="Gate, un club de sport qui te ressemble. Découvre nos espaces, cours et abonnements." />
     <title>Gate — Plus fort que tes excuses</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-graphite-bg text-text-primary font-sans">
+  <body class="font-sans">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

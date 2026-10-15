@@ -49,3 +49,20 @@ test('each additional translation catalog defines coachingRequests once', () => 
     assert.ok(section[1].includes(`coachingRequests: '${translation}'`))
   }
 })
+
+test('theme follows the browser preference unless manually overridden in the current session', () => {
+  const source = readSource('./context/ThemeContext.jsx')
+
+  assert.match(source, /window\.matchMedia\?\.\('\(prefers-color-scheme: dark\)'\)/)
+  assert.match(source, /mediaQuery\.addEventListener\('change', handlePreferenceChange\)/)
+  assert.match(source, /if \(!hasManualOverride\.current\)/)
+  assert.match(source, /hasManualOverride\.current = true/)
+  assert.doesNotMatch(source, /localStorage/)
+})
+
+test('initial browser preference is applied before the application module loads', () => {
+  const source = readSource('../index.html')
+
+  assert.match(source, /window\.matchMedia\?\.\('\(prefers-color-scheme: dark\)'\)/)
+  assert.ok(source.indexOf('<script>') < source.indexOf('<script type="module"'))
+})

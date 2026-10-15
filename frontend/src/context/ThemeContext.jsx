@@ -1,21 +1,41 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useLayoutEffect, useRef, useState } from 'react'
 
 const ThemeContext = createContext(null)
-const STORAGE_KEY = 'gate.theme'
 
 function getInitialTheme() {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved === 'dark' || saved === 'light') return saved
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(getInitialTheme)
+  const [theme, setCurrentTheme] = useState(getInitialTheme)
+  const hasManualOverride = useRef(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.documentElement.dataset.theme = theme
-    localStorage.setItem(STORAGE_KEY, theme)
+    document.querySelector('meta[name="theme-color"]')?.setAttribute(
+      'content',
+      theme === 'dark' ? '#171b18' : '#e8e9de',
+    )
   }, [theme])
+
+  useLayoutEffect(() => {
+    const mediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
+    if (!mediaQuery) return undefined
+
+    const handlePreferenceChange = (event) => {
+      if (!hasManualOverride.current) {
+        setCurrentTheme(event.matches ? 'dark' : 'light')
+      }
+    }
+
+    mediaQuery.addEventListener('change', handlePreferenceChange)
+    return () => mediaQuery.removeEventListener('change', handlePreferenceChange)
+  }, [])
+
+  const setTheme = (nextTheme) => {
+    hasManualOverride.current = true
+    setCurrentTheme(nextTheme)
+  }
 
   const toggleTheme = () => setTheme((current) => current === 'dark' ? 'light' : 'dark')
 
