@@ -1,4 +1,4 @@
-import { apiDelete, apiPut, apiUpload, authStorage } from './api.js'
+import { apiDelete, apiGet, apiPost, apiPut, apiUpload, authStorage } from './api.js'
 import { getIdentity, toFrontendUser } from './authService.js'
 
 function mapProfile(user) {
@@ -29,4 +29,12 @@ export async function removeProfilePhoto() {
   authStorage.save(authStorage.getToken(), user)
   window.dispatchEvent(new CustomEvent('gate:identity', { detail: user }))
   return mapProfile(user)
+}
+
+export function getGoogleLinkStatus() {
+  return apiGet('/api/auth/google/link/status')
+}
+
+export function linkGoogleAccount(credential) {
+  return apiPost('/api/auth/google/link', { credential })
 }

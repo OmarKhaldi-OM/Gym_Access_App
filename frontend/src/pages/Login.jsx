@@ -4,11 +4,12 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { PublicShell } from '../components/PublicSite.jsx'
 import { useT } from '../context/I18nContext.jsx'
 import { getHomePath } from '../roles.js'
+import GoogleIdentityButton from '../components/GoogleIdentityButton.jsx'
 
 export default function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { signIn, signInWithFace } = useAuth()
+  const { signIn, signInWithFace, signInWithGoogle } = useAuth()
   const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -94,6 +95,19 @@ export default function Login() {
     }
   }
 
+  const handleGoogleSignIn = async (credential) => {
+    setError('')
+    setSubmitting(true)
+    try {
+      const user = await signInWithGoogle(credential)
+      navigate(getHomePath(user) || '/', { replace: true })
+    } catch (googleSignInError) {
+      window.dispatchEvent(new Event('gate:api-error-dismiss'))
+      setError(googleSignInError.message || t('googleSignInError'))
+      setSubmitting(false)
+    }
+  }
+
   return (
     <PublicShell>
       <main className="auth-page signin-page">
@@ -107,6 +121,11 @@ export default function Login() {
             {error && <p className="form-error" role="alert">{error}</p>}
             <button className="button button-lime submit-button" disabled={submitting}>{submitting ? t('loading') : t('signIn')} <span aria-hidden="true">↗</span></button>
           </form>
+          <div className="google-auth-option">
+            <p>{t('orContinueWith')}</p>
+            <GoogleIdentityButton onCredential={handleGoogleSignIn} disabled={submitting} />
+            <p className="text-sm text-text-muted">{t('googleExistingAccountHelp')}</p>
+          </div>
           <section className="mt-6 border-t border-graphite-line pt-5" aria-label={t('faceSignIn')}>
             <h2 className="text-lg font-semibold">{t('faceSignIn')}</h2>
             <p className="mt-2 text-sm text-text-muted">{t('faceLoginSetup')}</p>

@@ -49,6 +49,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), null);
     }
 
+    @ExceptionHandler(GoogleAuthenticationUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handleGoogleAuthenticationUnavailable(
+            GoogleAuthenticationUnavailableException ex) {
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), null);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, Object>> handleForbidden(AccessDeniedException ex) {
         return buildResponse(HttpStatus.FORBIDDEN, "Vous n'avez pas les droits pour effectuer cette action", null);

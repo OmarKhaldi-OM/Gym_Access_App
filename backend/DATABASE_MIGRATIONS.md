@@ -45,3 +45,10 @@ mappings restent vérifiés au démarrage.
 La migration `V3__archive_anonymized_members.sql` ajoute le marqueur
 `member.archived`. L'archivage anonymise le profil et conserve les journaux
 d'accès liés, qui affichent alors l'identité anonymisée.
+
+La migration `V4__add_google_identity.sql` ajoute une table séparée pour les
+identités Google. Elle ne modifie ni ne migre les comptes existants : ceux-ci
+doivent être associés depuis le profil après authentification Gate. La table
+impose une identité unique par compte et une unicité de la paire issuer/subject.
+Avant déploiement, sauvegarder la base et vérifier V4 sur une copie du schéma
+réel, en particulier si la base existante n'a pas été migrée par Flyway.

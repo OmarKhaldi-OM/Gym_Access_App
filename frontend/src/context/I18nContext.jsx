@@ -1,7 +1,12 @@
-import { createContext, useContext, useLayoutEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from 'react'
 
 const I18nContext = createContext(null)
 const STORAGE_KEY = 'gate.language'
+const translationAliases = {
+  Essential: 'planEssentialName', Basic: 'planEssentialName',
+  Unlimited: 'planUnlimitedName', Premium: 'planUnlimitedName',
+  'Coaching+': 'planCoachingName',
+}
 
 const messages = {
   en: {
@@ -80,12 +85,42 @@ const messages = {
     signupError: 'Account creation failed.',
     loading: 'Loading...',
     noPayment: 'Demo journey: no real payment will be requested or charged.',
+    orContinueWith: 'Or continue with',
+    googleMissingClientId: 'Google sign-in is not configured. Set VITE_GOOGLE_CLIENT_ID in frontend/.env.local.',
+    googleUnavailable: 'Google sign-in could not be loaded. Check your connection and try again.',
+    googleSignInError: 'Google sign-in failed. Please try again.',
+    googleExistingAccountHelp: 'Existing Gate accounts must be linked from the member profile after signing in with a password.',
+    googleRegistrationHelp: 'New Google accounts are created as members. Choose a membership separately; no plan or payment is created here.',
+    googleAccount: 'Google account',
+    googleAlreadyLinked: 'A Google account is linked to your member account.',
+    googleLinkHelp: 'Link Google after signing in to Gate. This proves control of both accounts without matching email addresses alone.',
+    googleLinked: 'Google account linked.',
   },
   fr: {
     language: 'Langue', changeLanguage: 'Changer de langue', inactive: 'Inactif', theme: 'Thème', light: 'Clair', dark: 'Sombre', home: 'Accueil', plans: 'Abonnements', club: 'Le club', signIn: 'Se connecter', join: 'Rejoindre le club', memberSpace: 'Espace membre', logout: 'Se déconnecter', demo: 'DÉMO', admin: 'Admin', member: 'Membre', coach: 'Coach', reception: 'Réception', dashboard: 'Tableau de bord', activity: "Journal d'activité", members: 'Membres', schedule: 'Planning', trainerBookings: 'Réservations coach', faceRecognition: 'Reconnaissance faciale', status: 'Mon statut', bookings: 'Mes cours', trainerSessions: 'Mes séances coach', profile: 'Profil', previousWeek: 'Semaine précédente', nextWeek: 'Semaine suivante', currentWeek: 'Semaine actuelle', close: 'Fermer', today: "Aujourd'hui", allStatuses: 'Tous les statuts', entries: 'Entrées', exits: 'Sorties', refused: 'Refusés', noEvents: 'Aucun événement pour ce filtre.', noMembers: 'Aucun membre ne correspond à cette recherche.', noPassages: 'Aucun passage enregistré.', noSessions: 'Aucune séance programmée.', noSlots: 'Aucun créneau cette semaine.', searchMember: 'Rechercher un membre...', enrolled: 'Visage enrôlé', notEnrolled: 'Non enrôlé', active: 'Actif', suspended: 'Suspendu', entry: 'Entrée', exit: 'Sortie', refusedStatus: 'Refusé', choosePlan: 'Choisis ton terrain.', comparePlans: 'Compare les options de démonstration et choisis celle qui te convient.', monthly: 'Mensuel', yearly: 'Annuel', billedMonthly: 'Facturé chaque mois · TND', billedYearly: 'Facturé chaque année · TND', included: 'CE QUI EST INCLUS',     demoPricing: 'Tarifs et avantages de démonstration, non contractuels. Prix en dinars tunisiens (TND) · aucun paiement réel n’est effectué.',     createAccount: 'Créer mon compte & activer', connection: 'Connexion', faceSignIn: 'Se connecter avec son visage', faceLoginSetup: 'Enrôlez votre visage depuis la page Reconnaissance faciale après connexion.', faceLivenessWarning: 'Attention : la reconnaissance faciale ne détecte pas les photos ou vidéos présentées à la caméra. Elle ne vérifie pas qu’une personne est réellement présente.', startCamera: 'Activer la caméra', captureAndSignIn: 'Capturer et se connecter', email: 'Adresse e-mail', password: 'Mot de passe', fullName: 'Nom complet', namePlaceholder: 'Ex. Alex Martin', emailPlaceholder: 'toi@exemple.com', passwordPlaceholder: '8 caractères minimum', wrongCredentials: 'Adresse e-mail ou mot de passe incorrecte.', signupError: 'La création du compte a échoué.', loading: 'Chargement…', noPayment: 'Parcours de démonstration : aucun paiement réel ne sera demandé ou prélevé.',
+    orContinueWith: 'Ou continuer avec',
+    googleMissingClientId: 'La connexion Google n’est pas configurée. Définissez VITE_GOOGLE_CLIENT_ID dans frontend/.env.local.',
+    googleUnavailable: 'La connexion Google est indisponible. Vérifiez votre connexion et réessayez.',
+    googleSignInError: 'La connexion Google a échoué. Veuillez réessayer.',
+    googleExistingAccountHelp: 'Associez un compte Gate existant depuis le profil membre, après connexion par mot de passe.',
+    googleRegistrationHelp: 'Les nouveaux comptes Google sont créés comme membres. Choisissez un abonnement séparément ; aucun forfait ni paiement n’est créé ici.',
+    googleAccount: 'Compte Google',
+    googleAlreadyLinked: 'Un compte Google est associé à votre compte membre.',
+    googleLinkHelp: 'Après connexion à Gate, associez Google pour prouver le contrôle des deux comptes, sans vous fier uniquement aux adresses e-mail.',
+    googleLinked: 'Compte Google associé.',
   },
   ar: {
     language: 'اللغة', changeLanguage: 'تغيير اللغة', inactive: 'غير نشط', theme: 'المظهر', light: 'فاتح', dark: 'داكن', home: 'الرئيسية', plans: 'الاشتراكات', club: 'النادي', signIn: 'تسجيل الدخول', join: 'انضم إلى النادي', memberSpace: 'مساحة الأعضاء', logout: 'تسجيل الخروج', demo: 'تجريبي', admin: 'الإدارة', member: 'عضو', coach: 'مدرب', reception: 'الاستقبال', dashboard: 'لوحة التحكم', activity: 'سجل النشاط', members: 'الأعضاء', schedule: 'الجدول', trainerBookings: 'حجوزات المدربين', faceRecognition: 'التعرّف على الوجه', status: 'حالتي', bookings: 'حصصي', trainerSessions: 'جلساتي مع المدرب', profile: 'الملف الشخصي', previousWeek: 'الأسبوع السابق', nextWeek: 'الأسبوع القادم', currentWeek: 'الأسبوع الحالي', close: 'إغلاق', today: 'اليوم', allStatuses: 'كل الحالات', entries: 'الدخول', exits: 'الخروج', refused: 'مرفوض', noEvents: 'لا توجد أحداث لهذا الفلتر.', noMembers: 'لا يوجد أعضاء يطابقون البحث.', noPassages: 'لا توجد زيارات مسجلة.', noSessions: 'لا توجد جلسات مجدولة.', noSlots: 'لا توجد مواعيد هذا الأسبوع.', searchMember: 'ابحث عن عضو...', enrolled: 'تم تسجيل الوجه', notEnrolled: 'لم يتم التسجيل', active: 'نشط', suspended: 'موقوف', entry: 'دخول', exit: 'خروج', refusedStatus: 'مرفوض', choosePlan: 'اختر اشتراكك', comparePlans: 'قارن الخيارات التجريبية واختر ما يناسبك.', monthly: 'شهري', yearly: 'سنوي', billedMonthly: 'تدفع شهريا · بالدينار', billedYearly: 'تدفع سنويا · بالدينار', included: 'ما يتضمنه الاشتراك', demoPricing: 'أسعار ومزايا تجريبية وغير تعاقدية. الأسعار بالدينار التونسي ولا تتم أي عملية دفع حقيقية.', createAccount: 'إنشاء الحساب وتفعيل الاشتراك',     connection: 'تسجيل الدخول', faceSignIn: 'تسجيل الدخول بالوجه', faceLoginSetup: 'سجّل وجهك من صفحة التعرّف على الوجه بعد تسجيل الدخول.', faceLivenessWarning: 'تنبيه: لا يستطيع التعرّف على الوجه اكتشاف الصور أو مقاطع الفيديو المعروضة أمام الكاميرا، ولا يتحقق من وجود شخص حي.', startCamera: 'تشغيل الكاميرا', captureAndSignIn: 'التقاط وتسجيل الدخول', email: 'البريد الإلكتروني', password: 'كلمة المرور', fullName: 'الاسم الكامل', namePlaceholder: 'مثال: أحمد محمد', emailPlaceholder: 'you@example.com', passwordPlaceholder: '8 أحرف على الأقل', wrongCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.', signupError: 'تعذر إنشاء الحساب.', loading: 'جار التحميل...', noPayment: 'مسار تجريبي: لن يتم طلب أو خصم أي مبلغ حقيقي.',
+    orContinueWith: 'أو المتابعة باستخدام',
+    googleMissingClientId: 'تسجيل الدخول عبر Google غير مُعدّ. أضف VITE_GOOGLE_CLIENT_ID إلى frontend/.env.local.',
+    googleUnavailable: 'تعذر تحميل تسجيل الدخول عبر Google. تحقق من الاتصال وحاول مجددًا.',
+    googleSignInError: 'فشل تسجيل الدخول عبر Google. حاول مجددًا.',
+    googleExistingAccountHelp: 'يجب ربط حساب Gate الحالي من ملف العضو بعد تسجيل الدخول بكلمة المرور.',
+    googleRegistrationHelp: 'تُنشأ حسابات Google الجديدة كأعضاء. اختر الاشتراك بشكل منفصل؛ لن يُنشأ اشتراك أو دفعة هنا.',
+    googleAccount: 'حساب Google',
+    googleAlreadyLinked: 'حساب Google مرتبط بحساب العضوية.',
+    googleLinkHelp: 'بعد تسجيل الدخول إلى Gate، اربط Google لإثبات ملكية الحسابين دون الاعتماد على تطابق البريد الإلكتروني وحده.',
+    googleLinked: 'تم ربط حساب Google.',
   },
 }
 
@@ -389,10 +424,8 @@ export function useI18n() {
 
 export function useT() {
   const { messages } = useI18n()
-  const aliases = {
-    Essential: 'planEssentialName', Basic: 'planEssentialName',
-    Unlimited: 'planUnlimitedName', Premium: 'planUnlimitedName',
-    'Coaching+': 'planCoachingName',
-  }
-  return (key, fallback = key) => messages[aliases[key] || key] || fallback
+  return useCallback(
+    (key, fallback = key) => messages[translationAliases[key] || key] || fallback,
+    [messages],
+  )
 }

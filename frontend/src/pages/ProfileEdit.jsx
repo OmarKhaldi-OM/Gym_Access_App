@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../hooks/useToast.js'
 import * as profileService from '../services/profileService.js'
 import { useT } from '../context/I18nContext.jsx'
+import GoogleIdentityButton from '../components/GoogleIdentityButton.jsx'
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -25,6 +26,9 @@ export default function ProfileEdit() {
   const [actionError, setActionError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isRemovingPhoto, setIsRemovingPhoto] = useState(false)
+  const [googleLinked, setGoogleLinked] = useState(false)
+  const [isLinkingGoogle, setIsLinkingGoogle] = useState(false)
+  const [googleLinkError, setGoogleLinkError] = useState('')
 
   const loadProfile = () => {
     setLoading(true)
@@ -33,6 +37,11 @@ export default function ProfileEdit() {
       .then((data) => {
         setProfile(data)
         setPhotoPreview(data.photo)
+        if (user?.role === 'MEMBER') {
+          profileService.getGoogleLinkStatus()
+            .then((status) => setGoogleLinked(status.linked))
+            .catch((statusError) => setGoogleLinkError(statusError.message))
+        }
       })
       .catch(setError)
       .finally(() => setLoading(false))
@@ -99,6 +108,21 @@ export default function ProfileEdit() {
     }
   }
 
+  const handleGoogleLink = async (credential) => {
+    setGoogleLinkError('')
+    setIsLinkingGoogle(true)
+    try {
+      await profileService.linkGoogleAccount(credential)
+      setGoogleLinked(true)
+      showToast(t('googleLinked'))
+    } catch (linkError) {
+      window.dispatchEvent(new Event('gate:api-error-dismiss'))
+      setGoogleLinkError(linkError.message || t('googleSignInError'))
+    } finally {
+      setIsLinkingGoogle(false)
+    }
+  }
+
   if (loading) return <Layout><ApiLoading message={t('loading')} /></Layout>
   if (error || !profile) return <Layout><ApiError error={error || new Error(t('requestFailed', 'Impossible de charger votre profil.'))} onRetry={loadProfile} /></Layout>
 
@@ -126,6 +150,16 @@ export default function ProfileEdit() {
           </div>
         </form>
       </Panel>
+      {user?.role === 'MEMBER' && (
+        <Panel className="mt-6 p-6">
+          <SectionHeader title={t('googleAccount')} />
+          <div className="grid gap-3 p-5">
+            <p className="text-sm text-text-muted">{googleLinked ? t('googleAlreadyLinked') : t('googleLinkHelp')}</p>
+            {googleLinkError && <p className="text-sm text-red-700" role="alert">{googleLinkError}</p>}
+            {!googleLinked && <GoogleIdentityButton onCredential={handleGoogleLink} disabled={isLinkingGoogle} />}
+          </div>
+        </Panel>
+      )}
       <Toast message={toastMessage} />
     </Layout>
   )

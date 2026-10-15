@@ -38,6 +38,18 @@ export async function signInWithFace(imageBase64) {
   return authenticate('/api/auth/face-login', { imageBase64 })
 }
 
+export async function signInWithGoogle(credential) {
+  return authenticate('/api/auth/google', { credential })
+}
+
+export async function linkGoogleAccount(credential) {
+  return apiPost('/api/auth/google/link', { credential })
+}
+
+export async function getGoogleLinkStatus() {
+  return apiGet('/api/auth/google/link/status')
+}
+
 export async function signUp({ name, email, password }) {
   const names = name.trim().split(/\s+/)
   const prenom = names.shift()

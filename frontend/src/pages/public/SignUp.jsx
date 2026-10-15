@@ -5,11 +5,13 @@ import { PublicShell } from '../../components/PublicSite.jsx'
 import { ApiLoading } from '../../components/ApiState.jsx'
 import * as membershipService from '../../services/membershipService.js'
 import { useT } from '../../context/I18nContext.jsx'
+import GoogleIdentityButton from '../../components/GoogleIdentityButton.jsx'
+import { getHomePath } from '../../roles.js'
 
 export default function SignUp() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
-  const { signUp } = useAuth()
+  const { signUp, signInWithGoogle } = useAuth()
   const t = useT()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -52,6 +54,19 @@ export default function SignUp() {
     }
   }
 
+  const handleGoogleSignIn = async (credential) => {
+    setError('')
+    setSubmitting(true)
+    try {
+      const account = await signInWithGoogle(credential)
+      navigate(getHomePath(account) || '/membre/dashboard', { replace: true })
+    } catch (googleSignInError) {
+      window.dispatchEvent(new Event('gate:api-error-dismiss'))
+      setError(googleSignInError.message || t('googleSignInError'))
+      setSubmitting(false)
+    }
+  }
+
   return (
     <PublicShell>
       <main className="auth-page signup-page">
@@ -71,6 +86,11 @@ export default function SignUp() {
             {!plansLoading && !plans.length && <button type="button" className="text-link" onClick={loadPlans}>{t('retry', 'Réessayer')}</button>}
             <p className="demo-disclaimer">{t('noPayment')}</p>
           </form>
+          <div className="google-auth-option">
+            <p>{t('orContinueWith')}</p>
+            <GoogleIdentityButton onCredential={handleGoogleSignIn} disabled={submitting} />
+            <p className="text-sm text-text-muted">{t('googleRegistrationHelp')}</p>
+          </div>
         </div>
       </main>
     </PublicShell>
