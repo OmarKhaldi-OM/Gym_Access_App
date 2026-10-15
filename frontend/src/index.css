@@ -370,14 +370,34 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .language-controls {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   flex: 0 0 auto;
-  padding: 3px;
+  padding: 3px 5px;
   border: 1px solid var(--line);
   border-radius: 5px;
   background: var(--surface, #f3f3eb);
 }
+.language-globe { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.language-controls .language-select { width: 46px; min-height: 26px; padding: 0 1px; border: 0; background: transparent; font-size: 10px; text-align: center; }
+.language-controls .language-select:hover { background: transparent; }
+.language-controls .language-select:focus-visible { border-radius: 3px; outline-offset: 1px; }
 .language-controls + .theme-toggle { margin-inline-start: 3px; }
+.management-preferences .language-controls + .management-theme-toggle { margin-inline-start: 0; }
+.management-preferences .management-theme-toggle {
+  width: 34px !important;
+  height: 34px !important;
+  display: inline-grid !important;
+  place-items: center;
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+}
+.management-preferences .management-theme-toggle:hover { background: var(--surface-soft, #e2e4d8); }
+.management-preferences .management-theme-toggle:focus-visible { outline: 2px solid #789b32; outline-offset: 2px; }
+.management-preferences .management-theme-toggle:active { transform: translateY(1px); }
+.management-theme-icon { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.management-preferences .management-theme-toggle.dark { background: var(--surface-soft, #303a31); }
+.management-preferences .management-theme-toggle.dark:hover { background: var(--accent-soft, #38492a); }
 .management-user-name { text-align: start; }
 .directional-icon { display: inline-block; }
 [dir='rtl'] .directional-icon { transform: scaleX(-1); }
