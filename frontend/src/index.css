@@ -240,6 +240,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .management-main a { color: inherit; }
 .management-main .divide-y > * + * { border-color: var(--line); }
 .management-main .management-panel { overflow: hidden; }
+.status-chip-member-active { border: 1px solid #b8cba2; background-color: #e2ebd2; color: #435c2b; }
+.status-chip-member-inactive { border: 1px solid #e4c4bf; background-color: #f4e9e7; color: #8a3935; }
+.status-chip-enrollment-complete { border: 1px solid #b8cba2; background-color: #e2ebd2; color: #435c2b; }
+.status-chip-enrollment-pending { border: 1px solid #e1d2a5; background-color: #f5f0df; color: #705b22; }
+[data-theme='dark'] .status-chip-member-active { border-color: #456b4e; background-color: #263f2d; color: #bfe7c7; }
+[data-theme='dark'] .status-chip-member-inactive { border-color: #774643; background-color: #482e2d; color: #ffc9c5; }
+[data-theme='dark'] .status-chip-enrollment-complete { border-color: #456b4e; background-color: #263f2d; color: #bfe7c7; }
+[data-theme='dark'] .status-chip-enrollment-pending { border-color: #665a37; background-color: #403923; color: #f0dfa5; }
 [data-theme='dark'] .plan-card { background: var(--surface); color: var(--ink); border-color: var(--line); }
 [data-theme='dark'] .plan-featured { background: #0f130f; color: #edf1e6; border-color: #0f130f; }
 [data-theme='dark'] .plan-warm { background: #453d32; }

@@ -74,7 +74,7 @@ export default function FrontDesk() {
                   <Avatar name={m.nom} />
                   <p className="text-base font-semibold">{m.nom}</p>
                 </div>
-                <StatusChip variant={m.statut === 'Actif' ? 'positive' : 'neutral'}>
+                <StatusChip variant={m.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
                   {m.statut}
                 </StatusChip>
               </div>

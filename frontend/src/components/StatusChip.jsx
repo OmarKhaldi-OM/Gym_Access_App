@@ -4,12 +4,17 @@ const variants = {
   positive: 'bg-teal/20 text-teal',
   negative: 'bg-rose-100 text-rose-800',
   neutral: 'bg-graphite-hover text-text-muted',
+  memberActive: 'status-chip-member-active',
+  memberInactive: 'status-chip-member-inactive',
+  enrollmentComplete: 'status-chip-enrollment-complete',
+  enrollmentPending: 'status-chip-enrollment-pending',
 }
 
 export default function StatusChip({ children, variant = 'neutral' }) {
   const t = useT()
   const statusKey = {
     Actif: 'active', Active: 'active',
+    Inactif: 'inactive', Inactive: 'inactive',
     Suspendu: 'suspended', Suspended: 'suspended',
     'Visage enrôlé': 'enrolled', 'Face enrolled': 'enrolled',
     'Non enrôlé': 'notEnrolled', 'Not enrolled': 'notEnrolled',

@@ -76,7 +76,7 @@ export default function MemberProfile() {
             <h1 className="text-xl font-bold">{member.nom}</h1>
             <p className="text-base font-medium text-text-muted mt-0.5">{member.email}</p>
           </div>
-          <StatusChip variant={member.statut === 'Actif' ? 'positive' : 'neutral'}>
+          <StatusChip variant={member.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
             {member.statut}
           </StatusChip>
         </div>
@@ -94,7 +94,7 @@ export default function MemberProfile() {
           <div>
             <p className="text-base font-medium text-text-muted">{t('facialEnrollment')}</p>
             <div className="mt-1">
-              <StatusChip variant={member.visageEnrole ? 'positive' : 'neutral'}>
+              <StatusChip variant={member.visageEnrole ? 'enrollmentComplete' : 'enrollmentPending'}>
                 {member.visageEnrole ? t('enrolledStatus') : t('notEnrolled')}
               </StatusChip>
             </div>

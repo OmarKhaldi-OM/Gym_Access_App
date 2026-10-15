@@ -42,7 +42,7 @@ export default function MyProfile() {
             <p className="text-xl font-bold">{member.nom}</p>
             <p className="text-base font-medium text-text-muted mt-0.5">{member.email}</p>
           </div>
-          <StatusChip variant={member.statut === 'Actif' ? 'positive' : 'neutral'}>
+          <StatusChip variant={member.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
             {member.statut}
           </StatusChip>
         </div>
@@ -60,7 +60,7 @@ export default function MyProfile() {
           <div>
             <p className="text-base font-medium text-text-muted">{t('facialEnrollment')}</p>
             <div className="mt-1">
-              <StatusChip variant={member.visageEnrole ? 'positive' : 'neutral'}>
+              <StatusChip variant={member.visageEnrole ? 'enrollmentComplete' : 'enrollmentPending'}>
                 {member.visageEnrole ? t('enrolledStatus') : t('notEnrolled')}
               </StatusChip>
             </div>
@@ -77,7 +77,7 @@ export default function MyProfile() {
               {member.subscription ? `${member.subscription.dateDebut} – ${member.subscription.dateFin}` : t('noActiveSubscription', 'Aucun abonnement actif')}
             </p>
           </div>
-          <StatusChip variant={member.statut === 'Actif' ? 'positive' : 'neutral'}>
+          <StatusChip variant={member.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
             {member.statut}
           </StatusChip>
         </div>

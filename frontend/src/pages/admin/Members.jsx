@@ -51,13 +51,13 @@ export default function Members() {
                 <span className="text-lg font-semibold">{m.nom}</span>
               </div>
               <span className="text-base font-medium text-text-muted">{m.plan}</span>
-              <StatusChip variant={m.statut === 'Actif' ? 'positive' : 'neutral'}>
+              <StatusChip variant={m.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
                 {m.statut}
               </StatusChip>
               <span className="text-base font-mono text-text-muted">
                 {new Date(m.dateInscription).toLocaleDateString(language)}
               </span>
-              <StatusChip variant={m.visageEnrole ? 'positive' : 'neutral'}>
+              <StatusChip variant={m.visageEnrole ? 'enrollmentComplete' : 'enrollmentPending'}>
                 {m.visageEnrole ? 'Visage enrôlé' : 'Non enrôlé'}
               </StatusChip>
             </Link>

@@ -80,7 +80,7 @@ export default function MyStatus() {
             <p className="text-xl font-bold">{member.nom}</p>
             <p className="text-base font-medium text-text-muted mt-0.5">{t('plan')} {t(member.plan)}</p>
           </div>
-          <StatusChip variant={member.statut === 'Actif' ? 'positive' : 'neutral'}>
+          <StatusChip variant={member.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
             {member.statut}
           </StatusChip>
         </div>
