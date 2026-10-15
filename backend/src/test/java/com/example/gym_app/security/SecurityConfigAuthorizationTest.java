@@ -2,6 +2,11 @@ package com.example.gym_app.security;
 
 import com.example.gym_app.access.controller.FaceRecognitionController;
 import com.example.gym_app.access.service.FaceRecognitionService;
+import com.example.gym_app.membership.controller.SubscriptionController;
+import com.example.gym_app.membership.controller.MembershipPlanController;
+import com.example.gym_app.membership.dto.SubscriptionResponseDTO;
+import com.example.gym_app.membership.service.MembershipPlanService;
+import com.example.gym_app.membership.service.SubscriptionService;
 import com.example.gym_app.security.dto.AuthResponseDTO;
 import com.example.gym_app.user.controller.MemberController;
 import com.example.gym_app.user.service.MemberService;
@@ -24,9 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest({MemberController.class, FaceRecognitionController.class, GoogleAuthController.class})
+@WebMvcTest({MemberController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class})
 @AutoConfigureMockMvc(addFilters = true)
-@Import({SecurityConfig.class, JwtAuthFilter.class, MemberController.class, FaceRecognitionController.class, GoogleAuthController.class})
+@Import({SecurityConfig.class, JwtAuthFilter.class, MemberController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class})
 class SecurityConfigAuthorizationTest {
 
     @Autowired
@@ -40,6 +45,12 @@ class SecurityConfigAuthorizationTest {
 
     @MockitoBean
     private GoogleAuthService googleAuthService;
+
+    @MockitoBean
+    private SubscriptionService subscriptionService;
+
+    @MockitoBean
+    private MembershipPlanService membershipPlanService;
 
     @MockitoBean
     private CustomUserDetailsService userDetailsService;
@@ -100,6 +111,58 @@ class SecurityConfigAuthorizationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"credential\":\"credential\"}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void membershipEnrollmentRequiresAuthenticationAndMemberRole() throws Exception {
+        String body = "{\"planId\":\"" + UUID.randomUUID() + "\"}";
+        mockMvc.perform(post("/api/subscriptions/enroll")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/subscriptions/enroll")
+                        .with(user("trainer").roles("TRAINER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void memberCanEnrollOnlyThroughTheCurrentMemberEndpoint() throws Exception {
+        String planId = UUID.randomUUID().toString();
+        when(subscriptionService.enrollCurrentMember(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new SubscriptionResponseDTO());
+
+        mockMvc.perform(post("/api/subscriptions/enroll")
+                        .with(user("member").roles("MEMBER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"planId\":\"" + planId + "\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/subscriptions")
+                        .with(user("member").roles("MEMBER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"memberId\":\"" + UUID.randomUUID()
+                                + "\",\"planId\":\"" + planId
+                                + "\",\"dateDebut\":\"2026-10-15\",\"dateFin\":\"2026-11-15\",\"statut\":\"ACTIVE\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void planManagementListIsStaffOnly() throws Exception {
+        mockMvc.perform(get("/api/plans/manage"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/api/plans/manage").with(user("member").roles("MEMBER")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void publicPlanListRemainsAvailableWithoutAuthentication() throws Exception {
+        when(membershipPlanService.findAll()).thenReturn(java.util.List.of());
+        mockMvc.perform(get("/api/plans"))
+                .andExpect(status().isOk());
     }
 
     @Test

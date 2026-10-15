@@ -27,6 +27,11 @@ public class MembershipPlanController {
         return membershipPlanService.findAll();
     }
 
+    @GetMapping("/manage")
+    public List<MembershipPlanResponseDTO> getAllForManagement() {
+        return membershipPlanService.findAllForManagement();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MembershipPlanResponseDTO> getById(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(membershipPlanService.findById(id));

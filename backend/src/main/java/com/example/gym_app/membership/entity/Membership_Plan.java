@@ -29,6 +29,9 @@ public class Membership_Plan {
     @Column(name = "duree_jours", nullable = false)
     private Integer dureeJours;
 
+    @Column(nullable = false)
+    private boolean actif = true;
+
     @OneToMany(mappedBy = "membership_plan")
     private List<Subscription> subscriptions;
 }

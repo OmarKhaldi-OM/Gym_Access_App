@@ -1,9 +1,11 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext.jsx'
 import ApiFeedback from './components/ApiFeedback.jsx'
-import { ApiLoading } from './components/ApiState.jsx'
+import { ApiError, ApiLoading } from './components/ApiState.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { canAccessRoute, getHomePath } from './roles.js'
+import { hasMembershipHistory } from './membershipAccess.js'
 import { MembersProvider } from './context/MembersContext.jsx'
 import { ClassesProvider } from './context/ClassesContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
@@ -13,6 +15,8 @@ import Login from './pages/Login.jsx'
 import Home from './pages/public/Home.jsx'
 import Plans from './pages/public/Plans.jsx'
 import SignUp from './pages/public/SignUp.jsx'
+import MembershipSetup from './pages/public/MembershipSetup.jsx'
+import * as membershipService from './services/membershipService.js'
 
 import AdminDashboard from './pages/admin/Dashboard.jsx'
 import AdminActivityLog from './pages/admin/ActivityLog.jsx'
@@ -65,6 +69,7 @@ function AppRoutes() {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/signin" element={<Login />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/membership/setup" element={<RequireRole><MembershipSetup /></RequireRole>} />
 
       {/* Admin (staff/management) view */}
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
@@ -80,14 +85,14 @@ function AppRoutes() {
 
       {/* Membre (personal) view */}
       <Route path="/membre" element={<Navigate to="/membre/dashboard" replace />} />
-      <Route path="/membre/dashboard" element={<RequireRole><MyStatus /></RequireRole>} />
-      <Route path="/membre/membership" element={<RequireRole><MyMembership /></RequireRole>} />
-      <Route path="/membre/bookings" element={<RequireRole><MyClasses /></RequireRole>} />
-      <Route path="/membre/trainer-sessions" element={<RequireRole><MyTrainerSessions /></RequireRole>} />
-      <Route path="/membre/face-recognition" element={<RequireRole><FaceRecognitionPage /></RequireRole>} />
-      <Route path="/membre/profile" element={<RequireRole><ProfileEdit /></RequireRole>} />
-      <Route path="/membre/coaching" element={<RequireRole><CoachingRequests /></RequireRole>} />
-      <Route path="/membre/progress" element={<RequireRole><MemberProgress /></RequireRole>} />
+      <Route path="/membre/dashboard" element={<MemberRoute><MyStatus /></MemberRoute>} />
+      <Route path="/membre/membership" element={<MemberRoute><MyMembership /></MemberRoute>} />
+      <Route path="/membre/bookings" element={<MemberRoute><MyClasses /></MemberRoute>} />
+      <Route path="/membre/trainer-sessions" element={<MemberRoute><MyTrainerSessions /></MemberRoute>} />
+      <Route path="/membre/face-recognition" element={<MemberRoute><FaceRecognitionPage /></MemberRoute>} />
+      <Route path="/membre/profile" element={<MemberRoute><ProfileEdit /></MemberRoute>} />
+      <Route path="/membre/coaching" element={<MemberRoute><CoachingRequests /></MemberRoute>} />
+      <Route path="/membre/progress" element={<MemberRoute><MemberProgress /></MemberRoute>} />
 
       {/* Coach (trainer) view */}
       <Route path="/coach" element={<Navigate to="/coach/planning" replace />} />
@@ -114,5 +119,45 @@ function RequireRole({ children }) {
   if (!ready) return <main className="min-h-screen grid place-items-center"><ApiLoading message={t('loading')} /></main>
   if (!user) return <Navigate to="/signin" replace state={{ from: location }} />
   if (!canAccessRoute(user, location.pathname)) return <Navigate to={getHomePath(user) || '/'} replace />
+  return children
+}
+
+function MemberRoute({ children }) {
+  return <RequireRole><RequireMembership>{children}</RequireMembership></RequireRole>
+}
+
+function RequireMembership({ children }) {
+  const { user } = useAuth()
+  const [attempt, setAttempt] = useState(0)
+  const [result, setResult] = useState({ userId: null, loading: true, error: null, hasHistory: false })
+
+  useEffect(() => {
+    let active = true
+    setResult({ userId: user.id, loading: true, error: null, hasHistory: false })
+    membershipService.getMemberSubscriptions(user.id)
+      .then((subscriptions) => {
+        if (active) setResult({
+          userId: user.id,
+          loading: false,
+          error: null,
+          hasHistory: hasMembershipHistory(subscriptions),
+        })
+      })
+      .catch((error) => {
+        if (active) setResult({ userId: user.id, loading: false, error, hasHistory: false })
+      })
+    return () => { active = false }
+  }, [user.id, attempt])
+
+  const t = useT()
+  if (result.userId !== user.id || result.loading) {
+    return <main className="min-h-screen grid place-items-center"><ApiLoading message={t('loading')} /></main>
+  }
+  if (result.error) {
+    return <main className="mx-auto max-w-2xl p-6">
+      <ApiError error={result.error} onRetry={() => setAttempt((current) => current + 1)} retryLabel={t('retry', 'Réessayer')} />
+    </main>
+  }
+  if (!result.hasHistory) return <Navigate to="/membership/setup" replace />
   return children
 }

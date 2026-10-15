@@ -13,5 +13,6 @@ public class MembershipPlanResponseDTO {
     private String nom;
     private BigDecimal prix;
     private Integer dureeJours;
+    private boolean actif;
 
 }

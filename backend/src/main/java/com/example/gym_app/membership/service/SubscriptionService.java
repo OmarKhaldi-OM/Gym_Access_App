@@ -1,6 +1,9 @@
 package com.example.gym_app.membership.service;
 
+import com.example.gym_app.exception.BadRequestException;
+import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.membership.dto.SubscriptionEnrollmentRequestDTO;
 import com.example.gym_app.membership.dto.SubscriptionRequestDTO;
 import com.example.gym_app.membership.dto.SubscriptionResponseDTO;
 import com.example.gym_app.membership.entity.Membership_Plan;
@@ -13,6 +16,7 @@ import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.security.SecurityUtil;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -101,8 +105,55 @@ public class SubscriptionService {
                 .anyMatch(s -> "ACTIVE".equals(s.getStatut()) && !s.getDateFin().isBefore(LocalDate.now()));
     }
 
+    @Transactional
+    public SubscriptionResponseDTO enrollCurrentMember(SubscriptionEnrollmentRequestDTO request) {
+        securityUtil.requireRole(Role.MEMBER);
+        String currentEmail = securityUtil.getCurrentUserEmail();
+        if (memberRepository.lockAccountByEmail(currentEmail).isEmpty()) {
+            throw new ResourceNotFoundException("Member introuvable");
+        }
+        Member member = memberRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Member introuvable"));
+        if (member.isArchived()) {
+            throw new ResourceNotFoundException("Member introuvable");
+        }
+        Membership_Plan plan = membershipPlanRepository.findById(request.getPlanId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Plan introuvable avec id: " + request.getPlanId()));
+        if (!plan.isActif()) {
+            throw new ConflictException("Ce plan n'est plus disponible");
+        }
+        if (plan.getPrix() == null || plan.getPrix().signum() <= 0
+                || plan.getDureeJours() == null || plan.getDureeJours() < 1) {
+            throw new BadRequestException("Les informations du plan sont invalides");
+        }
+
+        List<Subscription> subscriptions = subscriptionRepository.findByMemberId(member.getId());
+        LocalDate today = LocalDate.now();
+        Subscription activeSubscription = subscriptions.stream()
+                .filter(subscription -> "ACTIVE".equals(subscription.getStatut())
+                        && !subscription.getDateFin().isBefore(today))
+                .findFirst()
+                .orElse(null);
+        if (activeSubscription != null) {
+            if (activeSubscription.getMembership_plan().getId().equals(plan.getId())) {
+                return toDTO(activeSubscription);
+            }
+            throw new ConflictException("Une adhésion active existe déjà pour ce membre");
+        }
+
+        Subscription subscription = new Subscription();
+        subscription.setMember(member);
+        subscription.setMembership_plan(plan);
+        subscription.setDateDebut(today);
+        subscription.setDateFin(today.plusDays(plan.getDureeJours()));
+        subscription.setStatut("ACTIVE");
+        return toDTO(subscriptionRepository.save(subscription));
+    }
+
+    @Transactional
     public SubscriptionResponseDTO create(SubscriptionRequestDTO dto) {
-        requireMemberAccess(dto.getMemberId());
+        securityUtil.requireStaff();
         return toDTO(subscriptionRepository.save(toEntity(dto)));
     }
 

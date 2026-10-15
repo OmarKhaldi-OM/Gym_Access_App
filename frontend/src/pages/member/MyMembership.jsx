@@ -78,7 +78,7 @@ export default function MyMembership() {
     setActionError(null)
     setSuccess(false)
     try {
-      const created = await membershipService.createSubscription(user.id, selectedPlan)
+      const created = await membershipService.createSubscription(selectedPlan)
       setSubscriptions((current) => [...current, created])
       setSuccess(true)
     } catch (requestError) {

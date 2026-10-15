@@ -60,6 +60,8 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/face-login", "/api/auth/google").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/plans/manage")
+                            .hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name())
                         .requestMatchers(HttpMethod.GET, "/api/classes/**", "/api/schedules/**", "/api/plans/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bookings/counts").permitAll()
                         .requestMatchers("/api/staff/**").hasRole(Role.ADMIN.name())
@@ -78,7 +80,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/cancel").hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name(), Role.MEMBER.name())
                         .requestMatchers("/api/bookings/**").hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name())
                         .requestMatchers(HttpMethod.GET, "/api/subscriptions/member/**").hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name(), Role.MEMBER.name())
-                        .requestMatchers(HttpMethod.POST, "/api/subscriptions").hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name(), Role.MEMBER.name())
+                        .requestMatchers(HttpMethod.POST, "/api/subscriptions/enroll").hasRole(Role.MEMBER.name())
+                        .requestMatchers(HttpMethod.POST, "/api/subscriptions").hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name())
                         .requestMatchers("/api/subscriptions/**").hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name())
                         .requestMatchers("/api/progress-logs/**").hasAnyRole(Role.ADMIN.name(), Role.MEMBER.name())
                         .requestMatchers(HttpMethod.GET, "/api/trainer-bookings/member/**").hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name(), Role.MEMBER.name())

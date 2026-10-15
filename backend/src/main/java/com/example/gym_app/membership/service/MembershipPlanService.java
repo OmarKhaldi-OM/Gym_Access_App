@@ -31,6 +31,7 @@ public class MembershipPlanService {
         dto.setNom(plan.getNom());
         dto.setPrix(plan.getPrix());
         dto.setDureeJours(plan.getDureeJours());
+        dto.setActif(plan.isActif());
         return dto;
     }
 
@@ -39,16 +40,28 @@ public class MembershipPlanService {
         plan.setNom(dto.getNom());
         plan.setPrix(dto.getPrix());
         plan.setDureeJours(dto.getDureeJours());
+        plan.setActif(dto.getActif() == null || dto.getActif());
         return plan;
     }
 
     public List<MembershipPlanResponseDTO> findAll() {
+        return membershipPlanRepository.findAll().stream()
+                .filter(Membership_Plan::isActif)
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<MembershipPlanResponseDTO> findAllForManagement() {
+        securityUtil.requireStaff();
         return membershipPlanRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public MembershipPlanResponseDTO findById(UUID id) {
         Membership_Plan plan = membershipPlanRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Plan introuvable avec id: " + id));
+        if (!plan.isActif()) {
+            throw new ResourceNotFoundException("Plan introuvable avec id: " + id);
+        }
         return toDTO(plan);
     }
     public MembershipPlanResponseDTO update(UUID id, MembershipPlanRequestDTO dto) {
@@ -58,6 +71,7 @@ public class MembershipPlanService {
         existing.setNom(dto.getNom());
         existing.setPrix(dto.getPrix());
         existing.setDureeJours(dto.getDureeJours());
+        if (dto.getActif() != null) existing.setActif(dto.getActif());
         return toDTO(membershipPlanRepository.save(existing));
     }
 

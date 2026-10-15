@@ -34,6 +34,12 @@ test('allows only admin and receptionist to manage membership plans', () => {
   assert.equal(canAccessRoute({ role: 'MEMBER' }, '/admin/plans'), false)
 })
 
+test('allows members to complete membership selection without opening other role routes', () => {
+  assert.equal(canAccessRoute({ role: 'MEMBER' }, '/membership/setup'), true)
+  assert.equal(canAccessRoute({ role: 'ADMIN' }, '/membership/setup'), false)
+  assert.equal(canAccessRoute({ role: 'TRAINER' }, '/membership/setup'), false)
+})
+
 test('keeps each profile route available to its account menu, not the main navigation', () => {
   const profileRoutes = [
     ['ADMIN', '/admin/profile'],

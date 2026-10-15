@@ -1,6 +1,7 @@
 package com.example.gym_app.membership.controller;
 
 import com.example.gym_app.membership.dto.SubscriptionRequestDTO;
+import com.example.gym_app.membership.dto.SubscriptionEnrollmentRequestDTO;
 import com.example.gym_app.membership.dto.SubscriptionResponseDTO;
 import com.example.gym_app.membership.service.SubscriptionService;
 import jakarta.validation.Valid;
@@ -35,6 +36,12 @@ public class SubscriptionController {
     @GetMapping("/member/{memberId}")
     public List<SubscriptionResponseDTO> getByMember(@PathVariable("memberId") UUID memberId) {
         return subscriptionService.findByMember(memberId);
+    }
+
+    @PostMapping("/enroll")
+    public ResponseEntity<SubscriptionResponseDTO> enroll(
+            @Valid @RequestBody SubscriptionEnrollmentRequestDTO request) {
+        return ResponseEntity.ok(subscriptionService.enrollCurrentMember(request));
     }
 
     @PostMapping

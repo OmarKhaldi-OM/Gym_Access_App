@@ -11,6 +11,38 @@ test('member summaries recognize the canonical ACTIVE subscription status', () =
   assert.match(source, /subscription\?\.statut\?\.toUpperCase\(\) === 'ACTIVE'/)
 })
 
+test('membership onboarding remains required until any subscription exists', async () => {
+  const { hasMembershipHistory } = await import('./membershipAccess.js')
+
+  assert.equal(hasMembershipHistory([]), false)
+  assert.equal(hasMembershipHistory(null), false)
+  assert.equal(hasMembershipHistory([{ statut: 'EXPIRED' }]), true)
+})
+
+test('protected member routes redirect accounts without subscription history to setup', () => {
+  const source = readSource('./App.jsx')
+  assert.match(source, /function MemberRoute\(\{ children \}\) \{\s*return <RequireRole><RequireMembership>/)
+  assert.match(source, /getMemberSubscriptions\(user\.id\)/)
+  assert.match(source, /if \(!result\.hasHistory\) return <Navigate to="\/membership\/setup"/)
+})
+
+test('Google registration routes to membership selection without enrolling on sign-in', () => {
+  const source = readSource('./pages/public/SignUp.jsx')
+  const googleHandler = source.match(/const handleGoogleSignIn = async \(credential\) => \{([\s\S]*?)\n  \}/)
+  assert.ok(googleHandler, 'Google sign-in handler should exist')
+  assert.match(googleHandler[1], /await signInWithGoogle\(credential\)/)
+  assert.match(googleHandler[1], /navigate\(`\/membership\/setup\?plan=/)
+  assert.doesNotMatch(googleHandler[1], /createSubscription/)
+})
+
+test('member enrollment sends only the selected plan to the authenticated backend', () => {
+  const source = readSource('./services/membershipService.js')
+  const enrollment = source.match(/export function createSubscription\(plan\) \{([\s\S]*?)\n\}/)
+  assert.ok(enrollment, 'self-enrollment service should exist')
+  assert.match(enrollment[1], /apiPost\('\/api\/subscriptions\/enroll', \{ planId: plan\.id \}\)/)
+  assert.doesNotMatch(enrollment[1], /dateDebut|dateFin|statut:\s*'ACTIVE'/)
+})
+
 test('class reservations use canonical CONFIRMED and CANCELLED statuses', () => {
   const source = readSource('./services/classService.js')
   assert.match(source, /statut: booking\.statut\?\.toUpperCase\(\) === 'CANCELLED' \? 'CANCELLED' : 'CONFIRMED'/)
@@ -47,6 +79,20 @@ test('each additional translation catalog defines coachingRequests once', () => 
     assert.ok(section, `missing ${language} catalog`)
     assert.equal((section[1].match(/coachingRequests:/g) || []).length, 1)
     assert.ok(section[1].includes(`coachingRequests: '${translation}'`))
+  }
+})
+
+test('membership onboarding and plan availability are translated in every supported language', () => {
+  const source = readSource('./context/I18nContext.jsx')
+  const catalogs = source.slice(source.indexOf('const additionalMessages'), source.indexOf('const dictionaries'))
+
+  for (const language of ['en', 'fr', 'ar']) {
+    const start = catalogs.indexOf(`${language}: {`)
+    const next = catalogs.indexOf('\n  },', start)
+    const catalog = catalogs.slice(start, next)
+    for (const key of ['membershipSetupTitle', 'membershipSetupHelp', 'selectMembership', 'planAvailable']) {
+      assert.match(catalog, new RegExp(`${key}:\\s*'[^']+'`), `${language} should translate ${key}`)
+    }
   }
 })
 

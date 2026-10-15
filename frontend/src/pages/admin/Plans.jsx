@@ -8,7 +8,7 @@ import { useT } from '../../context/I18nContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
 import * as membershipService from '../../services/membershipService.js'
 
-const emptyForm = { nom: '', prix: '', dureeJours: '' }
+const emptyForm = { nom: '', prix: '', dureeJours: '', actif: true }
 
 export default function AdminPlans() {
   const t = useT()
@@ -26,7 +26,7 @@ export default function AdminPlans() {
     setLoading(true)
     setError(null)
     try {
-      setPlans(await membershipService.getPlans())
+      setPlans(await membershipService.getPlansForManagement())
     } catch (loadError) {
       setError(loadError)
     } finally {
@@ -44,7 +44,12 @@ export default function AdminPlans() {
   }
 
   const openEditForm = (plan) => {
-    setForm({ nom: plan.nom, prix: String(plan.prix), dureeJours: String(plan.dureeJours) })
+    setForm({
+      nom: plan.nom,
+      prix: String(plan.prix),
+      dureeJours: String(plan.dureeJours),
+      actif: plan.actif,
+    })
     setEditingPlan(plan)
     setActionError(null)
     setFormOpen(true)
@@ -65,6 +70,7 @@ export default function AdminPlans() {
       nom: form.nom.trim(),
       prix: Number(form.prix),
       dureeJours: Number(form.dureeJours),
+      actif: form.actif,
     }
     try {
       const savedPlan = editingPlan
@@ -147,6 +153,14 @@ export default function AdminPlans() {
                 onChange={(event) => setForm({ ...form, dureeJours: event.target.value })}
               />
             </label>
+            <label className="flex items-center gap-2 text-sm font-medium sm:col-span-2">
+              <input
+                type="checkbox"
+                checked={form.actif}
+                onChange={(event) => setForm({ ...form, actif: event.target.checked })}
+              />
+              {t('planAvailable')}
+            </label>
             <div className="flex flex-wrap gap-3 sm:col-span-2">
               <Button type="submit" disabled={saving}>{saving ? t('loading') : t(editingPlan ? 'saveChanges' : 'createPlan')}</Button>
               <Button type="button" variant="secondary" disabled={saving} onClick={closeForm}>{t('cancel')}</Button>
@@ -166,6 +180,7 @@ export default function AdminPlans() {
               <div>
                 <h2 className="text-lg font-semibold">{plan.nom}</h2>
                 <p className="text-text-muted">{plan.prix} DT · {plan.dureeJours} {t('days')}</p>
+                <p className="text-sm text-text-muted">{t(plan.actif ? 'active' : 'inactive')}</p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button variant="secondary" disabled={saving} onClick={() => openEditForm(plan)}>{t('editPlan')}</Button>

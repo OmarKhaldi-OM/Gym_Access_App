@@ -1,0 +1,2 @@
+ALTER TABLE membership_plan
+    ADD COLUMN actif BOOLEAN NOT NULL DEFAULT TRUE;

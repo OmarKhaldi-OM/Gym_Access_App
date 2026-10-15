@@ -22,4 +22,6 @@ public class MembershipPlanRequestDTO {
     @NotNull(message = "La duree en jours est obligatoire")
     @Min(value = 1, message = "La duree doit etre d'au moins 1 jour")
     private Integer dureeJours;
+
+    private Boolean actif;
 }

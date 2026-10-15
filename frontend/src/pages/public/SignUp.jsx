@@ -6,7 +6,6 @@ import { ApiLoading } from '../../components/ApiState.jsx'
 import * as membershipService from '../../services/membershipService.js'
 import { useT } from '../../context/I18nContext.jsx'
 import GoogleIdentityButton from '../../components/GoogleIdentityButton.jsx'
-import { getHomePath } from '../../roles.js'
 
 export default function SignUp() {
   const [params] = useSearchParams()
@@ -45,7 +44,7 @@ export default function SignUp() {
     try {
       const account = registeredUser || await signUp({ name, email, password })
       setRegisteredUser(account)
-      if (plan) await membershipService.createSubscription(account.id, plan)
+      if (plan) await membershipService.createSubscription(plan)
       navigate('/membre/dashboard')
     } catch (signupError) {
       window.dispatchEvent(new Event('gate:api-error-dismiss'))
@@ -58,8 +57,8 @@ export default function SignUp() {
     setError('')
     setSubmitting(true)
     try {
-      const account = await signInWithGoogle(credential)
-      navigate(getHomePath(account) || '/membre/dashboard', { replace: true })
+      await signInWithGoogle(credential)
+      navigate(`/membership/setup?plan=${encodeURIComponent(planId)}`, { replace: true })
     } catch (googleSignInError) {
       window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(googleSignInError.message || t('googleSignInError'))

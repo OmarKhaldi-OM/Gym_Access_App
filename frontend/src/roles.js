@@ -80,6 +80,7 @@ const protectedRoutePatterns = Object.freeze(Object.fromEntries(
 
 const sharedRouteRoles = Object.freeze({
   '/admin/plans': [ROLES.ADMIN, ROLES.RECEPTIONIST],
+  '/membership/setup': [ROLES.MEMBER],
 })
 
 export function normalizeRole(role) {
