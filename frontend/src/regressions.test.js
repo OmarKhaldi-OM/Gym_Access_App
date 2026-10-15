@@ -66,3 +66,10 @@ test('initial browser preference is applied before the application module loads'
   assert.match(source, /window\.matchMedia\?\.\('\(prefers-color-scheme: dark\)'\)/)
   assert.ok(source.indexOf('<script>') < source.indexOf('<script type="module"'))
 })
+
+test('trainer sessions imports the empty state used when there are no sessions', () => {
+  const source = readSource('./pages/member/MyTrainerSessions.jsx')
+
+  assert.match(source, /import \{ ApiEmpty, ApiError, ApiLoading \} from '\.\.\/\.\.\/components\/ApiState\.jsx'/)
+  assert.match(source, /<ApiEmpty message=\{t\('noSessions'\)\} \/>/)
+})
