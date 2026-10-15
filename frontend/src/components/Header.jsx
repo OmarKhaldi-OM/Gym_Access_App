@@ -1,71 +1,232 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useT } from '../context/I18nContext.jsx'
 import { useTheme } from '../context/ThemeContext.jsx'
-import LanguageControls from './LanguageControls.jsx'
 import { getRoleDefinition } from '../roles.js'
+import Avatar from './Avatar.jsx'
+import LanguageControls from './LanguageControls.jsx'
 
 export default function Header({ role }) {
   const navigate = useNavigate()
+  const menuButtonRef = useRef(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { user, logout } = useAuth()
   const roleDefinition = getRoleDefinition(user?.role || role)
   const navItems = roleDefinition?.navigation || []
   const t = useT()
   const { theme, toggleTheme } = useTheme()
-  const name = user?.displayName || user?.email || ''
-  const initials = name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
+  const name = user?.displayName || ''
+  const roleName = roleDefinition ? t(roleDefinition.label) : ''
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return undefined
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') {
+        if (document.querySelector('.management-account-popover')) return
+        setIsMobileMenuOpen(false)
+        menuButtonRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [isMobileMenuOpen])
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+    menuButtonRef.current?.focus()
+  }
 
   const handleLogout = async () => {
+    setIsMobileMenuOpen(false)
     await logout()
     navigate('/')
   }
 
+  const renderNavigation = (onNavigate) => (
+    <nav className="management-nav" aria-label={t('managementNavigation')}>
+      {navItems.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          onClick={onNavigate}
+          className={({ isActive }) => isActive ? 'active' : ''}
+        >
+          {t(item.key)}
+        </NavLink>
+      ))}
+    </nav>
+  )
+
+  const preferences = (
+    <div className="management-preferences" role="group" aria-label={t('preferences')}>
+      <LanguageControls />
+      <button
+        type="button"
+        className={`theme-toggle ${theme}`}
+        onClick={toggleTheme}
+        aria-label={`${t('theme')}: ${theme === 'dark' ? t('light') : t('dark')}`}
+        title={theme === 'dark' ? t('light') : t('dark')}
+      >
+        <span className="theme-icon sun" aria-hidden="true">☀</span>
+        <span className="theme-icon moon" aria-hidden="true">☾</span>
+        <span className="theme-thumb" aria-hidden="true" />
+      </button>
+    </div>
+  )
+
   return (
     <header className="management-header">
-      <div className="management-inner max-w-7xl mx-auto px-6">
-        <Link to="/" className="management-brand">
-          <span className="management-mark">G</span>
-          <span>gate<span className="brand-period">.</span></span>
-        </Link>
+      <div className="management-mobile-bar">
+        <div className="management-brand-controls">
+          <LinkBrand />
+          {preferences}
+        </div>
+        <button
+          ref={menuButtonRef}
+          type="button"
+          className="management-menu-toggle"
+          aria-label={t('managementNavigation')}
+          aria-controls="management-sidebar"
+          aria-expanded={isMobileMenuOpen}
+          onClick={() => setIsMobileMenuOpen((open) => !open)}
+        >
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+        </button>
+      </div>
 
-        <nav className="management-nav" aria-label={t('managementNavigation')}>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => isActive ? 'active' : ''}
+      {isMobileMenuOpen && (
+        <button
+          type="button"
+          className="management-backdrop"
+          aria-label={t('close')}
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      <aside id="management-sidebar" className={`management-sidebar${isMobileMenuOpen ? ' is-open' : ''}`}>
+        <div className="management-brand-controls management-sidebar-brand">
+          <LinkBrand />
+          {preferences}
+        </div>
+        {renderNavigation(closeMobileMenu)}
+        <AccountMenu
+          menuId="management-account-menu"
+          user={user}
+          name={name}
+          roleName={roleName}
+          profilePath={roleDefinition?.profilePath}
+          onLogout={handleLogout}
+          onProfileNavigate={() => setIsMobileMenuOpen(false)}
+        />
+      </aside>
+    </header>
+  )
+}
+
+function AccountMenu({ menuId, user, name, roleName, profilePath, onLogout, onProfileNavigate }) {
+  const t = useT()
+  const menuRef = useRef(null)
+  const triggerRef = useRef(null)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const handleMenuKeyDown = (event) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Home' && event.key !== 'End') return
+    const items = [...(menuRef.current?.querySelectorAll('[role="menuitem"]') || [])]
+    if (!items.length) return
+    event.preventDefault()
+    const currentIndex = items.indexOf(document.activeElement)
+    const nextIndex = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? items.length - 1
+        : (currentIndex + (event.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length
+    items[nextIndex]?.focus()
+  }
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    const closeOnOutsideClick = (event) => {
+      if (!menuRef.current?.contains(event.target)) setIsOpen(false)
+    }
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [isOpen])
+
+  return (
+    <div className="management-account" ref={menuRef}>
+      <button
+        ref={triggerRef}
+        type="button"
+        className="management-account-trigger"
+        aria-label={`${t('accountMenu')}: ${name || roleName}`}
+        aria-haspopup="menu"
+        aria-controls={menuId}
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((open) => !open)}
+      >
+        <Avatar name={name} src={user?.photoUrl || ''} />
+        <span className="management-user-name">
+          <span className="management-user-display-name">{name}</span>
+          <span className="management-user-role">{roleName}</span>
+        </span>
+        <span className="management-account-chevron" aria-hidden="true">⌄</span>
+      </button>
+      {isOpen && (
+        <div id={menuId} className="management-account-popover" role="menu" onKeyDown={handleMenuKeyDown}>
+          <div className="management-popover-identity" role="presentation">
+            <span>{name}</span>
+            <small>{roleName}</small>
+          </div>
+          {profilePath && (
+            <Link
+              to={profilePath}
+              role="menuitem"
+              onClick={() => {
+                setIsOpen(false)
+                onProfileNavigate?.()
+              }}
             >
-              {t(item.key)}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="management-actions">
+              {t('myProfile')}
+            </Link>
+          )}
           <button
-            onClick={handleLogout}
-            className="management-logout"
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setIsOpen(false)
+              onLogout()
+            }}
           >
             {t('logout')}
           </button>
-          <div className="management-user-name">
-            <p>{name}</p>
-            <span>{roleDefinition ? t(roleDefinition.label) : ''}</span>
-          </div>
-          <div className="management-avatar">
-            {user?.photoUrl ? <img src={user.photoUrl} alt="" /> : initials}
-          </div>
-          <LanguageControls />
-          <button className={`theme-toggle ${theme}`} onClick={toggleTheme} aria-label={`${t('theme')}: ${theme === 'dark' ? t('light') : t('dark')}`} title={theme === 'dark' ? t('light') : t('dark')}>
-            <span className="theme-icon sun" aria-hidden="true">☀</span>
-            <span className="theme-icon moon" aria-hidden="true">☾</span>
-            <span className="theme-thumb" aria-hidden="true" />
-          </button>
         </div>
-      </div>
-    </header>
+      )}
+    </div>
+  )
+}
+
+function LinkBrand() {
+  return (
+    <Link to="/" className="management-brand">
+      <span className="management-mark">G</span>
+      <span>gate<span className="brand-period">.</span></span>
+    </Link>
   )
 }

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { canAccessRoute, getHomePath, normalizeRole } from './roles.js'
+import { canAccessRoute, getHomePath, getRoleDefinition, normalizeRole } from './roles.js'
 
 const routeKeys = [
   ['ADMIN', '/admin/dashboard'],
@@ -32,4 +32,20 @@ test('allows only admin and receptionist to manage membership plans', () => {
   assert.equal(canAccessRoute({ role: 'RECEPTIONIST' }, '/admin/plans'), true)
   assert.equal(canAccessRoute({ role: 'TRAINER' }, '/admin/plans'), false)
   assert.equal(canAccessRoute({ role: 'MEMBER' }, '/admin/plans'), false)
+})
+
+test('keeps each profile route available to its account menu, not the main navigation', () => {
+  const profileRoutes = [
+    ['ADMIN', '/admin/profile'],
+    ['RECEPTIONIST', '/reception/profil'],
+    ['TRAINER', '/coach/profil'],
+    ['MEMBER', '/membre/profile'],
+  ]
+
+  for (const [role, profilePath] of profileRoutes) {
+    const definition = getRoleDefinition(role)
+    assert.equal(definition.profilePath, profilePath)
+    assert.equal(canAccessRoute({ role }, profilePath), true)
+    assert.equal(definition.navigation.some((item) => item.to === profilePath), false)
+  }
 })

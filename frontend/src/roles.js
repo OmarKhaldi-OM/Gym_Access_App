@@ -36,33 +36,37 @@ const roleDefinitions = Object.freeze({
   [ROLES.ADMIN]: {
     routeKey: 'admin',
     homePath: '/admin/dashboard',
+    profilePath: '/admin/profile',
     label: 'admin',
     navigation: [
-      { to: '/admin/dashboard', key: 'dashboard' }, { to: '/admin/activity', key: 'activity' }, { to: '/admin/members', key: 'members' }, { to: '/admin/schedule', key: 'schedule' }, { to: '/admin/trainer-bookings', key: 'trainerBookings' }, { to: '/admin/plans', key: 'managePlans' }, { to: '/admin/face-recognition', key: 'faceRecognition' }, { to: '/admin/profile', key: 'profile' },
+      { to: '/admin/dashboard', key: 'dashboard' }, { to: '/admin/activity', key: 'activity' }, { to: '/admin/members', key: 'members' }, { to: '/admin/schedule', key: 'schedule' }, { to: '/admin/trainer-bookings', key: 'trainerBookings' }, { to: '/admin/plans', key: 'managePlans' }, { to: '/admin/face-recognition', key: 'faceRecognition' },
     ],
   },
   [ROLES.RECEPTIONIST]: {
     routeKey: 'reception',
     homePath: '/reception/accueil',
+    profilePath: '/reception/profil',
     label: 'reception',
     navigation: [
-      { to: '/reception/accueil', key: 'home' }, { to: '/reception/planning', key: 'schedule' }, { to: '/admin/plans', key: 'managePlans' }, { to: '/reception/face-recognition', key: 'faceRecognition' }, { to: '/reception/profil', key: 'profile' },
+      { to: '/reception/accueil', key: 'home' }, { to: '/reception/planning', key: 'schedule' }, { to: '/admin/plans', key: 'managePlans' }, { to: '/reception/face-recognition', key: 'faceRecognition' },
     ],
   },
   [ROLES.TRAINER]: {
     routeKey: 'coach',
     homePath: '/coach/planning',
+    profilePath: '/coach/profil',
     label: 'coach',
     navigation: [
-      { to: '/coach/planning', key: 'schedule' }, { to: '/coach/clients', key: 'members' }, { to: '/coach/requests', key: 'coachingRequests' }, { to: '/coach/profil', key: 'profile' },
+      { to: '/coach/planning', key: 'schedule' }, { to: '/coach/clients', key: 'members' }, { to: '/coach/requests', key: 'coachingRequests' },
     ],
   },
   [ROLES.MEMBER]: {
     routeKey: 'membre',
     homePath: '/membre/dashboard',
+    profilePath: '/membre/profile',
     label: 'member',
     navigation: [
-      { to: '/membre/dashboard', key: 'status' }, { to: '/membre/membership', key: 'subscription' }, { to: '/membre/bookings', key: 'bookings' }, { to: '/membre/trainer-sessions', key: 'trainerSessions' }, { to: '/membre/coaching', key: 'coachingRequests' }, { to: '/membre/progress', key: 'progress' }, { to: '/membre/face-recognition', key: 'faceRecognition' }, { to: '/membre/profile', key: 'profile' },
+      { to: '/membre/dashboard', key: 'status' }, { to: '/membre/membership', key: 'subscription' }, { to: '/membre/bookings', key: 'bookings' }, { to: '/membre/trainer-sessions', key: 'trainerSessions' }, { to: '/membre/coaching', key: 'coachingRequests' }, { to: '/membre/progress', key: 'progress' }, { to: '/membre/face-recognition', key: 'faceRecognition' },
     ],
   },
 })
