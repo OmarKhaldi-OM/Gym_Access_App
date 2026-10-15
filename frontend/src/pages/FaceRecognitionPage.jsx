@@ -19,6 +19,7 @@ export default function FaceRecognitionPage() {
   const t = useT()
   const { members, loading: membersLoading, refresh: refreshMembers } = useMembers()
   const isMember = hasRole(user, ROLES.MEMBER)
+  const isAdmin = hasRole(user, ROLES.ADMIN)
   const layoutRole = getRoleDefinition(user?.role)?.label || 'member'
   const [mode, setMode] = useState(isMember ? MODES.ENROLL_ACCOUNT : MODES.ENROLL_MEMBER)
   const [selectedMemberId, setSelectedMemberId] = useState('')
@@ -214,9 +215,11 @@ export default function FaceRecognitionPage() {
               Member access enrollment
             </Button>
           )}
-          <Button variant={mode === MODES.ENROLL_ACCOUNT ? 'primary' : 'secondary'} onClick={() => setMode(MODES.ENROLL_ACCOUNT)}>
-            Enroll my sign-in face
-          </Button>
+          {!isAdmin && (
+            <Button variant={mode === MODES.ENROLL_ACCOUNT ? 'primary' : 'secondary'} onClick={() => setMode(MODES.ENROLL_ACCOUNT)}>
+              Enroll my sign-in face
+            </Button>
+          )}
           {!isMember && (
             <Button variant={mode === MODES.RECOGNIZE ? 'primary' : 'secondary'} onClick={() => setMode(MODES.RECOGNIZE)}>
               Recognition

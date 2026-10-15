@@ -84,6 +84,13 @@ test('trainer sessions imports the empty state used when there are no sessions',
   assert.match(source, /<ApiEmpty message=\{t\('noSessions'\)\} \/>/)
 })
 
+test('admin cannot select account face enrollment from the face recognition page', () => {
+  const source = readSource('./pages/FaceRecognitionPage.jsx')
+
+  assert.match(source, /const isAdmin = hasRole\(user, ROLES\.ADMIN\)/)
+  assert.match(source, /\{!isAdmin && \(\s*<Button[\s\S]*?Enroll my sign-in face/)
+})
+
 test('member deletion anonymizes through the admin profile action and retains access logs', () => {
   const memberService = readSource('./services/memberService.js')
   const memberProfile = readSource('./pages/admin/MemberProfile.jsx')
