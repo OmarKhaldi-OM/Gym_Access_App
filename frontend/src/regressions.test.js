@@ -6,6 +6,31 @@ function readSource(path) {
   return readFileSync(new URL(path, import.meta.url), 'utf8')
 }
 
+function relativeLuminance(color) {
+  const channels = [1, 3, 5].map((start) => {
+    const value = Number.parseInt(color.slice(start, start + 2), 16) / 255
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+  })
+  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
+}
+
+function contrastRatio(first, second) {
+  const [lighter, darker] = [relativeLuminance(first), relativeLuminance(second)].sort((a, b) => b - a)
+  return (lighter + 0.05) / (darker + 0.05)
+}
+
+function mixColors(foreground, background, opacity) {
+  return [1, 3, 5].map((start) => {
+    const first = Number.parseInt(foreground.slice(start, start + 2), 16)
+    const second = Number.parseInt(background.slice(start, start + 2), 16)
+    return Math.round(first * opacity + second * (1 - opacity))
+  })
+}
+
+function rgbHex(channels) {
+  return `#${channels.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`
+}
+
 test('member summaries recognize the canonical ACTIVE subscription status', () => {
   const source = readSource('./services/memberService.js')
   assert.match(source, /subscription\?\.statut\?\.toUpperCase\(\) === 'ACTIVE'/)
@@ -111,6 +136,51 @@ test('initial browser preference is applied before the application module loads'
 
   assert.match(source, /window\.matchMedia\?\.\('\(prefers-color-scheme: dark\)'\)/)
   assert.ok(source.indexOf('<script>') < source.indexOf('<script type="module"'))
+})
+
+test('primary green buttons meet WCAG AA contrast in both themes and interaction states', () => {
+  const source = readSource('./index.css')
+  const lightTheme = source.match(/:root\s*\{([^}]*)\}/)
+  const darkTheme = source.match(/:root\[data-theme='dark'\]\s*\{([^}]*)\}/)
+  const primaryRule = source.match(/\.button-lime\s*\{([^}]*)\}/)
+  const hoverRule = source.match(/\.button-lime:hover\s*\{([^}]*)\}/)
+
+  assert.ok(lightTheme, 'light theme tokens should exist')
+  assert.ok(darkTheme, 'dark theme tokens should exist')
+  assert.ok(primaryRule, 'shared green button styles should exist')
+  assert.ok(hoverRule, 'shared green hover styles should exist')
+  assert.match(primaryRule[1], /color:\s*var\(--on-accent,\s*var\(--ink\)\)/)
+  assert.match(source, /\.button-lime:active\s*\{[^}]*background:\s*var\(--lime\)/)
+  assert.match(source, /\.button-lime:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--ink\)/)
+  assert.match(source, /\.button-lime:disabled:hover\s*\{[^}]*background:\s*var\(--lime\)/)
+  assert.match(source, /\.submit-button:disabled\s*\{[^}]*opacity:\s*\.65/)
+  assert.match(source, /\.management-main \[class~="bg-coral"\]\s*\{[^}]*color:\s*var\(--on-accent,\s*#191c18\)/)
+
+  const getColor = (block, token) => {
+    const match = block.match(new RegExp(`${token}:\\s*(#[\\da-fA-F]{6})`))
+    assert.ok(match, `expected ${token} color token`)
+    return match[1]
+  }
+  const lightBackground = getColor(lightTheme[1], '--lime')
+  const lightForeground = getColor(lightTheme[1], '--ink')
+  const lightPage = getColor(lightTheme[1], '--paper')
+  const darkForeground = getColor(darkTheme[1], '--on-accent')
+  const darkPage = getColor(darkTheme[1], '--paper')
+  const hoverBackground = getColor(hoverRule[1], 'background')
+
+  for (const [theme, foreground] of [['light', lightForeground], ['dark', darkForeground]]) {
+    assert.ok(contrastRatio(foreground, lightBackground) >= 4.5, `${theme} default/active text should meet WCAG AA`)
+    assert.ok(contrastRatio(foreground, hoverBackground) >= 4.5, `${theme} hover text should meet WCAG AA`)
+  }
+
+  for (const [theme, foreground, page] of [
+    ['light', lightForeground, lightPage],
+    ['dark', darkForeground, darkPage],
+  ]) {
+    const disabledForeground = rgbHex(mixColors(foreground, page, 0.65))
+    const disabledBackground = rgbHex(mixColors(lightBackground, page, 0.65))
+    assert.ok(contrastRatio(disabledForeground, disabledBackground) >= 4.5, `${theme} disabled/loading text should meet WCAG AA`)
+  }
 })
 
 test('sign-in autofill keeps the normal input background in both themes', () => {
