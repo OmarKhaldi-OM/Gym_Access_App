@@ -149,3 +149,34 @@ test('member deletion anonymizes through the admin profile action and retains ac
   assert.match(memberServiceBackend, /member\.setNom\("Membre anonymisé"\)/)
   assert.doesNotMatch(memberServiceBackend, /accessLogRepository|deleteById\(id\)/)
 })
+
+test('all frontend delete actions use the shared confirmation dialog', () => {
+  const dialog = readSource('./components/ConfirmDialog.jsx')
+  const classSchedule = readSource('./pages/admin/ClassSchedule.jsx')
+  const plans = readSource('./pages/admin/Plans.jsx')
+  const memberProfile = readSource('./pages/admin/MemberProfile.jsx')
+  const profileEdit = readSource('./pages/ProfileEdit.jsx')
+  const frontendSources = [
+    classSchedule,
+    plans,
+    memberProfile,
+    profileEdit,
+  ]
+
+  assert.match(dialog, /role="dialog"/)
+  assert.match(dialog, /aria-modal="true"/)
+  assert.match(dialog, /aria-describedby=\{itemName \?/)
+  assert.match(dialog, /aria-busy=\{submitting\}/)
+  assert.match(dialog, /event\.key === 'Escape'/)
+  assert.match(dialog, /submittingRef\.current\) return/)
+  assert.match(dialog, /event\.target === event\.currentTarget/)
+  for (const source of frontendSources) assert.match(source, /<ConfirmDialog/)
+  for (const source of frontendSources) assert.doesNotMatch(source, /window\.(?:confirm|alert)|\b(?:confirm|alert)\s*\(/)
+})
+
+test('confirmation dialog translations cover every supported language', () => {
+  const source = readSource('./context/I18nContext.jsx')
+  for (const key of ['confirmDeletion', 'delete', 'deleting', 'deletionFailed', 'confirmRemovePhoto', 'removePhoto', 'photoRemoved', 'classDeleted', 'memberDeleted']) {
+    assert.equal((source.match(new RegExp(`${key}:`, 'g')) || []).length, 3, `${key} should be translated in en, fr, and ar`)
+  }
+})

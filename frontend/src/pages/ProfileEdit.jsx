@@ -10,6 +10,7 @@ import { useToast } from '../hooks/useToast.js'
 import * as profileService from '../services/profileService.js'
 import { useT } from '../context/I18nContext.jsx'
 import GoogleIdentityButton from '../components/GoogleIdentityButton.jsx'
+import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
@@ -26,6 +27,7 @@ export default function ProfileEdit() {
   const [actionError, setActionError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isRemovingPhoto, setIsRemovingPhoto] = useState(false)
+  const [confirmPhotoRemoval, setConfirmPhotoRemoval] = useState(false)
   const [googleLinked, setGoogleLinked] = useState(false)
   const [isLinkingGoogle, setIsLinkingGoogle] = useState(false)
   const [googleLinkError, setGoogleLinkError] = useState('')
@@ -69,19 +71,22 @@ export default function ProfileEdit() {
   }
 
   const removePhoto = async () => {
+    if (photoFile) {
+      setPhotoFile(null)
+      setPhotoPreview(profile.photo)
+      return
+    }
+    setConfirmPhotoRemoval(true)
+  }
+
+  const confirmRemovePhoto = async () => {
     setActionError('')
+    setIsRemovingPhoto(true)
     try {
-      if (photoFile) {
-        setPhotoFile(null)
-        setPhotoPreview(profile.photo)
-        return
-      }
-      setIsRemovingPhoto(true)
       const updated = await profileService.removeProfilePhoto()
       setProfile(updated)
       setPhotoPreview('')
-    } catch (removeError) {
-      setActionError(removeError.message)
+      showToast(t('photoRemoved'))
     } finally {
       setIsRemovingPhoto(false)
     }
@@ -160,6 +165,13 @@ export default function ProfileEdit() {
           </div>
         </Panel>
       )}
+      {confirmPhotoRemoval && <ConfirmDialog
+        title={t('confirmDeletion')}
+        description={t('confirmRemovePhoto')}
+        confirmLabel={t('removePhoto')}
+        onClose={() => setConfirmPhotoRemoval(false)}
+        onConfirm={confirmRemovePhoto}
+      />}
       <Toast message={toastMessage} />
     </Layout>
   )

@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import StatusChip from '../../components/StatusChip.jsx'
@@ -7,14 +7,25 @@ import Avatar from '../../components/Avatar.jsx'
 import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useMembers } from '../../context/MembersContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
+import Toast from '../../components/Toast.jsx'
+import { useToast } from '../../hooks/useToast.js'
 
 export default function Members() {
   const t = useT()
   const { language } = useI18n()
   const { members, loading, error, refresh } = useMembers()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { toastMessage, showToast } = useToast()
   const [query, setQuery] = useState('')
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const results = useMemo(() => members.filter((member) => member.nom.toLocaleLowerCase().includes(normalizedQuery)), [members, normalizedQuery])
+
+  useEffect(() => {
+    if (!location.state?.notification) return
+    showToast(location.state.notification)
+    navigate(location.pathname, { replace: true, state: null })
+  }, [location, navigate, showToast])
 
   return (
     <Layout role="admin">
@@ -64,6 +75,7 @@ export default function Members() {
           ))}
         </div>
       </Panel>
+      <Toast message={toastMessage} />
     </Layout>
   )
 }

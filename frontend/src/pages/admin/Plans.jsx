@@ -4,6 +4,7 @@ import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import Button from '../../components/Button.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import Toast from '../../components/Toast.jsx'
+import ConfirmDialog from '../../components/ConfirmDialog.jsx'
 import { useT } from '../../context/I18nContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
 import * as membershipService from '../../services/membershipService.js'
@@ -21,6 +22,7 @@ export default function AdminPlans() {
   const [editingPlan, setEditingPlan] = useState(null)
   const [formOpen, setFormOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [planToDelete, setPlanToDelete] = useState(null)
 
   const loadPlans = async () => {
     setLoading(true)
@@ -88,20 +90,12 @@ export default function AdminPlans() {
     }
   }
 
-  const handleDelete = async (plan) => {
-    if (!window.confirm(`${t('confirmDeletePlan')}\n${plan.nom}`)) return
-    setSaving(true)
-    setActionError(null)
-    try {
-      await membershipService.deletePlan(plan.id)
-      setPlans((current) => current.filter((item) => item.id !== plan.id))
-      if (editingPlan?.id === plan.id) closeForm()
-      showToast(t('planDeleted'))
-    } catch (deleteError) {
-      setActionError(deleteError)
-    } finally {
-      setSaving(false)
-    }
+  const handleDelete = async () => {
+    if (!planToDelete) return
+    await membershipService.deletePlan(planToDelete.id)
+    setPlans((current) => current.filter((item) => item.id !== planToDelete.id))
+    if (editingPlan?.id === planToDelete.id) closeForm()
+    showToast(t('planDeleted'))
   }
 
   return (
@@ -184,12 +178,19 @@ export default function AdminPlans() {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button variant="secondary" disabled={saving} onClick={() => openEditForm(plan)}>{t('editPlan')}</Button>
-                <Button className="!bg-rose-100 !text-rose-800" disabled={saving} onClick={() => handleDelete(plan)}>{t('deletePlan')}</Button>
+                <Button className="!bg-rose-100 !text-rose-800" disabled={saving} onClick={() => setPlanToDelete(plan)}>{t('deletePlan')}</Button>
               </div>
             </article>
           ))}
         </div>
       </Panel>
+      {planToDelete && <ConfirmDialog
+        title={t('confirmDeletion')}
+        description={t('confirmDeletePlan')}
+        itemName={planToDelete.nom}
+        onClose={() => setPlanToDelete(null)}
+        onConfirm={handleDelete}
+      />}
       <Toast message={toastMessage} />
     </Layout>
   )

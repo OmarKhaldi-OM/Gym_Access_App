@@ -430,6 +430,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .management-user-name { text-align: start; }
 .directional-icon { display: inline-block; }
 [dir='rtl'] .directional-icon { transform: scaleX(-1); }
+.confirm-dialog button:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
 [dir='rtl'] .hero-side-label { inset-inline: auto 17px; }
 [dir='rtl'] .plan-ribbon { inset-inline: auto 0; }
 [dir='rtl'] .auth-form input, [dir='rtl'] .auth-form select { text-align: start; }

@@ -14,7 +14,7 @@ export function ApiEmpty({ message, action, className = '' }) {
   </div>
 }
 
-export function ApiError({ error, onRetry, retryLabel = 'Réessayer' }) {
+export function ApiError({ error, onRetry, retryLabel = 'Réessayer', fallbackMessage = 'Une erreur est survenue lors du chargement des données.' }) {
   useEffect(() => {
     if (error) window.dispatchEvent(new Event('gate:api-error-dismiss'))
   }, [error])
@@ -30,7 +30,7 @@ export function ApiError({ error, onRetry, retryLabel = 'Réessayer' }) {
     ? 'Votre session a expiré. Connectez-vous à nouveau.'
     : error.status === 403
       ? 'Vous n’avez pas l’autorisation nécessaire pour effectuer cette action.'
-      : safeMessage || 'Une erreur est survenue lors du chargement des données.'
+      : safeMessage || fallbackMessage
 
   return (
     <div role="alert" className="my-4 space-y-3 border-s-4 border-coral px-4 py-3" style={{ color: 'var(--ink)', backgroundColor: 'var(--surface, var(--paper-deep))' }}>
