@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/face-recognition")
-@CrossOrigin(origins = "http://localhost:5173")
 public class FaceRecognitionController {
 
     private final FaceRecognitionService faceRecognitionService;

@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/classes")
-@CrossOrigin(origins = "http://localhost:5173")
 public class GymClassController {
 
     private final GymClassService gymClassService;

@@ -13,7 +13,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/coaching-requests")
-@CrossOrigin(origins = "http://localhost:5173")
 public class CoachingRequestController {
     private final CoachingRequestService requestService;
 

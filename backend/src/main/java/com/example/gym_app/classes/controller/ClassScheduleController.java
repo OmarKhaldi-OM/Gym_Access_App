@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/schedules")
-@CrossOrigin(origins = "http://localhost:5173")
 public class ClassScheduleController {
 
     private final ClassScheduleService classScheduleService;

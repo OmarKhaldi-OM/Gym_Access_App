@@ -14,7 +14,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/access-logs")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AccessLogController {
 
     private final AccessLogService accessLogService;

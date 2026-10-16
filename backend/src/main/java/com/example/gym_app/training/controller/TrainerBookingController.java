@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/trainer-bookings")
-@CrossOrigin(origins = "http://localhost:5173")
 public class TrainerBookingController {
 
     private final TrainerBookingService trainerBookingService;

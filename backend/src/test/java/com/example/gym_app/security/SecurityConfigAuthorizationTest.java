@@ -166,8 +166,12 @@ class SecurityConfigAuthorizationTest {
     }
 
     @Test
-    void localViteOriginsAreAllowedByCors() throws Exception {
-        for (String origin : new String[] {"http://localhost:5173", "http://127.0.0.1:5173"}) {
+    void viteAndTunnelOriginsAreAllowedByCors() throws Exception {
+        for (String origin : new String[] {
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "https://demo-tunnel.trycloudflare.com"
+        }) {
             mockMvc.perform(options("/api/auth/google")
                             .header("Origin", origin)
                             .header("Access-Control-Request-Method", "POST"))

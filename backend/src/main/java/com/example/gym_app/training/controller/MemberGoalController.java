@@ -11,7 +11,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/member-goals")
-@CrossOrigin(origins = "http://localhost:5173")
 public class MemberGoalController {
     private final MemberGoalService goalService;
 

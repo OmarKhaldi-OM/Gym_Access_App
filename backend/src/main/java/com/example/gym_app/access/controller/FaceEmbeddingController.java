@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/face-embeddings")
-@CrossOrigin(origins = "http://localhost:5173")
 public class FaceEmbeddingController {
 
     private final FaceEmbeddingService faceEmbeddingService;

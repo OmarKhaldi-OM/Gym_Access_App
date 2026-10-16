@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/progress-logs")
-@CrossOrigin(origins = "http://localhost:5173")
 public class ProgressLogController {
 
     private final ProgressLogService progressLogService;
