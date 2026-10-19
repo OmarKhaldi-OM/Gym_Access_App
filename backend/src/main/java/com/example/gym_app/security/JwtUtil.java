@@ -11,6 +11,8 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Component
 public class JwtUtil {
@@ -30,10 +32,12 @@ public class JwtUtil {
     private static final long EXPIRATION_MS = 24 * 60 * 60 * 1000; // 24h
 
     public String generateToken(String email, String role) {
+        Date issuedAt = new Date();
         return Jwts.builder()
                 .subject(email)
                 .claim("role", role)
-                .issuedAt(new Date())
+                .claim("issuedAtMillis", issuedAt.getTime())
+                .issuedAt(issuedAt)
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .signWith(key)
                 .compact();
@@ -51,13 +55,27 @@ public class JwtUtil {
         return extractEmail(token).equals(email) && !isTokenExpired(token);
     }
 
+    public boolean isTokenIssuedAfter(String token, LocalDateTime timestamp) {
+        Claims claims = extractClaims(token);
+        Object issuedAtClaim = claims.get("issuedAtMillis");
+        Date issuedAt = claims.getIssuedAt();
+        long issuedAtTime = issuedAtClaim instanceof Number issuedAtMillis
+                ? issuedAtMillis.longValue()
+                : issuedAtClaim == null && issuedAt != null ? issuedAt.getTime() : Long.MIN_VALUE;
+        long changedAtTime = timestamp.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return issuedAtTime > changedAtTime;
+    }
+
     private boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> resolver) {
-        Claims claims = Jwts.parser().verifyWith(key).build()
+        return resolver.apply(extractClaims(token));
+    }
+
+    private Claims extractClaims(String token) {
+        return Jwts.parser().verifyWith(key).build()
                 .parseSignedClaims(token).getPayload();
-        return resolver.apply(claims);
     }
 }

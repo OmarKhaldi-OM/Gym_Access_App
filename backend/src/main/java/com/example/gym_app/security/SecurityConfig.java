@@ -67,6 +67,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/face-login", "/api/auth/google").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/auth/me/password").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/plans/manage")
                             .hasAnyRole(Role.ADMIN.name(), Role.RECEPTIONIST.name())
                         .requestMatchers(HttpMethod.GET, "/api/classes/**", "/api/schedules/**", "/api/plans/**").permitAll()

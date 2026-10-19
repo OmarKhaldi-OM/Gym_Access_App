@@ -51,4 +51,7 @@ public abstract class User {
 
     @Column(name = "date_creation", nullable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
+
+    @Column(name = "password_changed_at")
+    private LocalDateTime passwordChangedAt;
 }

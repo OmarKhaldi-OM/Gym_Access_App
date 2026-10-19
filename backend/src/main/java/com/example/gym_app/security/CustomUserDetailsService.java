@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,10 +26,20 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable: " + email));
 
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getEmail())
-                .password(user.getMotDePasse())
-                .authorities(List.of(new SimpleGrantedAuthority(user.getRole().authority())))
-                .build();
+        return new AccountUserDetails(user);
+    }
+
+    static final class AccountUserDetails extends org.springframework.security.core.userdetails.User {
+        private final LocalDateTime passwordChangedAt;
+
+        AccountUserDetails(User user) {
+            super(user.getEmail(), user.getMotDePasse(),
+                    List.of(new SimpleGrantedAuthority(user.getRole().authority())));
+            this.passwordChangedAt = user.getPasswordChangedAt();
+        }
+
+        LocalDateTime getPasswordChangedAt() {
+            return passwordChangedAt;
+        }
     }
 }

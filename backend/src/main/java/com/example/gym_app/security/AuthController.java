@@ -7,6 +7,7 @@ import com.example.gym_app.security.dto.LoginRequestDTO;
 import com.example.gym_app.security.dto.RegisterRequestDTO;
 import com.example.gym_app.security.dto.CurrentUserDTO;
 import com.example.gym_app.security.dto.CurrentUserUpdateDTO;
+import com.example.gym_app.security.dto.ChangePasswordRequestDTO;
 import com.example.gym_app.security.dto.FaceLoginRequestDTO;
 import com.example.gym_app.user.entity.User;
 import com.example.gym_app.user.entity.Member;
@@ -28,13 +29,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final UserRepository userRepository;
     private final MemberRepository memberRepository;
@@ -146,6 +152,19 @@ public class AuthController {
         user = userRepository.save(user);
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
         return ResponseEntity.ok(toCurrentUserDTO(user, token));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changeOwnPassword(@Valid @RequestBody ChangePasswordRequestDTO dto) {
+        User user = currentUserEntity();
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getMotDePasse())) {
+            throw new BadRequestException("Le mot de passe actuel est incorrect");
+        }
+        user.setMotDePasse(passwordEncoder.encode(dto.getNewPassword()));
+        user.setPasswordChangedAt(LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS));
+        userRepository.save(user);
+        logger.info("User changed own password for account id={}", user.getId());
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping(value = "/me/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

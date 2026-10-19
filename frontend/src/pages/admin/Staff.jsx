@@ -24,6 +24,8 @@ export default function Staff() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [accountToDelete, setAccountToDelete] = useState(null)
+  const [accountForPasswordReset, setAccountForPasswordReset] = useState(null)
+  const [newPassword, setNewPassword] = useState('')
   const query = searchParams.get('search') || ''
   const roleFilter = ['TRAINER', 'RECEPTIONIST'].includes(searchParams.get('role'))
     ? searchParams.get('role')
@@ -82,6 +84,22 @@ export default function Staff() {
     await staffService.deleteStaffAccount(accountToDelete)
     setAccounts((current) => current.filter((account) => account.id !== accountToDelete.id))
     showToast(t('staffDeleted'))
+  }
+
+  const openPasswordReset = (account) => {
+    setAccountForPasswordReset(account)
+    setNewPassword('')
+  }
+
+  const closePasswordReset = () => {
+    setAccountForPasswordReset(null)
+    setNewPassword('')
+  }
+
+  const handlePasswordReset = async () => {
+    if (!accountForPasswordReset) return
+    await staffService.resetStaffPassword(accountForPasswordReset.id, newPassword)
+    showToast(t('passwordResetSuccess'))
   }
 
   const roleName = (role) => t(role === 'TRAINER' ? 'trainerRole' : 'receptionistRole')
@@ -172,6 +190,11 @@ export default function Staff() {
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" variant="secondary" onClick={() => openDetails(account)}>{t('viewDetails')}</Button>
                   <Button type="button" variant="secondary" onClick={() => openEdit(account)}>{t('editStaff')}</Button>
+                  {['TRAINER', 'RECEPTIONIST'].includes(account.role) && (
+                    <Button type="button" variant="secondary" onClick={() => openPasswordReset(account)}>
+                      {t('resetStaffPassword')}
+                    </Button>
+                  )}
                   <Button type="button" className="!bg-rose-100 !text-rose-800" onClick={() => setAccountToDelete(account)}>
                     {t('deleteStaff')}
                   </Button>
@@ -190,6 +213,34 @@ export default function Staff() {
           onClose={() => setAccountToDelete(null)}
           onConfirm={handleDelete}
         />
+      )}
+      {accountForPasswordReset && (
+        <ConfirmDialog
+          title={t('resetStaffPassword')}
+          description={t('passwordResetHelp')}
+          itemName={fullName(accountForPasswordReset)}
+          confirmLabel={t('confirmPasswordReset')}
+          loadingLabel={t('passwordResetLoading')}
+          errorFallback={t('passwordResetFailed')}
+          confirmDisabled={newPassword.length < 10 || !newPassword.trim()}
+          showDeleteIcon={false}
+          onClose={closePasswordReset}
+          onConfirm={handlePasswordReset}
+        >
+          <label className="mt-5 block text-sm font-medium">
+            {t('newPassword')}
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              minLength={10}
+              required
+              autoComplete="new-password"
+              className="mt-1 w-full rounded-md border border-graphite-line bg-graphite-bg px-3 py-2.5 text-text-primary placeholder:text-text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime"
+            />
+          </label>
+          <p className="mt-2 text-sm text-text-muted">{t('passwordMinimumLength')}</p>
+        </ConfirmDialog>
       )}
       <Toast message={toastMessage} variant={toastVariant} id={toastId} leaving={toastLeaving} onClose={dismissToast} />
     </Layout>

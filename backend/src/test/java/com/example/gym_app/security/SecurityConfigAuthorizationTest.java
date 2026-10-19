@@ -34,6 +34,7 @@ import java.util.UUID;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -88,6 +89,41 @@ class SecurityConfigAuthorizationTest {
     void protectedMemberRouteReturnsUnauthorizedWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/api/members/{id}", UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void staffPasswordResetIsAdminOnlyAndRejectsShortPasswords() throws Exception {
+        UUID staffId = UUID.randomUUID();
+        String endpoint = "/api/staff/" + staffId + "/password";
+        String validBody = "{\"newPassword\":\"a-long-enough-password\"}";
+
+        mockMvc.perform(put(endpoint)
+                        .with(user("admin").roles("ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validBody))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(put(endpoint)
+                        .with(user("reception").roles("RECEPTIONIST"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validBody))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(put(endpoint)
+                        .with(user("trainer").roles("TRAINER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validBody))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(put(endpoint)
+                        .with(user("member").roles("MEMBER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validBody))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(put(endpoint)
+                        .with(user("admin").roles("ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"newPassword\":\"short\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

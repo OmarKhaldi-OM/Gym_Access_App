@@ -6,9 +6,11 @@ import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.dto.StaffRequestDTO;
 import com.example.gym_app.user.dto.StaffUpdateRequestDTO;
+import com.example.gym_app.user.dto.StaffPasswordResetRequestDTO;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.Staff;
 import com.example.gym_app.user.entity.Trainer;
+import com.example.gym_app.user.entity.User;
 import com.example.gym_app.user.repository.StaffRepository;
 import com.example.gym_app.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -139,5 +142,59 @@ class StaffServiceTest {
         assertEquals(Role.RECEPTIONIST, existing.getRole());
         assertEquals("555", response.getTelephone());
         verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    void resetsOnlyReceptionistOrTrainerPasswordAndRecordsChangeTime() {
+        UUID id = UUID.randomUUID();
+        Staff receptionist = new Staff();
+        receptionist.setId(id);
+        receptionist.setRole(Role.RECEPTIONIST);
+        when(userRepository.findById(id)).thenReturn(Optional.of(receptionist));
+        when(passwordEncoder.encode("new-password-10")).thenReturn("bcrypt-hash");
+
+        StaffPasswordResetRequestDTO request = new StaffPasswordResetRequestDTO();
+        request.setNewPassword("new-password-10");
+        staffService.resetPassword(id, request);
+
+        assertEquals("bcrypt-hash", receptionist.getMotDePasse());
+        org.junit.jupiter.api.Assertions.assertNotNull(receptionist.getPasswordChangedAt());
+        verify(userRepository).save(receptionist);
+        verify(passwordEncoder).encode("new-password-10");
+    }
+
+    @Test
+    void refusesToResetAnAdminPassword() {
+        UUID id = UUID.randomUUID();
+        User admin = new Staff();
+        admin.setId(id);
+        admin.setRole(Role.ADMIN);
+        when(userRepository.findById(id)).thenReturn(Optional.of(admin));
+
+        StaffPasswordResetRequestDTO request = new StaffPasswordResetRequestDTO();
+        request.setNewPassword("new-password-10");
+
+        assertThrows(AccessDeniedException.class, () -> staffService.resetPassword(id, request));
+        verify(userRepository, never()).save(any());
+        verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    void resetsTrainerPassword() {
+        UUID id = UUID.randomUUID();
+        Trainer trainer = new Trainer();
+        trainer.setId(id);
+        trainer.setRole(Role.TRAINER);
+        when(userRepository.findById(id)).thenReturn(Optional.of(trainer));
+        when(passwordEncoder.encode("new-password-10")).thenReturn("bcrypt-hash");
+
+        StaffPasswordResetRequestDTO request = new StaffPasswordResetRequestDTO();
+        request.setNewPassword("new-password-10");
+
+        staffService.resetPassword(id, request);
+
+        assertEquals("bcrypt-hash", trainer.getMotDePasse());
+        org.junit.jupiter.api.Assertions.assertNotNull(trainer.getPasswordChangedAt());
+        verify(userRepository).save(trainer);
     }
 }

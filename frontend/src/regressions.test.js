@@ -208,6 +208,8 @@ test('staff account management text is translated in every supported language', 
   const catalogs = source.slice(source.indexOf('const additionalMessages'), source.indexOf('const dictionaries'))
   const keys = [
     'manageStaff', 'staffManagementHelp', 'createStaff', 'editStaff', 'deleteStaff', 'staffAccounts',
+    'resetStaffPassword', 'newPassword', 'passwordResetHelp', 'passwordMinimumLength',
+    'confirmPasswordReset', 'passwordResetLoading', 'passwordResetSuccess', 'passwordResetFailed',
     'staffRole', 'trainerRole', 'receptionistRole', 'hireDate', 'initialPassword', 'initialPasswordHelp',
     'searchStaff', 'searchStaffPlaceholder', 'filterStaffRole', 'allStaff', 'noStaffAccounts',
     'noStaffMatches', 'clearFilters', 'viewDetails', 'staffDetails', 'staffStatusUnavailable',
@@ -225,6 +227,17 @@ test('staff account management text is translated in every supported language', 
       assert.match(catalog, new RegExp(`${key}:\\s*'[^']+'`), `${language} should translate ${key}`)
     }
   }
+})
+
+test('staff password reset uses a masked confirmed request and reports success', () => {
+  const staffList = readSource('./pages/admin/Staff.jsx')
+  const staffService = readSource('./services/staffService.js')
+
+  assert.match(staffList, /type="password"/)
+  assert.match(staffList, /\['TRAINER', 'RECEPTIONIST'\]\.includes\(account\.role\)/)
+  assert.match(staffList, /confirmDisabled=\{newPassword\.length < 10 \|\| !newPassword\.trim\(\)\}/)
+  assert.match(staffList, /showToast\(t\('passwordResetSuccess'\)\)/)
+  assert.match(staffService, /apiPut\(`\/api\/staff\/\$\{encodeURIComponent\(id\)\}\/password`, \{ newPassword \}\)/)
 })
 
 test('staff details and editing use dedicated routes and reload data by account id', () => {

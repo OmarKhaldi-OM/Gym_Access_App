@@ -35,3 +35,7 @@ export function deleteStaffAccount(account) {
   if (!endpoint) throw new Error('Unsupported staff role')
   return apiDelete(`${endpoint}/${account.id}`)
 }
+
+export function resetStaffPassword(id, newPassword) {
+  return apiPut(`/api/staff/${encodeURIComponent(id)}/password`, { newPassword })
+}

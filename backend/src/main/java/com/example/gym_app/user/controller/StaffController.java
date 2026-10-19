@@ -3,6 +3,7 @@ package com.example.gym_app.user.controller;
 import com.example.gym_app.user.dto.StaffRequestDTO;
 import com.example.gym_app.user.dto.StaffResponseDTO;
 import com.example.gym_app.user.dto.StaffUpdateRequestDTO;
+import com.example.gym_app.user.dto.StaffPasswordResetRequestDTO;
 import com.example.gym_app.user.service.StaffService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,14 @@ public class StaffController {
     @PutMapping("/{id}")
     public ResponseEntity<StaffResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody StaffUpdateRequestDTO dto) {
         return ResponseEntity.ok(staffService.update(id, dto));
+    }
+
+    @PutMapping("/{id}/password")
+    public ResponseEntity<Void> resetPassword(
+            @PathVariable("id") UUID id,
+            @Valid @RequestBody StaffPasswordResetRequestDTO dto) {
+        staffService.resetPassword(id, dto);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

@@ -9,7 +9,12 @@ export default function ConfirmDialog({
   title,
   description,
   itemName,
+  children,
   confirmLabel,
+  loadingLabel,
+  errorFallback,
+  confirmDisabled = false,
+  showDeleteIcon = true,
   onConfirm,
   onClose,
 }) {
@@ -106,10 +111,12 @@ export default function ConfirmDialog({
         }}
       >
         <div className="flex items-start gap-3">
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-1 h-6 w-6 shrink-0 text-red-700" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 6h18" />
-            <path d="M8 6V4h8v2m-9 0 1 14h8l1-14M10 10v6m4-6v6" />
-          </svg>
+          {showDeleteIcon && (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="mt-1 h-6 w-6 shrink-0 text-red-700" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 6h18" />
+              <path d="M8 6V4h8v2m-9 0 1 14h8l1-14M10 10v6m4-6v6" />
+            </svg>
+          )}
           <div className="min-w-0">
             <h2 id={titleId} className="text-xl font-bold">{title}</h2>
             <p id={descriptionId} className="mt-2 text-base text-text-muted">{description}</p>
@@ -119,7 +126,8 @@ export default function ConfirmDialog({
           </div>
         </div>
 
-        {error && <ApiError error={error} fallbackMessage={t('deletionFailed')} />}
+        {children}
+        {error && <ApiError error={error} fallbackMessage={errorFallback || t('deletionFailed')} />}
 
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button
@@ -134,11 +142,11 @@ export default function ConfirmDialog({
           <Button
             type="button"
             className="inline-flex items-center justify-center gap-2 !bg-red-700 !text-white hover:!bg-red-800 disabled:cursor-wait disabled:opacity-60"
-            disabled={submitting}
+            disabled={submitting || confirmDisabled}
             onClick={handleConfirm}
           >
             {submitting && <span aria-hidden="true" className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
-            {submitting ? t('deleting') : confirmLabel || t('delete')}
+            {submitting ? loadingLabel || t('deleting') : confirmLabel || t('delete')}
           </Button>
         </div>
       </section>

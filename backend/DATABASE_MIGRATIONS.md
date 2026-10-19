@@ -66,3 +66,8 @@ V8 nettoie les données déjà présentes pour les membres `archived` : séances
 individuelles et réservations de cours futures annulées, demandes de coaching
 `PENDING` passées à `CANCELLED`. Les réservations et séances passées restent
 inchangées.
+
+V9 ajoute `app_user.password_changed_at`, initialement nullable pour préserver
+les comptes existants. À chaque réinitialisation administrative ou changement
+personnel du mot de passe, le backend renseigne cette date; les JWT émis avant
+ce changement ne sont alors plus acceptés.
