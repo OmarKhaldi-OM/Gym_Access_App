@@ -7,6 +7,12 @@ import com.example.gym_app.membership.controller.MembershipPlanController;
 import com.example.gym_app.membership.dto.SubscriptionResponseDTO;
 import com.example.gym_app.membership.service.MembershipPlanService;
 import com.example.gym_app.membership.service.SubscriptionService;
+import com.example.gym_app.training.controller.CoachNoteController;
+import com.example.gym_app.training.controller.MemberGoalController;
+import com.example.gym_app.training.controller.ProgressLogController;
+import com.example.gym_app.training.service.CoachNoteService;
+import com.example.gym_app.training.service.MemberGoalService;
+import com.example.gym_app.training.service.ProgressLogService;
 import com.example.gym_app.security.dto.AuthResponseDTO;
 import com.example.gym_app.user.controller.MemberController;
 import com.example.gym_app.user.controller.StaffController;
@@ -22,6 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.UUID;
 
@@ -33,9 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest({MemberController.class, StaffController.class, TrainerController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class})
+@WebMvcTest({MemberController.class, StaffController.class, TrainerController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class, MemberGoalController.class, ProgressLogController.class, CoachNoteController.class})
 @AutoConfigureMockMvc(addFilters = true)
-@Import({SecurityConfig.class, JwtAuthFilter.class, MemberController.class, StaffController.class, TrainerController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class})
+@Import({SecurityConfig.class, JwtAuthFilter.class, MemberController.class, StaffController.class, TrainerController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class, MemberGoalController.class, ProgressLogController.class, CoachNoteController.class})
 class SecurityConfigAuthorizationTest {
 
     @Autowired
@@ -63,6 +70,15 @@ class SecurityConfigAuthorizationTest {
     private MembershipPlanService membershipPlanService;
 
     @MockitoBean
+    private MemberGoalService memberGoalService;
+
+    @MockitoBean
+    private ProgressLogService progressLogService;
+
+    @MockitoBean
+    private CoachNoteService coachNoteService;
+
+    @MockitoBean
     private CustomUserDetailsService userDetailsService;
 
     @MockitoBean
@@ -75,8 +91,56 @@ class SecurityConfigAuthorizationTest {
     }
 
     @Test
-    void memberRouteReturnsForbiddenForTrainer() throws Exception {
-        mockMvc.perform(get("/api/members/{id}", UUID.randomUUID()).with(user("trainer").roles("TRAINER")))
+    void trainerCanReadTheMemberProfileGoalsAndProgressEndpoints() throws Exception {
+        UUID memberId = UUID.randomUUID();
+        when(memberGoalService.findByMember(memberId)).thenReturn(java.util.List.of());
+        when(progressLogService.findByMember(memberId)).thenReturn(java.util.List.of());
+
+        mockMvc.perform(get("/api/members/{id}", memberId).with(user("trainer").roles("TRAINER")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/member-goals/member/{id}", memberId).with(user("trainer").roles("TRAINER")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/progress-logs/member/{id}", memberId).with(user("trainer").roles("TRAINER")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/coach-notes/member/{id}", memberId).with(user("trainer").roles("TRAINER")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void coachReceivesForbiddenForAnUnassociatedMember() throws Exception {
+        UUID memberId = UUID.randomUUID();
+        when(memberService.findById(memberId)).thenThrow(new AccessDeniedException("Acces refuse"));
+        when(memberGoalService.findByMember(memberId)).thenThrow(new AccessDeniedException("Acces refuse"));
+        when(progressLogService.findByMember(memberId)).thenThrow(new AccessDeniedException("Acces refuse"));
+
+        mockMvc.perform(get("/api/members/{id}", memberId).with(user("trainer").roles("TRAINER")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/member-goals/member/{id}", memberId).with(user("trainer").roles("TRAINER")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/progress-logs/member/{id}", memberId).with(user("trainer").roles("TRAINER")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void receptionistProfileAccessRemainsAndOtherRolesCannotReadCoachOnlyData() throws Exception {
+        UUID memberId = UUID.randomUUID();
+        mockMvc.perform(get("/api/members/{id}", memberId).with(user("reception").roles("RECEPTIONIST")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/member-goals/member/{id}", memberId).with(user("reception").roles("RECEPTIONIST")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/progress-logs/member/{id}", memberId).with(user("reception").roles("RECEPTIONIST")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/coach-notes/member/{id}", memberId).with(user("member").roles("MEMBER")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/member-goals/member/{id}", memberId)
+                        .with(user("trainer").roles("TRAINER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/progress-logs")
+                        .with(user("trainer").roles("TRAINER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isForbidden());
     }
 

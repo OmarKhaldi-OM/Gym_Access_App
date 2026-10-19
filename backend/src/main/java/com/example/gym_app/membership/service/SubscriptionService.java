@@ -51,6 +51,8 @@ public class SubscriptionService {
         dto.setMemberNom(subscription.getMember().getNom());
         dto.setPlanId(subscription.getMembership_plan().getId());
         dto.setPlanNom(subscription.getMembership_plan().getNom());
+        dto.setPlanNomEn(subscription.getMembership_plan().getNomEn());
+        dto.setPlanNomAr(subscription.getMembership_plan().getNomAr());
         dto.setDateDebut(subscription.getDateDebut());
         dto.setDateFin(subscription.getDateFin());
         dto.setStatut(subscription.getStatut());

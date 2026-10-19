@@ -64,6 +64,8 @@ class SubscriptionServiceTest {
         Membership_Plan plan = new Membership_Plan();
         plan.setId(planId);
         plan.setNom("Monthly");
+        plan.setNomEn("Monthly membership");
+        plan.setNomAr("اشتراك شهري");
         plan.setActif(true);
 
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
@@ -87,6 +89,8 @@ class SubscriptionServiceTest {
         assertEquals(request.getDateDebut(), response.getDateDebut());
         assertEquals(request.getDateFin(), response.getDateFin());
         assertEquals("ACTIVE", response.getStatut());
+        assertEquals(plan.getNomEn(), response.getPlanNomEn());
+        assertEquals(plan.getNomAr(), response.getPlanNomAr());
         verify(securityUtil).requireStaff();
     }
 
@@ -220,6 +224,8 @@ class SubscriptionServiceTest {
         Membership_Plan plan = new Membership_Plan();
         plan.setId(id);
         plan.setNom("Plan");
+        plan.setNomEn("Plan");
+        plan.setNomAr("باقة");
         plan.setPrix(new java.math.BigDecimal("80.00"));
         plan.setDureeJours(durationDays);
         plan.setActif(true);

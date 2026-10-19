@@ -23,6 +23,12 @@ public class Membership_Plan {
     @Column(nullable = false)
     private String nom;
 
+    @Column(name = "nom_en")
+    private String nomEn;
+
+    @Column(name = "nom_ar")
+    private String nomAr;
+
     @Column(nullable = false)
     private BigDecimal prix;
 

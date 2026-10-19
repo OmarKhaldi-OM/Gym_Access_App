@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface CoachingRequestRepository extends JpaRepository<CoachingRequest, UUID> {
     List<CoachingRequest> findByMemberIdOrderByCreatedAtDesc(UUID memberId);
     List<CoachingRequest> findByTrainerIdOrderByCreatedAtDesc(UUID trainerId);
+    List<CoachingRequest> findByTrainerIdAndMemberId(UUID trainerId, UUID memberId);
 }

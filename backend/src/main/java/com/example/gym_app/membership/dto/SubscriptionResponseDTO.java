@@ -14,6 +14,8 @@ public class SubscriptionResponseDTO {
     private String memberNom;
     private UUID planId;
     private String planNom;
+    private String planNomEn;
+    private String planNomAr;
     private LocalDate dateDebut;
     private LocalDate dateFin;
     private String statut;

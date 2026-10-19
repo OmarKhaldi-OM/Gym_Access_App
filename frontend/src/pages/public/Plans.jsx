@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PublicShell } from '../../components/PublicSite.jsx'
-import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
+import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as membershipService from '../../services/membershipService.js'
-import { useT } from '../../context/I18nContext.jsx'
+import { useI18n, useT } from '../../context/I18nContext.jsx'
+import { formatMembershipNumber, getLocalizedMembershipName } from '../../membershipLocalization.js'
 
 export default function Plans() {
   const t = useT()
+  const { language } = useI18n()
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -38,20 +40,20 @@ export default function Plans() {
             <article className={`plan-card plan-${['lime', 'dark', 'warm'][index % 3]}`} key={plan.id}>
               <div className="plan-card-top">
                 <span className="plan-index">{String(index + 1).padStart(2, '0')} / {String(plans.length).padStart(2, '0')}</span>
-                <span className="plan-duration">{plan.dureeJours} jours</span>
+                <span className="plan-duration"><bdi>{formatMembershipNumber(plan.dureeJours, language)}</bdi> {t('days')}</span>
               </div>
-              <h2>{plan.nom}</h2>
-              <p className="plan-strapline">{plan.dureeJours} jours d’accès</p>
-              <div className="plan-price">{plan.prix}<span className="currency">DT</span></div>
+              <h2>{getLocalizedMembershipName(plan, language, t('planNameUnavailable'))}</h2>
+              <p className="plan-strapline"><bdi>{formatMembershipNumber(plan.dureeJours, language)}</bdi> {t('daysAccess')}</p>
+              <div className="plan-price"><bdi>{formatMembershipNumber(plan.prix, language)}<span className="currency"> {t('currencyTnd')}</span></bdi></div>
               <p className="billing-note">{t('membershipPlan')}</p>
               <div className="plan-divider" />
               <Link to={`/signup?plan=${plan.id}`} className={`button button-${['lime', 'dark', 'warm'][index % 3]}`}>
-                {t('choose')} {plan.nom} <span aria-hidden="true">↗</span>
+                {t('choose')} {getLocalizedMembershipName(plan, language, t('planNameUnavailable'))} <span aria-hidden="true">↗</span>
               </Link>
             </article>
           ))}
         </section>
-        <section className="plans-bottom"><span>{t('clubInformation')}</span><p>{t('clubDetailsPending')}</p><span className="plans-currency">TND / DT</span></section>
+        <section className="plans-bottom"><span>{t('clubInformation')}</span><p>{t('clubDetailsPending')}</p><span className="plans-currency">{t('currencyTnd')}</span></section>
       </main>
     </PublicShell>
   )

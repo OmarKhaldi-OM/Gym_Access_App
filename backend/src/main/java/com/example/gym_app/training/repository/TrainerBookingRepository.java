@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface TrainerBookingRepository extends JpaRepository<Trainer_Booking, UUID> {
     List<Trainer_Booking> findByMemberId(UUID memberId);
     List<Trainer_Booking> findByTrainerId(UUID trainerId);
+    List<Trainer_Booking> findByTrainerIdAndMemberId(UUID trainerId, UUID memberId);
 }

@@ -15,6 +15,14 @@ public class MembershipPlanRequestDTO {
     @NotBlank(message = "Le nom du plan est obligatoire")
     private String nom;
 
+    @NotBlank(message = "Le nom anglais du plan est obligatoire")
+    @Size(max = 255, message = "Le nom anglais du plan ne peut pas dépasser 255 caractères")
+    private String nomEn;
+
+    @NotBlank(message = "Le nom arabe du plan est obligatoire")
+    @Size(max = 255, message = "Le nom arabe du plan ne peut pas dépasser 255 caractères")
+    private String nomAr;
+
     @NotNull(message = "Le prix est obligatoire")
     @Positive(message = "Le prix doit etre superieur a zero")
     private BigDecimal prix;

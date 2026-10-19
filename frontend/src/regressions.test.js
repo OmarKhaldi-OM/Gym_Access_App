@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
+import { formatMembershipNumber, getLocalizedMembershipName } from './membershipLocalization.js'
 import { staffListPath } from './pages/admin/staffNavigation.js'
+import { canAccessRoute } from './roles.js'
 
 function readSource(path) {
   return readFileSync(new URL(path, import.meta.url), 'utf8')
@@ -52,6 +54,19 @@ test('protected member routes redirect accounts without subscription history to 
   assert.match(source, /if \(!result\.hasHistory\) return <Navigate to="\/membership\/setup"/)
 })
 
+test('coach client file is routed behind coach authorization and linked from the client list', () => {
+  const app = readSource('./App.jsx')
+  const clients = readSource('./pages/coach/MyClients.jsx')
+  const detail = readSource('./pages/coach/ClientProfile.jsx')
+
+  assert.match(app, /path="\/coach\/clients\/:id"\s+element={<RequireRole><CoachClientProfile \/><\/RequireRole>}/)
+  assert.match(clients, /to={`\/coach\/clients\/\$\{c\.id\}`}/)
+  assert.equal(canAccessRoute({ role: 'TRAINER' }, '/coach/clients/client-id'), true)
+  assert.equal(canAccessRoute({ role: 'MEMBER' }, '/coach/clients/client-id'), false)
+  assert.match(detail, /getCoachClientDetails\(user\.id, id\)/)
+  assert.match(detail, /coachNoteService\.createCoachNote/)
+})
+
 test('Google registration routes to membership selection without enrolling on sign-in', () => {
   const source = readSource('./pages/public/SignUp.jsx')
   const googleHandler = source.match(/const handleGoogleSignIn = async \(credential\) => \{([\s\S]*?)\n  \}/)
@@ -67,6 +82,51 @@ test('member enrollment sends only the selected plan to the authenticated backen
   assert.ok(enrollment, 'self-enrollment service should exist')
   assert.match(enrollment[1], /apiPost\('\/api\/subscriptions\/enroll', \{ planId: plan\.id \}\)/)
   assert.doesNotMatch(enrollment[1], /dateDebut|dateFin|statut:\s*'ACTIVE'/)
+})
+
+test('backend membership plan and subscription names resolve from localized fields', () => {
+  const plan = {
+    id: 'stable-plan-id',
+    nom: 'Abonnement Mensuel',
+    nomEn: 'Monthly membership',
+    nomAr: 'اشتراك شهري',
+  }
+
+  assert.equal(getLocalizedMembershipName(plan, 'fr'), 'Abonnement Mensuel')
+  assert.equal(getLocalizedMembershipName(plan, 'en'), 'Monthly membership')
+  assert.equal(getLocalizedMembershipName(plan, 'ar'), 'اشتراك شهري')
+  assert.equal(getLocalizedMembershipName({
+    planNom: plan.nom,
+    planNomEn: plan.nomEn,
+    planNomAr: plan.nomAr,
+  }, 'en'), plan.nomEn)
+  assert.equal(getLocalizedMembershipName({ nom: plan.nom }, 'en', 'Membership plan'), 'Membership plan')
+  assert.equal(getLocalizedMembershipName({ nom: plan.nom }, 'ar', 'باقة اشتراك'), 'باقة اشتراك')
+})
+
+test('membership amounts use the selected locale without changing source values', () => {
+  const amount = 1234.5
+
+  assert.equal(formatMembershipNumber(amount, 'en'), '1,234.5')
+  assert.match(formatMembershipNumber(amount, 'fr'), /,5$/)
+  assert.ok(formatMembershipNumber(amount, 'ar'))
+  assert.notEqual(formatMembershipNumber(amount, 'fr'), formatMembershipNumber(amount, 'en'))
+  assert.equal(amount, 1234.5)
+})
+
+test('membership display labels are present in each language catalog', () => {
+  const source = readSource('./context/I18nContext.jsx')
+  const catalogs = source.slice(source.indexOf('const additionalMessages'), source.indexOf('const dictionaries'))
+  const keys = ['membershipPlan', 'planNameEnglish', 'planNameArabic', 'planNameUnavailable', 'daysAccess', 'currencyTnd']
+
+  for (const language of ['en', 'fr', 'ar']) {
+    const start = catalogs.indexOf(`${language}: {`)
+    const next = catalogs.indexOf('\n  },', start)
+    const catalog = catalogs.slice(start, next)
+    for (const key of keys) {
+      assert.match(catalog, new RegExp(`${key}:\\s*'[^']+'`), `${language} should translate ${key}`)
+    }
+  }
 })
 
 test('class reservations use canonical CONFIRMED and CANCELLED statuses', () => {

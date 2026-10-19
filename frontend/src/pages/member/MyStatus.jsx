@@ -9,6 +9,7 @@ import * as activityService from '../../services/activityService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useT } from '../../context/I18nContext.jsx'
 import { useI18n } from '../../context/I18nContext.jsx'
+import { getLocalizedMembershipName } from '../../membershipLocalization.js'
 
 function pairSessions(entries) {
   const sessions = []
@@ -78,7 +79,7 @@ export default function MyStatus() {
           <Avatar name={member.nom} size="lg" />
           <div className="flex-1">
             <p className="text-xl font-bold">{member.nom}</p>
-            <p className="text-base font-medium text-text-muted mt-0.5">{t('plan')} {t(member.plan)}</p>
+            <p className="text-base font-medium text-text-muted mt-0.5">{t('plan')} {getLocalizedMembershipName(member, language, t('planNameUnavailable'))}</p>
           </div>
           <StatusChip variant={member.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
             {member.statut}

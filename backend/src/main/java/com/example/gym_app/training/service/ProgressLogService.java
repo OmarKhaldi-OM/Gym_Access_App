@@ -23,17 +23,31 @@ public class ProgressLogService {
 
     private final MemberRepository memberRepository;
     private final SecurityUtil securityUtil;
+    private final CoachClientAccessService coachClientAccessService;
 
     public ProgressLogService(
             ProgressLogRepository progressLogRepository,
             MemberRepository memberRepository,
-            SecurityUtil securityUtil) {
+            SecurityUtil securityUtil,
+            CoachClientAccessService coachClientAccessService) {
         this.progressLogRepository = progressLogRepository;
         this.memberRepository = memberRepository;
         this.securityUtil = securityUtil;
+        this.coachClientAccessService = coachClientAccessService;
     }
 
-    private void requireMemberAccess(UUID memberId) {
+    private void requireReadAccess(UUID memberId) {
+        if (securityUtil.hasRole(Role.ADMIN)) {
+            return;
+        }
+        if (securityUtil.hasRole(Role.TRAINER)) {
+            coachClientAccessService.requireClientAccess(memberId);
+            return;
+        }
+        requireMemberOwner(memberId);
+    }
+
+    private void requireMemberOwner(UUID memberId) {
         if (securityUtil.hasRole(Role.ADMIN)) {
             return;
         }
@@ -69,19 +83,19 @@ public class ProgressLogService {
     }
 
     public List<ProgressLogResponseDTO> findByMember(UUID memberId) {
-        requireMemberAccess(memberId);
+        requireReadAccess(memberId);
         return progressLogRepository.findByMemberIdOrderByDateMesureAsc(memberId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     public ProgressLogResponseDTO create(ProgressLogRequestDTO dto) {
-        requireMemberAccess(dto.getMemberId());
+        requireMemberOwner(dto.getMemberId());
         return toDTO(progressLogRepository.save(toEntity(dto)));
     }
 
     public ProgressLogResponseDTO update(UUID id, ProgressLogRequestDTO dto) {
         Progress_Log existing = progressLogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ProgressLog introuvable avec id: " + id));
-        requireMemberAccess(existing.getMember().getId());
+        requireMemberOwner(existing.getMember().getId());
         existing.setDateMesure(dto.getDateMesure());
         existing.setPoids(dto.getPoids());
         existing.setMasseGrasse(dto.getMasseGrasse());
@@ -92,7 +106,7 @@ public class ProgressLogService {
     public void delete(UUID id) {
         Progress_Log existing = progressLogRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("ProgressLog introuvable avec id: " + id));
-        requireMemberAccess(existing.getMember().getId());
+        requireMemberOwner(existing.getMember().getId());
         progressLogRepository.delete(existing);
     }
 }

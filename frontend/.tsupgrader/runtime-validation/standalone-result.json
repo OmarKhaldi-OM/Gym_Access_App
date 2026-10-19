@@ -1,0 +1,100 @@
+{
+  "planHash": "4c3b6aa74cbb66e7cf183b0d63785ebc756cc701314108f8a9a6025ba2c9ae39",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-10-19T20:12:07.9911719Z",
+  "retryCount": 2,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 0,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "frontend-tests",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E gate@0.0.1 test\r\n\u003E node --test src/roles.test.js src/regressions.test.js src/services/apiErrors.test.js\r\n\r\n\u2714 member summaries recognize the canonical ACTIVE subscription status (2.2777ms)\r\n\u2714 membership onboarding remains required until any subscription exists (1.3575ms)\r\n\u2714 protected member routes redirect accounts without subscription history to setup (0.7853ms)\r\n\u2714 Google registration routes to membership selection without enrolling on sign-in (0.9078ms)\r\n\u2714 member enrollment sends only the selected plan to the authenticated backend (0.5255ms)\r\n\u2714 backend membership plan and subscription names resolve from localized fields (0.2456ms)\r\n\u2714 membership amounts use the selected locale without changing source values (74.8094ms)\r\n\u2714 membership display labels are present in each language catalog (2.5079ms)\r\n\u2714 class reservations use canonical CONFIRMED and CANCELLED statuses (0.6271ms)\r\n\u2714 face enrollment reports the caught API error without reading response out of scope (0.9035ms)\r\n\u2714 each additional translation catalog defines coachingRequests once (0.9795ms)\r\n\u2714 membership onboarding and plan availability are translated in every supported language (0.6657ms)\r\n\u2714 staff account management text is translated in every supported language (1.282ms)\r\n\u2714 staff details and editing use dedicated routes and reload data by account id (1.2185ms)\r\n\u2714 theme follows the browser preference unless manually overridden in the current session (0.3812ms)\r\n\u2714 initial browser preference is applied before the application module loads (0.4536ms)\r\n\u2714 public Club navigation returns to the index top without resetting the theme session (0.9911ms)\r\n\u2714 primary green buttons meet WCAG AA contrast in both themes and interaction states (2.6387ms)\r\n\u2714 notifications use readable theme tokens, responsive wrapping, and reduced motion (1.3115ms)\r\n\u2714 global API feedback is a deduplicated fallback for unhandled requests (0.8759ms)\r\n\u2714 page toasts retain success announcements and expose a dismiss action (0.6446ms)\r\n\u2714 sign-in autofill keeps the normal input background in both themes (0.3336ms)\r\n\u2714 trainer sessions imports the empty state used when there are no sessions (0.3715ms)\r\n\u2714 admin cannot select account face enrollment from the face recognition page (0.2791ms)\r\n\u2714 member deletion anonymizes through the admin profile action and retains access logs (0.7676ms)\r\n\u2714 all frontend delete actions use the shared confirmation dialog (1.2961ms)\r\n\u2714 confirmation dialog translations cover every supported language (0.7005ms)\r\n\u2714 normalizes canonical roles and retained UI aliases (0.9184ms)\r\n\u2714 allows each role only within its route key and sends it to its home route (0.4203ms)\r\n\u2714 allows only admin and receptionist to manage membership plans (1.0275ms)\r\n\u2714 staff account management is an admin-only navigation route (0.1789ms)\r\n\u2714 allows members to complete membership selection without opening other role routes (0.1546ms)\r\n\u2714 keeps each profile route available to its account menu, not the main navigation (0.1844ms)\r\n\u2714 network failures are distinct from HTTP failures (3.7512ms)\r\n\u2714 validation errors preserve safe backend guidance for 400 and 422 (3.4069ms)\r\n\u2714 authentication and authorization responses have distinct user messages (1.1393ms)\r\n\u2714 server errors never expose backend details (0.1969ms)\r\n\u2714 sensitive or technical client-error details are replaced with safe guidance (0.1645ms)\r\n\u2714 validation field names are included when the backend supplies one (0.1436ms)\r\n\u2139 tests 39\r\n\u2139 suites 0\r\n\u2139 pass 39\r\n\u2139 fail 0\r\n\u2139 cancelled 0\r\n\u2139 skipped 0\r\n\u2139 todo 0\r\n\u2139 duration_ms 249.894\r\n",
+        "durationMs": 1051,
+        "testResults": {
+          "testFramework": "unknown",
+          "runnerDetectedFrom": "none",
+          "testsTotal": 0,
+          "testsPassed": 0,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": true
+        }
+      },
+      {
+        "name": "frontend-build",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\r\n\u003E gate@0.0.1 build\r\n\u003E vite build\r\n\r\n\u001B[36mvite v5.4.21 \u001B[32mbuilding for production...\u001B[36m\u001B[39m\r\ntransforming...\r\n\u001B[32m\u2713\u001B[39m 107 modules transformed.\r\nrendering chunks...\r\ncomputing gzip size...\r\n\u001B[2mdist/\u001B[22m\u001B[32mindex.html                 \u001B[39m\u001B[1m\u001B[2m  1.52 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:   0.68 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[35massets/index-BbVGSViQ.css  \u001B[39m\u001B[1m\u001B[2m 62.97 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip:  13.68 kB\u001B[22m\r\n\u001B[2mdist/\u001B[22m\u001B[36massets/index-CoGfqqCC.js   \u001B[39m\u001B[1m\u001B[2m368.53 kB\u001B[22m\u001B[1m\u001B[22m\u001B[2m \u2502 gzip: 111.87 kB\u001B[22m\r\n\u001B[32m\u2713 built in 4.43s\u001B[39m\r\n",
+        "durationMs": 6146
+      },
+      {
+        "name": "plans-route-200",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": false,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "\u003Cprobe error: \u003E",
+        "durationMs": 899
+      }
+    ],
+    "executions": [
+      {
+        "source": "frontend-tests",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "test"
+        ],
+        "cwd": "D:\\Projet\\Gym_Access_App\\frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "frontend-build",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\npm.CMD",
+        "args": [
+          "run",
+          "build"
+        ],
+        "cwd": "D:\\Projet\\Gym_Access_App\\frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      },
+      {
+        "source": "plans-route-200",
+        "resolvedExecutable": "C:\\Program Files\\nodejs\\node.EXE",
+        "args": [
+          "node_modules/vite/bin/vite.js",
+          "--host",
+          "127.0.0.1",
+          "--port",
+          "5174"
+        ],
+        "cwd": "D:\\Projet\\Gym_Access_App\\frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "win32"
+      }
+    ]
+  }
+}

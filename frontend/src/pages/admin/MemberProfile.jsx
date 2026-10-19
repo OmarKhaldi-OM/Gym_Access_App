@@ -12,6 +12,7 @@ import * as activityService from '../../services/activityService.js'
 import * as classService from '../../services/classService.js'
 import { useMembers } from '../../context/MembersContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
+import { getLocalizedMembershipName } from '../../membershipLocalization.js'
 
 function pairSessions(entries) {
   // Regroupe les entrées/sorties consécutives d'un même jour en sessions.
@@ -103,7 +104,7 @@ export default function MemberProfile() {
         <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-graphite-line">
           <div>
             <p className="text-base font-medium text-text-muted">{t('plan')}</p>
-            <p className="text-lg font-semibold mt-1">{t(member.plan)}</p>
+            <p className="text-lg font-semibold mt-1">{getLocalizedMembershipName(member, language, t('planNameUnavailable'))}</p>
           </div>
           <div>
             <p className="text-base font-medium text-text-muted">{t('memberSince')}</p>

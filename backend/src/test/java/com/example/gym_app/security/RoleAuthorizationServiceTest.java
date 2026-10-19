@@ -10,6 +10,7 @@ import com.example.gym_app.membership.service.SubscriptionService;
 import com.example.gym_app.training.entity.Progress_Log;
 import com.example.gym_app.training.repository.ProgressLogRepository;
 import com.example.gym_app.training.service.ProgressLogService;
+import com.example.gym_app.training.service.CoachClientAccessService;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
@@ -57,6 +58,9 @@ class RoleAuthorizationServiceTest {
     @Mock
     private ProgressLogRepository progressLogRepository;
 
+    @Mock
+    private CoachClientAccessService coachClientAccessService;
+
     private BookingService bookingService;
     private SubscriptionService subscriptionService;
     private ProgressLogService progressLogService;
@@ -67,7 +71,8 @@ class RoleAuthorizationServiceTest {
                 bookingRepository, memberRepository, classScheduleRepository, securityUtil);
         subscriptionService = new SubscriptionService(
                 subscriptionRepository, memberRepository, membershipPlanRepository, securityUtil);
-        progressLogService = new ProgressLogService(progressLogRepository, memberRepository, securityUtil);
+        progressLogService = new ProgressLogService(
+                progressLogRepository, memberRepository, securityUtil, coachClientAccessService);
         authenticate("member@example.com", Role.MEMBER);
     }
 
@@ -121,6 +126,19 @@ class RoleAuthorizationServiceTest {
         log.setMember(member(memberId, "other@example.com"));
         UUID logId = UUID.randomUUID();
         when(progressLogRepository.findById(logId)).thenReturn(Optional.of(log));
+
+        assertThrows(AccessDeniedException.class, () -> progressLogService.delete(logId));
+        verify(progressLogRepository, never()).delete(log);
+    }
+
+    @Test
+    void trainerCannotModifyMemberProgress() {
+        UUID memberId = UUID.randomUUID();
+        Progress_Log log = new Progress_Log();
+        log.setMember(member(memberId, "member@example.com"));
+        UUID logId = UUID.randomUUID();
+        when(progressLogRepository.findById(logId)).thenReturn(Optional.of(log));
+        authenticate("trainer@example.com", Role.TRAINER);
 
         assertThrows(AccessDeniedException.class, () -> progressLogService.delete(logId));
         verify(progressLogRepository, never()).delete(log);

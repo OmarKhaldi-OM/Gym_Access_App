@@ -29,6 +29,8 @@ public class MembershipPlanService {
         MembershipPlanResponseDTO dto = new MembershipPlanResponseDTO();
         dto.setId(plan.getId());
         dto.setNom(plan.getNom());
+        dto.setNomEn(plan.getNomEn());
+        dto.setNomAr(plan.getNomAr());
         dto.setPrix(plan.getPrix());
         dto.setDureeJours(plan.getDureeJours());
         dto.setActif(plan.isActif());
@@ -38,6 +40,8 @@ public class MembershipPlanService {
     private Membership_Plan toEntity(MembershipPlanRequestDTO dto) {
         Membership_Plan plan = new Membership_Plan();
         plan.setNom(dto.getNom());
+        plan.setNomEn(dto.getNomEn());
+        plan.setNomAr(dto.getNomAr());
         plan.setPrix(dto.getPrix());
         plan.setDureeJours(dto.getDureeJours());
         plan.setActif(dto.getActif() == null || dto.getActif());
@@ -69,6 +73,8 @@ public class MembershipPlanService {
         Membership_Plan existing = membershipPlanRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Plan introuvable avec id: " + id));
         existing.setNom(dto.getNom());
+        existing.setNomEn(dto.getNomEn());
+        existing.setNomAr(dto.getNomAr());
         existing.setPrix(dto.getPrix());
         existing.setDureeJours(dto.getDureeJours());
         if (dto.getActif() != null) existing.setActif(dto.getActif());

@@ -9,6 +9,7 @@ import { useMembers } from '../../context/MembersContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
 import Toast from '../../components/Toast.jsx'
 import { useToast } from '../../hooks/useToast.js'
+import { getLocalizedMembershipName } from '../../membershipLocalization.js'
 
 export default function Members() {
   const t = useT()
@@ -61,7 +62,7 @@ export default function Members() {
                 <Avatar name={m.nom} />
                 <span className="text-lg font-semibold">{m.nom}</span>
               </div>
-              <span className="text-base font-medium text-text-muted">{m.plan}</span>
+              <span className="text-base font-medium text-text-muted">{getLocalizedMembershipName(m, language, t('planNameUnavailable'))}</span>
               <StatusChip variant={m.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
                 {m.statut}
               </StatusChip>

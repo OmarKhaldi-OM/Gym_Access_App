@@ -11,6 +11,8 @@ import java.util.UUID;
 public class MembershipPlanResponseDTO {
     private UUID id;
     private String nom;
+    private String nomEn;
+    private String nomAr;
     private BigDecimal prix;
     private Integer dureeJours;
     private boolean actif;

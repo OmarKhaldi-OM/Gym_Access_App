@@ -1,5 +1,8 @@
 import { getBookingsForTrainer } from './trainerBookingService.js'
 import { getClassesForTrainer } from './classService.js'
+import { apiGet } from './api.js'
+import * as progressService from './progressService.js'
+import * as coachNoteService from './coachNoteService.js'
 
 export async function getCoachClients(trainerId) {
   const bookings = (await getBookingsForTrainer(trainerId))
@@ -30,4 +33,21 @@ export async function getCoachSchedule(trainerId) {
     heureFin: new Date(new Date(booking.dateTime).getTime() + 3600000).toTimeString().slice(0, 5),
     clientNom: booking.clientNom,
   })) }
+}
+
+export async function getCoachClientDetails(trainerId, memberId) {
+  const [profile, goals, measurements, bookings, notes] = await Promise.all([
+    apiGet(`/api/members/${memberId}`),
+    progressService.getGoals(memberId),
+    progressService.getProgressLogs(memberId),
+    getBookingsForTrainer(trainerId),
+    coachNoteService.getCoachNotes(memberId),
+  ])
+  return {
+    profile,
+    goals,
+    measurements,
+    sessions: bookings.filter((booking) => booking.memberId === memberId),
+    notes,
+  }
 }

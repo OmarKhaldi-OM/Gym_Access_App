@@ -11,6 +11,7 @@ import com.example.gym_app.user.dto.MemberResponseDTO;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
+import com.example.gym_app.training.service.CoachClientAccessService;
 import com.example.gym_app.security.SecurityUtil;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,7 @@ public class MemberService {
     private final FaceEmbeddingRepository faceEmbeddingRepository;
     private final FaceAuthenticationRepository faceAuthenticationRepository;
     private final ProfilePhotoStorageService profilePhotoStorageService;
+    private final CoachClientAccessService coachClientAccessService;
 
     // ---- Mapping entite -> DTO ----
 
@@ -42,7 +44,8 @@ public class MemberService {
             SubscriptionRepository subscriptionRepository,
             FaceEmbeddingRepository faceEmbeddingRepository,
             FaceAuthenticationRepository faceAuthenticationRepository,
-            ProfilePhotoStorageService profilePhotoStorageService) {
+            ProfilePhotoStorageService profilePhotoStorageService,
+            CoachClientAccessService coachClientAccessService) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.securityUtil = securityUtil;
@@ -50,6 +53,7 @@ public class MemberService {
         this.faceEmbeddingRepository = faceEmbeddingRepository;
         this.faceAuthenticationRepository = faceAuthenticationRepository;
         this.profilePhotoStorageService = profilePhotoStorageService;
+        this.coachClientAccessService = coachClientAccessService;
     }
 
     private MemberResponseDTO toDTO(Member member) {
@@ -90,12 +94,13 @@ public class MemberService {
         if (member.isArchived()) {
             throw new ResourceNotFoundException("Member introuvable avec id: " + id);
         }
-        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
+        if (securityUtil.hasRole(Role.TRAINER)) {
+            coachClientAccessService.requireClientAccess(id);
+        } else if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
             securityUtil.requireRole(Role.MEMBER);
-        }
-        if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)
-                && !securityUtil.isCurrentUser(member.getEmail())) {
-            throw new AccessDeniedException("Acces refuse");
+            if (!securityUtil.isCurrentUser(member.getEmail())) {
+                throw new AccessDeniedException("Acces refuse");
+            }
         }
         return toDTO(member);
     }

@@ -8,12 +8,15 @@ import com.example.gym_app.membership.entity.Subscription;
 import com.example.gym_app.membership.repository.SubscriptionRepository;
 import com.example.gym_app.security.ProfilePhotoStorageService;
 import com.example.gym_app.security.SecurityUtil;
+import com.example.gym_app.training.service.CoachClientAccessService;
 import com.example.gym_app.user.entity.Member;
+import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.springframework.security.access.AccessDeniedException;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -27,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +51,8 @@ class MemberServiceTest {
     private FaceAuthenticationRepository faceAuthenticationRepository;
     @Mock
     private ProfilePhotoStorageService profilePhotoStorageService;
+    @Mock
+    private CoachClientAccessService coachClientAccessService;
 
     private MemberService memberService;
 
@@ -59,7 +65,8 @@ class MemberServiceTest {
                 subscriptionRepository,
                 faceEmbeddingRepository,
                 faceAuthenticationRepository,
-                profilePhotoStorageService);
+                profilePhotoStorageService,
+                coachClientAccessService);
     }
 
     @Test
@@ -131,5 +138,33 @@ class MemberServiceTest {
                 com.example.gym_app.exception.ResourceNotFoundException.class,
                 () -> memberService.findById(memberId));
         assertTrue(member.isArchived());
+    }
+
+    @Test
+    void coachProfileReadDelegatesToClientOwnershipCheck() {
+        UUID memberId = UUID.randomUUID();
+        Member member = new Member();
+        member.setId(memberId);
+        member.setNom("Client");
+        member.setEmail("client@example.com");
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(securityUtil.hasRole(Role.TRAINER)).thenReturn(true);
+
+        assertEquals(memberId, memberService.findById(memberId).getId());
+
+        verify(coachClientAccessService).requireClientAccess(memberId);
+    }
+
+    @Test
+    void coachCannotReadProfileWhenClientOwnershipCheckRejectsMember() {
+        UUID memberId = UUID.randomUUID();
+        Member member = new Member();
+        member.setId(memberId);
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(securityUtil.hasRole(Role.TRAINER)).thenReturn(true);
+        doThrow(new AccessDeniedException("Acces refuse"))
+                .when(coachClientAccessService).requireClientAccess(memberId);
+
+        assertThrows(AccessDeniedException.class, () -> memberService.findById(memberId));
     }
 }

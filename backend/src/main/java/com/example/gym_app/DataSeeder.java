@@ -145,6 +145,8 @@ public class DataSeeder implements CommandLineRunner {
         if (!membershipPlanRepository.existsByNom("Abonnement Mensuel")) {
             Membership_Plan plan = new Membership_Plan();
             plan.setNom("Abonnement Mensuel");
+            plan.setNomEn("Monthly membership");
+            plan.setNomAr("اشتراك شهري");
             plan.setPrix(new BigDecimal("80.00"));
             plan.setDureeJours(30);
             membershipPlanRepository.save(plan);

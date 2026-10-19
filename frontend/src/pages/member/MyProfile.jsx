@@ -7,6 +7,7 @@ import { ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import * as memberService from '../../services/memberService.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
+import { getLocalizedMembershipName } from '../../membershipLocalization.js'
 
 export default function MyProfile() {
   const t = useT()
@@ -16,6 +17,9 @@ export default function MyProfile() {
   const [member, setMember] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const formatDate = (value) => value
+    ? new Date(`${value}T00:00:00`).toLocaleDateString(language)
+    : ''
 
   const loadMember = () => {
     if (!memberId) return
@@ -49,7 +53,7 @@ export default function MyProfile() {
         <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-graphite-line">
           <div>
             <p className="text-base font-medium text-text-muted">{t('plan')}</p>
-            <p className="text-lg font-semibold mt-1">{t(member.plan)}</p>
+            <p className="text-lg font-semibold mt-1">{getLocalizedMembershipName(member, language, t('planNameUnavailable'))}</p>
           </div>
           <div>
             <p className="text-base font-medium text-text-muted">{t('memberSince')}</p>
@@ -72,9 +76,9 @@ export default function MyProfile() {
         <SectionHeader title={t('subscription')} />
         <div className="px-5 py-4 flex items-center justify-between">
           <div>
-            <p className="text-lg font-semibold">{t('plan')} {t(member.plan)}</p>
+            <p className="text-lg font-semibold">{t('plan')} {getLocalizedMembershipName(member, language, t('planNameUnavailable'))}</p>
             <p className="text-base font-medium text-text-muted mt-0.5">
-              {member.subscription ? `${member.subscription.dateDebut} – ${member.subscription.dateFin}` : t('noActiveSubscription', 'Aucun abonnement actif')}
+              {member.subscription ? `${formatDate(member.subscription.dateDebut)} – ${formatDate(member.subscription.dateFin)}` : t('noActiveSubscription', 'Aucun abonnement actif')}
             </p>
           </div>
           <StatusChip variant={member.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>

@@ -36,6 +36,7 @@ import MyTrainerSessions from './pages/member/MyTrainerSessions.jsx'
 
 import CoachSchedule from './pages/coach/MySchedule.jsx'
 import CoachClients from './pages/coach/MyClients.jsx'
+import CoachClientProfile from './pages/coach/ClientProfile.jsx'
 
 import FrontDesk from './pages/reception/FrontDesk.jsx'
 import ReceptionSchedule from './pages/reception/Schedule.jsx'
@@ -105,6 +106,7 @@ function AppRoutes() {
       <Route path="/coach" element={<Navigate to="/coach/planning" replace />} />
       <Route path="/coach/planning" element={<RequireRole><CoachSchedule /></RequireRole>} />
       <Route path="/coach/clients" element={<RequireRole><CoachClients /></RequireRole>} />
+      <Route path="/coach/clients/:id" element={<RequireRole><CoachClientProfile /></RequireRole>} />
       <Route path="/coach/profil" element={<RequireRole><ProfileEdit /></RequireRole>} />
       <Route path="/coach/requests" element={<RequireRole><CoachRequests /></RequireRole>} />
 

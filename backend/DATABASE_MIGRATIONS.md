@@ -52,3 +52,12 @@ doivent être associés depuis le profil après authentification Gate. La table
 impose une identité unique par compte et une unicité de la paire issuer/subject.
 Avant déploiement, sauvegarder la base et vérifier V4 sur une copie du schéma
 réel, en particulier si la base existante n'a pas été migrée par Flyway.
+
+Les migrations V5 et V6 ajoutent respectivement la disponibilité des formules
+et leurs noms anglais/arabe. V7 crée `coach_note`, avec les clés étrangères
+vers le coach et le membre ainsi qu'un index par propriétaire, membre et date.
+Cette table ne donne aucun accès au membre; le service ne retourne les notes
+qu'au coach propriétaire. Ne jamais réutiliser un numéro de migration déjà
+présent dans le dépôt, même si le changement demandé mentionne une version
+occupée; créer la prochaine version disponible pour éviter les collisions
+Flyway.

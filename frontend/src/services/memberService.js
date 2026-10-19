@@ -27,6 +27,8 @@ function mapMember(member, subscription = null) {
     ...member,
     nom: fullName(member),
     plan: subscription?.planNom || '—',
+    planEn: subscription?.planNomEn,
+    planAr: subscription?.planNomAr,
     dateInscription: dateTime(member.dateInscription),
     statut: subscription?.statut?.toUpperCase() === 'ACTIVE' ? 'Actif' : 'Inactif',
     visageEnrole: member.visageEnrole,

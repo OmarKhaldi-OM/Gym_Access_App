@@ -6,6 +6,7 @@ import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useI18n, useT } from '../../context/I18nContext.jsx'
 import * as membershipService from '../../services/membershipService.js'
+import { formatMembershipNumber, getLocalizedMembershipName } from '../../membershipLocalization.js'
 
 function formatDate(value, language) {
   if (!value) return ''
@@ -104,14 +105,14 @@ export default function MyMembership() {
         {success && <p className="mb-4 text-emerald-400" role="status">{t('membershipReactivated')}</p>}
         {activeSubscription ? (
           <div className="space-y-2">
-            <p className="text-lg font-semibold">{activeSubscription.planNom}</p>
+            <p className="text-lg font-semibold">{getLocalizedMembershipName(activeSubscription, language, t('planNameUnavailable'))}</p>
             <p className="text-text-muted">
               {t('membershipActiveUntil')} {formatDate(activeSubscription.dateFin, language)}
             </p>
           </div>
         ) : latestSubscription ? (
           <div className="space-y-2">
-            <p className="text-lg font-semibold">{latestSubscription.planNom}</p>
+            <p className="text-lg font-semibold">{getLocalizedMembershipName(latestSubscription, language, t('planNameUnavailable'))}</p>
             <p className="text-text-muted">
               {t('membershipExpired')} {formatDate(latestSubscription.dateFin, language)}
             </p>
@@ -143,15 +144,15 @@ export default function MyMembership() {
                       type="button"
                       aria-pressed={selected}
                       onClick={() => setSelectedPlanId(plan.id)}
-                      className={`rounded-lg border p-5 text-left transition-colors ${
+                      className={`rounded-lg border p-5 text-start transition-colors ${
                         selected
                           ? 'border-coral bg-coral/10'
                           : 'border-graphite-line bg-graphite-bg hover:border-text-muted'
                       }`}
                     >
-                      <span className="block text-lg font-bold">{plan.nom}</span>
+                      <span className="block text-lg font-bold">{getLocalizedMembershipName(plan, language, t('planNameUnavailable'))}</span>
                       <span className="mt-2 block text-text-muted">
-                        {plan.dureeJours} {t('days')} · {plan.prix} DT
+                        <bdi>{formatMembershipNumber(plan.dureeJours, language)}</bdi> {t('days')} · <bdi>{formatMembershipNumber(plan.prix, language)} {t('currencyTnd')}</bdi>
                       </span>
                     </button>
                   )

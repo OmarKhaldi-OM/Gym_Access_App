@@ -46,6 +46,8 @@ class MembershipPlanServiceTest {
         assertEquals(1, result.size());
         assertEquals(available.getId(), result.get(0).getId());
         assertEquals(true, result.get(0).isActif());
+        assertEquals(available.getNomEn(), result.get(0).getNomEn());
+        assertEquals(available.getNomAr(), result.get(0).getNomAr());
     }
 
     @Test
@@ -65,6 +67,8 @@ class MembershipPlanServiceTest {
         plan.setId(planId);
         MembershipPlanRequestDTO update = new MembershipPlanRequestDTO();
         update.setNom(plan.getNom());
+        update.setNomEn(plan.getNomEn());
+        update.setNomAr(plan.getNomAr());
         update.setPrix(plan.getPrix());
         update.setDureeJours(plan.getDureeJours());
         update.setActif(false);
@@ -77,10 +81,31 @@ class MembershipPlanServiceTest {
         verify(securityUtil).requireStaff();
     }
 
+    @Test
+    void createPersistsAndReturnsLocalizedPlanNames() {
+        MembershipPlanRequestDTO request = new MembershipPlanRequestDTO();
+        request.setNom("Abonnement Mensuel");
+        request.setNomEn("Monthly membership");
+        request.setNomAr("اشتراك شهري");
+        request.setPrix(new BigDecimal("80.00"));
+        request.setDureeJours(30);
+        when(membershipPlanRepository.save(org.mockito.ArgumentMatchers.any(Membership_Plan.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var result = service.create(request);
+
+        assertEquals(request.getNom(), result.getNom());
+        assertEquals(request.getNomEn(), result.getNomEn());
+        assertEquals(request.getNomAr(), result.getNomAr());
+        verify(securityUtil).requireStaff();
+    }
+
     private Membership_Plan plan(boolean active) {
         Membership_Plan plan = new Membership_Plan();
         plan.setId(UUID.randomUUID());
         plan.setNom("Configured plan");
+        plan.setNomEn("Configured plan");
+        plan.setNomAr("باقة مخصصة");
         plan.setPrix(new BigDecimal("80.00"));
         plan.setDureeJours(30);
         plan.setActif(active);

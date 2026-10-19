@@ -3,15 +3,17 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiEmpty, ApiError, ApiLoading } from '../../components/ApiState.jsx'
 import { PublicShell } from '../../components/PublicSite.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
-import { useT } from '../../context/I18nContext.jsx'
+import { useI18n, useT } from '../../context/I18nContext.jsx'
 import * as membershipService from '../../services/membershipService.js'
 import { hasMembershipHistory } from '../../membershipAccess.js'
+import { formatMembershipNumber, getLocalizedMembershipName } from '../../membershipLocalization.js'
 
 export default function MembershipSetup() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const t = useT()
+  const { language } = useI18n()
   const [plans, setPlans] = useState([])
   const [selectedPlanId, setSelectedPlanId] = useState('')
   const [loading, setLoading] = useState(true)
@@ -86,7 +88,7 @@ export default function MembershipSetup() {
           />
           {!loading && !error && plans.length === 0 && (
             <ApiEmpty
-              message={t('noPlansAvailable', 'Aucun forfait disponible pour le moment.')}
+              message={t('noPlansAvailable')}
               action={<button type="button" className="button button-dark" onClick={() => setRetry((current) => current + 1)}>{t('retry', 'Réessayer')}</button>}
             />
           )}
@@ -101,15 +103,15 @@ export default function MembershipSetup() {
                       type="button"
                       aria-pressed={selected}
                       onClick={() => setSelectedPlanId(plan.id)}
-                      className={`rounded-lg border p-5 text-left transition-colors ${
+                      className={`rounded-lg border p-5 text-start transition-colors ${
                         selected
                           ? 'border-coral bg-coral/10'
                           : 'border-graphite-line bg-graphite-bg hover:border-text-muted'
                       }`}
                     >
-                      <span className="block text-lg font-bold">{plan.nom}</span>
+                      <span className="block text-lg font-bold">{getLocalizedMembershipName(plan, language, t('planNameUnavailable'))}</span>
                       <span className="mt-2 block text-text-muted">
-                        {plan.dureeJours} {t('days')} · {plan.prix} DT
+                        <bdi>{formatMembershipNumber(plan.dureeJours, language)}</bdi> {t('days')} · <bdi>{formatMembershipNumber(plan.prix, language)} {t('currencyTnd')}</bdi>
                       </span>
                     </button>
                   )

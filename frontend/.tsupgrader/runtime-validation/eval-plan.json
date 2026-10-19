@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-10-19T21:05:00+01:00",
+  "generatedOnPlatform": "win32",
+  "projectType": "webapp",
+  "setup": [],
+  "assertions": [
+    {
+      "name": "frontend-tests",
+      "kind": "process",
+      "command": "npm",
+      "args": ["test"],
+      "verificationMethod": "test-results",
+      "expected": "0",
+      "timeoutSeconds": 300
+    },
+    {
+      "name": "frontend-build",
+      "kind": "process",
+      "command": "npm",
+      "args": ["run", "build"],
+      "verificationMethod": "exit-code",
+      "expected": "0",
+      "timeoutSeconds": 180
+    },
+    {
+      "name": "plans-route-200",
+      "kind": "http-probe",
+      "startCommand": "node",
+      "startArgs": ["node_modules/vite/bin/vite.js", "--host", "127.0.0.1", "--port", "5174"],
+      "url": "http://127.0.0.1:5174/plans",
+      "verificationMethod": "http-status",
+      "expected": "200",
+      "timeoutSeconds": 120
+    }
+  ]
+}

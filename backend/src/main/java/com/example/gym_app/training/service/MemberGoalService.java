@@ -19,14 +19,25 @@ public class MemberGoalService {
     private final MemberGoalRepository goalRepository;
     private final MemberRepository memberRepository;
     private final SecurityUtil securityUtil;
+    private final CoachClientAccessService coachClientAccessService;
 
-    public MemberGoalService(MemberGoalRepository goalRepository, MemberRepository memberRepository, SecurityUtil securityUtil) {
+    public MemberGoalService(MemberGoalRepository goalRepository, MemberRepository memberRepository, SecurityUtil securityUtil,
+                             CoachClientAccessService coachClientAccessService) {
         this.goalRepository = goalRepository;
         this.memberRepository = memberRepository;
         this.securityUtil = securityUtil;
+        this.coachClientAccessService = coachClientAccessService;
     }
 
-    private void requireOwner(UUID memberId) {
+    private void requireReadAccess(UUID memberId) {
+        if (securityUtil.hasRole(Role.TRAINER)) {
+            coachClientAccessService.requireClientAccess(memberId);
+            return;
+        }
+        requireMemberOwner(memberId);
+    }
+
+    private void requireMemberOwner(UUID memberId) {
         securityUtil.requireRole(Role.MEMBER);
         if (!memberRepository.findById(memberId)
                 .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
@@ -47,12 +58,12 @@ public class MemberGoalService {
     }
 
     public List<MemberGoalDTO> findByMember(UUID memberId) {
-        requireOwner(memberId);
+        requireReadAccess(memberId);
         return goalRepository.findByMemberIdOrderByDeadlineAsc(memberId).stream().map(this::toDTO).toList();
     }
 
     public MemberGoalDTO create(UUID memberId, MemberGoalDTO dto) {
-        requireOwner(memberId);
+        requireMemberOwner(memberId);
         MemberGoal goal = new MemberGoal();
         goal.setMember(memberRepository.findById(memberId).orElseThrow(() -> new ResourceNotFoundException("Member introuvable")));
         apply(goal, dto);
@@ -62,14 +73,14 @@ public class MemberGoalService {
     @Transactional
     public MemberGoalDTO update(UUID id, MemberGoalDTO dto) {
         MemberGoal goal = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
-        requireOwner(goal.getMember().getId());
+        requireMemberOwner(goal.getMember().getId());
         apply(goal, dto);
         return toDTO(goalRepository.save(goal));
     }
 
     public void delete(UUID id) {
         MemberGoal goal = goalRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
-        requireOwner(goal.getMember().getId());
+        requireMemberOwner(goal.getMember().getId());
         goalRepository.delete(goal);
     }
 

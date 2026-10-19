@@ -36,6 +36,7 @@ export function addProgressLog(memberId, measurement) {
   })
 }
 export function getGoals(memberId) { return apiGet(`/api/member-goals/member/${memberId}`) }
+export function getProgressLogs(memberId) { return apiGet(`/api/progress-logs/member/${memberId}`) }
 export function addGoal(memberId, goal) {
   const payload = { ...goal, memberId, current: 0, status: 'active' }
   if (!payload.deadline) delete payload.deadline

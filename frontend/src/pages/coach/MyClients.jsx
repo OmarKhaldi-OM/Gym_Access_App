@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import Avatar from '../../components/Avatar.jsx'
@@ -48,6 +49,12 @@ export default function MyClients() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
+                <Link
+                  to={`/coach/clients/${c.id}`}
+                  className="rounded-md border border-graphite-line px-3 py-2 text-sm font-semibold text-text-primary hover:bg-graphite-hover"
+                >
+                  {t('viewClient')}
+                </Link>
               </div>
             </div>
           ))}

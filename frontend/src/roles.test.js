@@ -49,6 +49,12 @@ test('allows members to complete membership selection without opening other role
   assert.equal(canAccessRoute({ role: 'TRAINER' }, '/membership/setup'), false)
 })
 
+test('limits the nested client profile route to coaches', () => {
+  assert.equal(canAccessRoute({ role: 'TRAINER' }, '/coach/clients/member-id'), true)
+  assert.equal(canAccessRoute({ role: 'MEMBER' }, '/coach/clients/member-id'), false)
+  assert.equal(canAccessRoute({ role: 'RECEPTIONIST' }, '/coach/clients/member-id'), false)
+})
+
 test('keeps each profile route available to its account menu, not the main navigation', () => {
   const profileRoutes = [
     ['ADMIN', '/admin/profile'],

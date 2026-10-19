@@ -5,14 +5,16 @@ import Button from '../../components/Button.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
 import Toast from '../../components/Toast.jsx'
 import ConfirmDialog from '../../components/ConfirmDialog.jsx'
-import { useT } from '../../context/I18nContext.jsx'
+import { useI18n, useT } from '../../context/I18nContext.jsx'
 import { useToast } from '../../hooks/useToast.js'
 import * as membershipService from '../../services/membershipService.js'
+import { formatMembershipNumber, getLocalizedMembershipName } from '../../membershipLocalization.js'
 
-const emptyForm = { nom: '', prix: '', dureeJours: '', actif: true }
+const emptyForm = { nom: '', nomEn: '', nomAr: '', prix: '', dureeJours: '', actif: true }
 
 export default function AdminPlans() {
   const t = useT()
+  const { language } = useI18n()
   const { toastMessage, toastVariant, toastId, toastLeaving, showToast, dismissToast } = useToast()
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
@@ -48,6 +50,8 @@ export default function AdminPlans() {
   const openEditForm = (plan) => {
     setForm({
       nom: plan.nom,
+      nomEn: plan.nomEn || '',
+      nomAr: plan.nomAr || '',
       prix: String(plan.prix),
       dureeJours: String(plan.dureeJours),
       actif: plan.actif,
@@ -70,6 +74,8 @@ export default function AdminPlans() {
     setActionError(null)
     const planData = {
       nom: form.nom.trim(),
+      nomEn: form.nomEn.trim(),
+      nomAr: form.nomAr.trim(),
       prix: Number(form.prix),
       dureeJours: Number(form.dureeJours),
       actif: form.actif,
@@ -117,10 +123,33 @@ export default function AdminPlans() {
               {t('planName')}
               <input
                 required
-                maxLength={100}
+                maxLength={255}
+                dir="auto"
                 className="mt-1 w-full rounded-md border border-graphite-line bg-graphite-bg px-3 py-2.5 text-text-primary"
                 value={form.nom}
                 onChange={(event) => setForm({ ...form, nom: event.target.value })}
+              />
+            </label>
+            <label className="text-sm font-medium">
+              {t('planNameEnglish')}
+              <input
+                required
+                maxLength={255}
+                dir="auto"
+                className="mt-1 w-full rounded-md border border-graphite-line bg-graphite-bg px-3 py-2.5 text-text-primary"
+                value={form.nomEn}
+                onChange={(event) => setForm({ ...form, nomEn: event.target.value })}
+              />
+            </label>
+            <label className="text-sm font-medium">
+              {t('planNameArabic')}
+              <input
+                required
+                maxLength={255}
+                dir="auto"
+                className="mt-1 w-full rounded-md border border-graphite-line bg-graphite-bg px-3 py-2.5 text-text-primary"
+                value={form.nomAr}
+                onChange={(event) => setForm({ ...form, nomAr: event.target.value })}
               />
             </label>
             <label className="text-sm font-medium">
@@ -172,8 +201,8 @@ export default function AdminPlans() {
           {!loading && !error && plans.map((plan) => (
             <article key={plan.id} className="flex flex-wrap items-center justify-between gap-4 border-b border-graphite-line p-5 last:border-0">
               <div>
-                <h2 className="text-lg font-semibold">{plan.nom}</h2>
-                <p className="text-text-muted">{plan.prix} DT · {plan.dureeJours} {t('days')}</p>
+                <h2 className="text-lg font-semibold">{getLocalizedMembershipName(plan, language, t('planNameUnavailable'))}</h2>
+                <p className="text-text-muted"><bdi>{formatMembershipNumber(plan.prix, language)} {t('currencyTnd')}</bdi> · <bdi>{formatMembershipNumber(plan.dureeJours, language)}</bdi> {t('days')}</p>
                 <p className="text-sm text-text-muted">{t(plan.actif ? 'active' : 'inactive')}</p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -187,7 +216,7 @@ export default function AdminPlans() {
       {planToDelete && <ConfirmDialog
         title={t('confirmDeletion')}
         description={t('confirmDeletePlan')}
-        itemName={planToDelete.nom}
+        itemName={getLocalizedMembershipName(planToDelete, language, t('planNameUnavailable'))}
         onClose={() => setPlanToDelete(null)}
         onConfirm={handleDelete}
       />}

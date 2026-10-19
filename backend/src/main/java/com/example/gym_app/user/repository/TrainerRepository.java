@@ -9,4 +9,5 @@ import java.util.UUID;
 
 public interface TrainerRepository extends JpaRepository<Trainer, UUID> {
     List<Trainer> findBySpecialite(String specialite);
+    Optional<Trainer> findByEmail(String email);
 }
