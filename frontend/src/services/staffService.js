@@ -9,6 +9,10 @@ export async function getStaffAccounts() {
   return apiGet('/api/staff')
 }
 
+export function getStaffAccount(id) {
+  return apiGet(`/api/staff/${encodeURIComponent(id)}`)
+}
+
 export function createStaffAccount(account) {
   const { role, ...details } = account
   const endpoint = endpointByRole[role]

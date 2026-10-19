@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
+import { staffListPath } from './pages/admin/staffNavigation.js'
 
 function readSource(path) {
   return readFileSync(new URL(path, import.meta.url), 'utf8')
@@ -130,6 +131,9 @@ test('staff account management text is translated in every supported language', 
     'searchStaff', 'searchStaffPlaceholder', 'filterStaffRole', 'allStaff', 'noStaffAccounts',
     'noStaffMatches', 'clearFilters', 'viewDetails', 'staffDetails', 'staffStatusUnavailable',
     'confirmDeleteStaff', 'staffCreated', 'staffUpdated', 'staffDeleted', 'staffSaveFailed', 'refresh',
+    'backToStaffList', 'backToDetails', 'staffAccountId', 'requiredField', 'requiredFieldsHint',
+    'staffRoleCannotChange', 'staffEmploymentDetails', 'staffStatusNotTracked', 'staffAccountNotFound',
+    'staffAccountMissingHelp', 'staffAccountLoadTitle', 'staffAccountLoadFailed',
   ]
 
   for (const language of ['en', 'fr', 'ar']) {
@@ -140,6 +144,30 @@ test('staff account management text is translated in every supported language', 
       assert.match(catalog, new RegExp(`${key}:\\s*'[^']+'`), `${language} should translate ${key}`)
     }
   }
+})
+
+test('staff details and editing use dedicated routes and reload data by account id', () => {
+  const app = readSource('./App.jsx')
+  const list = readSource('./pages/admin/Staff.jsx')
+  const details = readSource('./pages/admin/StaffDetails.jsx')
+  const edit = readSource('./pages/admin/StaffEdit.jsx')
+
+  assert.equal(
+    staffListPath(new URLSearchParams('search=trainer&role=TRAINER')),
+    '/admin/staff?search=trainer&role=TRAINER',
+  )
+  assert.match(app, /path="\/admin\/staff\/new"/)
+  assert.match(app, /path="\/admin\/staff\/:id\/edit"/)
+  assert.match(app, /path="\/admin\/staff\/:id"/)
+  assert.match(list, /staffDetailsPath\(account\.id\)/)
+  assert.match(list, /staffListPath\(searchParams\)/)
+  assert.doesNotMatch(list, /selectedAccount|formOpen|StaffAccountForm/)
+  assert.match(details, /staffService\.getStaffAccount\(id\)/)
+  assert.match(details, /backToStaffList/)
+  assert.match(edit, /staffService\.getStaffAccount\(id\)/)
+  assert.match(edit, /staffService\.updateStaffAccount\(payload\)/)
+  assert.match(edit, /savingRef\.current/)
+  assert.match(edit, /navigate\(returnTo, \{ replace: true \}\)/)
 })
 
 test('theme follows the browser preference unless manually overridden in the current session', () => {
