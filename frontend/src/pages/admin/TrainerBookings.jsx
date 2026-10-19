@@ -47,9 +47,9 @@ export default function TrainerBookings() {
               }`}
             >
               <div className="flex items-center gap-3">
-                <Avatar name={b.clientNom} />
+                <Avatar name={b.memberArchived ? t('deletedMember') : b.clientNom} />
                 <div>
-                  <p className="text-lg font-semibold">{b.clientNom}</p>
+                  <p className="text-lg font-semibold">{b.memberArchived ? t('deletedMember') : b.clientNom}</p>
                   <p className="text-base font-medium text-text-muted mt-0.5">{t('withCoach')} {b.coachNom}</p>
                 </div>
               </div>

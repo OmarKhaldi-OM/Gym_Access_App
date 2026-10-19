@@ -44,6 +44,7 @@ public class CoachingRequestService {
         dto.setId(request.getId());
         dto.setMemberId(request.getMember().getId());
         dto.setMemberName(request.getMember().getPrenom() + " " + request.getMember().getNom());
+        dto.setMemberArchived(request.getMember().isArchived());
         dto.setTrainerId(request.getTrainer().getId());
         dto.setTrainerName(request.getTrainer().getPrenom() + " " + request.getTrainer().getNom());
         dto.setRequestedAt(request.getRequestedAt());
@@ -66,11 +67,17 @@ public class CoachingRequestService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<CoachingRequestResponseDTO> findByMember(UUID memberId) {
         requireMember(memberId);
-        return requestRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream().map(this::toDTO).toList();
+        return requestRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
+                .filter(request -> !request.getMember().isArchived()
+                        || !"PENDING".equalsIgnoreCase(request.getStatus()))
+                .map(this::toDTO)
+                .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<CoachingRequestResponseDTO> findByTrainer(UUID trainerId) {
         if (!securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
             securityUtil.requireRole(Role.TRAINER);
@@ -80,13 +87,20 @@ public class CoachingRequestService {
                 .map(trainer -> securityUtil.isCurrentUser(trainer.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
-        return requestRepository.findByTrainerIdOrderByCreatedAtDesc(trainerId).stream().map(this::toDTO).toList();
+        return requestRepository.findByTrainerIdOrderByCreatedAtDesc(trainerId).stream()
+                .filter(request -> !request.getMember().isArchived()
+                        || !"PENDING".equalsIgnoreCase(request.getStatus()))
+                .map(this::toDTO)
+                .toList();
     }
 
     public CoachingRequestResponseDTO create(CoachingRequestCreateDTO dto) {
         requireMember(dto.getMemberId());
         Member member = memberRepository.findById(dto.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable"));
+        if (member.isArchived()) {
+            throw new ResourceNotFoundException("Member introuvable");
+        }
         Trainer trainer = trainerRepository.findById(dto.getTrainerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Trainer introuvable"));
         CoachingRequest request = new CoachingRequest();
@@ -102,6 +116,9 @@ public class CoachingRequestService {
     public CoachingRequestResponseDTO updateStatus(UUID id, CoachingRequestStatusDTO dto) {
         CoachingRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande introuvable"));
+        if (request.getMember().isArchived()) {
+            throw new ConflictException("Cette demande a deja ete traitee");
+        }
         String status = dto.getStatus().trim().toUpperCase();
         boolean staff = securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST);
         boolean member = securityUtil.hasRole(Role.MEMBER)

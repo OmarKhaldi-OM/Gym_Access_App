@@ -3,6 +3,8 @@ package com.example.gym_app.user.service;
 import com.example.gym_app.exception.ResourceNotFoundException;
 import com.example.gym_app.access.repository.FaceAuthenticationRepository;
 import com.example.gym_app.access.repository.FaceEmbeddingRepository;
+import com.example.gym_app.classes.entity.Booking;
+import com.example.gym_app.classes.repository.BookingRepository;
 import com.example.gym_app.membership.entity.Subscription;
 import com.example.gym_app.membership.repository.SubscriptionRepository;
 import com.example.gym_app.security.ProfilePhotoStorageService;
@@ -12,6 +14,10 @@ import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.training.service.CoachClientAccessService;
+import com.example.gym_app.training.entity.CoachingRequest;
+import com.example.gym_app.training.entity.Trainer_Booking;
+import com.example.gym_app.training.repository.CoachingRequestRepository;
+import com.example.gym_app.training.repository.TrainerBookingRepository;
 import com.example.gym_app.security.SecurityUtil;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +36,9 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final SecurityUtil securityUtil;
     private final SubscriptionRepository subscriptionRepository;
+    private final BookingRepository bookingRepository;
+    private final TrainerBookingRepository trainerBookingRepository;
+    private final CoachingRequestRepository coachingRequestRepository;
     private final FaceEmbeddingRepository faceEmbeddingRepository;
     private final FaceAuthenticationRepository faceAuthenticationRepository;
     private final ProfilePhotoStorageService profilePhotoStorageService;
@@ -42,6 +51,9 @@ public class MemberService {
             PasswordEncoder passwordEncoder,
             SecurityUtil securityUtil,
             SubscriptionRepository subscriptionRepository,
+            BookingRepository bookingRepository,
+            TrainerBookingRepository trainerBookingRepository,
+            CoachingRequestRepository coachingRequestRepository,
             FaceEmbeddingRepository faceEmbeddingRepository,
             FaceAuthenticationRepository faceAuthenticationRepository,
             ProfilePhotoStorageService profilePhotoStorageService,
@@ -50,6 +62,9 @@ public class MemberService {
         this.passwordEncoder = passwordEncoder;
         this.securityUtil = securityUtil;
         this.subscriptionRepository = subscriptionRepository;
+        this.bookingRepository = bookingRepository;
+        this.trainerBookingRepository = trainerBookingRepository;
+        this.coachingRequestRepository = coachingRequestRepository;
         this.faceEmbeddingRepository = faceEmbeddingRepository;
         this.faceAuthenticationRepository = faceAuthenticationRepository;
         this.profilePhotoStorageService = profilePhotoStorageService;
@@ -132,6 +147,8 @@ public class MemberService {
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + id));
         if (member.isArchived()) return;
 
+        LocalDateTime now = LocalDateTime.now();
+
         List<Subscription> subscriptions = subscriptionRepository.findByMemberId(id);
         for (Subscription subscription : subscriptions) {
             if ("ACTIVE".equalsIgnoreCase(subscription.getStatut())) {
@@ -139,6 +156,37 @@ public class MemberService {
             }
         }
         subscriptionRepository.saveAll(subscriptions);
+
+        List<Trainer_Booking> futureSessions = trainerBookingRepository.findByMemberId(id).stream()
+                .filter(session -> session.getMember().getId().equals(id))
+                .filter(session -> session.getDateHeure().isAfter(now))
+                .toList();
+        futureSessions.forEach(session -> session.setStatut("CANCELLED"));
+        if (!futureSessions.isEmpty()) {
+            trainerBookingRepository.saveAll(futureSessions);
+        }
+
+        List<Booking> futureClassBookings = bookingRepository.findByMemberId(id).stream()
+                .filter(booking -> booking.getMember().getId().equals(id))
+                .filter(booking -> booking.getClassSchedule().getDateHeure().isAfter(now))
+                .toList();
+        futureClassBookings.forEach(booking -> booking.setStatut("CANCELLED"));
+        if (!futureClassBookings.isEmpty()) {
+            bookingRepository.saveAll(futureClassBookings);
+        }
+
+        List<CoachingRequest> pendingRequests = coachingRequestRepository
+                .findByMemberIdOrderByCreatedAtDesc(id).stream()
+                .filter(request -> request.getMember().getId().equals(id))
+                .filter(request -> "PENDING".equalsIgnoreCase(request.getStatus()))
+                .toList();
+        pendingRequests.forEach(request -> {
+            request.setStatus("CANCELLED");
+            request.setUpdatedAt(now);
+        });
+        if (!pendingRequests.isEmpty()) {
+            coachingRequestRepository.saveAll(pendingRequests);
+        }
 
         faceEmbeddingRepository.deleteAllByMemberId(id);
         faceAuthenticationRepository.findByUserId(id).ifPresent(faceAuthenticationRepository::delete);

@@ -12,6 +12,7 @@ public class CoachingRequestResponseDTO {
     private UUID id;
     private UUID memberId;
     private String memberName;
+    private boolean memberArchived;
     private UUID trainerId;
     private String trainerName;
     private LocalDateTime requestedAt;

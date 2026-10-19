@@ -67,6 +67,27 @@ test('coach client file is routed behind coach authorization and linked from the
   assert.match(detail, /coachNoteService\.createCoachNote/)
 })
 
+test('coach client lists exclude archived members and history uses the localized deleted-member label', () => {
+  const coachService = readSource('./services/coachService.js')
+  const trainerBookings = readSource('./services/trainerBookingService.js')
+  const schedule = readSource('./pages/coach/MySchedule.jsx')
+  const requests = readSource('./pages/coach/Requests.jsx')
+  const staffSessions = readSource('./pages/admin/TrainerBookings.jsx')
+  const activity = readSource('./pages/admin/ActivityLog.jsx')
+  const reception = readSource('./pages/reception/FrontDesk.jsx')
+  const translations = readSource('./context/I18nContext.jsx')
+
+  assert.match(trainerBookings, /\/api\/trainer-bookings\/trainer\/\$\{trainerId\}\/clients/)
+  assert.match(coachService, /getClientBookingsForTrainer\(trainerId\)/)
+  assert.match(coachService, /!booking\.memberArchived/)
+  for (const source of [schedule, requests, staffSessions, activity, reception]) {
+    assert.match(source, /deletedMember/)
+  }
+  for (const language of ['en', 'fr', 'ar']) {
+    assert.match(translations, new RegExp(`${language}: \\{[\\s\\S]*?deletedMember: '[^']+'`))
+  }
+})
+
 test('Google registration routes to membership selection without enrolling on sign-in', () => {
   const source = readSource('./pages/public/SignUp.jsx')
   const googleHandler = source.match(/const handleGoogleSignIn = async \(credential\) => \{([\s\S]*?)\n  \}/)

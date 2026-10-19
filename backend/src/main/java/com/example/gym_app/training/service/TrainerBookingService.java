@@ -13,7 +13,9 @@ import com.example.gym_app.user.entity.Trainer;
 import com.example.gym_app.user.repository.MemberRepository;
 import com.example.gym_app.user.repository.TrainerRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,6 +46,7 @@ public class TrainerBookingService {
         dto.setId(tb.getId());
         dto.setMemberId(tb.getMember().getId());
         dto.setMemberNom(tb.getMember().getPrenom() + " " + tb.getMember().getNom());
+        dto.setMemberArchived(tb.getMember().isArchived());
         dto.setTrainerId(tb.getTrainer().getId());
         dto.setTrainerNom(tb.getTrainer().getPrenom() + " " + tb.getTrainer().getNom());
         dto.setDateHeure(tb.getDateHeure());
@@ -65,33 +68,60 @@ public class TrainerBookingService {
         return tb;
     }
 
+    @Transactional(readOnly = true)
     public List<TrainerBookingResponseDTO> findAll() {
         securityUtil.requireStaff();
-        return trainerBookingRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+        LocalDateTime now = LocalDateTime.now();
+        return trainerBookingRepository.findAll().stream()
+                .filter(booking -> isVisibleHistory(booking, now))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<TrainerBookingResponseDTO> findByMember(UUID memberId) {
         if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
-            return trainerBookingRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
+            return mapVisibleHistory(trainerBookingRepository.findByMemberId(memberId));
         }
         securityUtil.requireRole(Role.MEMBER);
         if (!memberRepository.findById(memberId)
                 .map(member -> securityUtil.isCurrentUser(member.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
-        return trainerBookingRepository.findByMemberId(memberId).stream().map(this::toDTO).collect(Collectors.toList());
+        return mapVisibleHistory(trainerBookingRepository.findByMemberId(memberId));
     }
 
+    @Transactional(readOnly = true)
     public List<TrainerBookingResponseDTO> findByTrainer(UUID trainerId) {
         if (securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)) {
-            return trainerBookingRepository.findByTrainerId(trainerId).stream().map(this::toDTO).collect(Collectors.toList());
+            return mapVisibleHistory(trainerBookingRepository.findByTrainerId(trainerId));
         }
         securityUtil.requireRole(Role.TRAINER);
         if (!trainerRepository.findById(trainerId)
                 .map(trainer -> securityUtil.isCurrentUser(trainer.getEmail())).orElse(false)) {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
-        return trainerBookingRepository.findByTrainerId(trainerId).stream().map(this::toDTO).collect(Collectors.toList());
+        return mapVisibleHistory(trainerBookingRepository.findByTrainerId(trainerId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<TrainerBookingResponseDTO> findClientsByTrainer(UUID trainerId) {
+        return findByTrainer(trainerId).stream()
+                .filter(booking -> !booking.isMemberArchived())
+                .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut()))
+                .toList();
+    }
+
+    private List<TrainerBookingResponseDTO> mapVisibleHistory(List<Trainer_Booking> bookings) {
+        LocalDateTime now = LocalDateTime.now();
+        return bookings.stream()
+                .filter(booking -> isVisibleHistory(booking, now))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isVisibleHistory(Trainer_Booking booking, LocalDateTime now) {
+        return !booking.getMember().isArchived() || !booking.getDateHeure().isAfter(now);
     }
 
     public TrainerBookingResponseDTO create(TrainerBookingRequestDTO dto) {
@@ -104,6 +134,9 @@ public class TrainerBookingService {
             throw new org.springframework.security.access.AccessDeniedException("Acces refuse");
         }
         Trainer_Booking tb = toEntity(dto);
+        if (tb.getMember().isArchived()) {
+            throw new ResourceNotFoundException("Member introuvable avec id: " + dto.getMemberId());
+        }
 
         // Empeche un membre de reserver deux fois le meme trainer au meme horaire exact
         boolean dejaReserve = trainerBookingRepository.findByMemberId(tb.getMember().getId()).stream()

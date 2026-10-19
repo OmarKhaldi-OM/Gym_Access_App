@@ -45,6 +45,7 @@ public class AccessLogService {
         dto.setId(log.getId());
         dto.setMemberId(log.getMember().getId());
         dto.setMemberNom(log.getMember().getNom());
+        dto.setMemberArchived(log.getMember().isArchived());
         dto.setStaffId(log.getStaff() != null ? log.getStaff().getId() : null);
         dto.setHorodatage(log.getHorodatage());
         dto.setResultat(log.getResultat());

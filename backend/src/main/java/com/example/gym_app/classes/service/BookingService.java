@@ -46,6 +46,7 @@ public class BookingService {
         dto.setId(booking.getId());
         dto.setMemberId(booking.getMember().getId());
         dto.setMemberNom(booking.getMember().getNom());
+        dto.setMemberArchived(booking.getMember().isArchived());
         dto.setScheduleId(booking.getClassSchedule().getId());
         dto.setDateReservation(booking.getDateReservation());
         dto.setStatut(booking.getStatut());
@@ -60,6 +61,7 @@ public class BookingService {
     public Map<UUID, Long> countActiveBySchedule() {
         return bookingRepository.findAll().stream()
                 .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut()))
+                .filter(booking -> !booking.getMember().isArchived())
                 .collect(Collectors.groupingBy(booking -> booking.getClassSchedule().getId(), Collectors.counting()));
     }
 
@@ -90,6 +92,9 @@ public class BookingService {
     public BookingResponseDTO create(BookingRequestDTO dto) {
         Member member = memberRepository.findById(dto.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException("Member introuvable avec id: " + dto.getMemberId()));
+        if (member.isArchived()) {
+            throw new ResourceNotFoundException("Member introuvable avec id: " + dto.getMemberId());
+        }
         requireMemberAccess(member.getId());
         Class_Schedule schedule = classScheduleRepository.findById(dto.getScheduleId())
                 .orElseThrow(() -> new ResourceNotFoundException("ClassSchedule introuvable avec id: " + dto.getScheduleId()));
@@ -104,6 +109,7 @@ public class BookingService {
 
         long currentBookings = bookingRepository.findByClassScheduleId(schedule.getId()).stream()
             .filter(booking -> !"CANCELLED".equalsIgnoreCase(booking.getStatut()))
+            .filter(booking -> !booking.getMember().isArchived())
             .count();
         if (currentBookings >= schedule.getGymClass().getCapaciteMax()) {
             throw new ConflictException("Capacite maximale atteinte pour ce cours");

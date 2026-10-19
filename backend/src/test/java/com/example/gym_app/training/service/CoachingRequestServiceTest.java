@@ -28,10 +28,13 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class CoachingRequestServiceTest {
@@ -72,7 +75,7 @@ class CoachingRequestServiceTest {
         request.setRequestedAt(LocalDateTime.now().plusDays(1));
         request.setGoal("Improve strength");
         request.setStatus("PENDING");
-        when(requestRepository.findById(request.getId())).thenReturn(Optional.of(request));
+        lenient().when(requestRepository.findById(request.getId())).thenReturn(Optional.of(request));
     }
 
     @Test
@@ -116,6 +119,32 @@ class CoachingRequestServiceTest {
         assertEquals("CANCELLED", response.getStatus());
         verify(requestRepository).save(request);
         verify(trainerBookingRepository, never()).save(any(Trainer_Booking.class));
+    }
+
+    @Test
+    void trainerRequestListHidesArchivedPendingRequestsButKeepsHistory() {
+        Member archivedMember = new Member();
+        archivedMember.setId(UUID.randomUUID());
+        archivedMember.setArchived(true);
+        Member activeMember = new Member();
+        activeMember.setId(UUID.randomUUID());
+        Trainer trainer = request.getTrainer();
+
+        CoachingRequest archivedPending = requestFor(archivedMember, trainer, "PENDING");
+        CoachingRequest archivedHistory = requestFor(archivedMember, trainer, "ACCEPTED");
+        CoachingRequest activePending = requestFor(activeMember, trainer, "PENDING");
+        when(securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)).thenReturn(false);
+        when(trainerRepository.findById(trainer.getId())).thenReturn(Optional.of(trainer));
+        when(securityUtil.isCurrentUser(trainer.getEmail())).thenReturn(true);
+        when(requestRepository.findByTrainerIdOrderByCreatedAtDesc(trainer.getId()))
+                .thenReturn(List.of(archivedPending, archivedHistory, activePending));
+
+        var requests = coachingRequestService.findByTrainer(trainer.getId());
+
+        assertEquals(List.of("ACCEPTED", "PENDING"),
+                requests.stream().map(item -> item.getStatus()).toList());
+        assertTrue(requests.get(0).isMemberArchived());
+        assertFalse(requests.get(1).isMemberArchived());
     }
 
     @ParameterizedTest
@@ -172,5 +201,16 @@ class CoachingRequestServiceTest {
         dto.setStatus(value);
         dto.setResponse("Test response");
         return dto;
+    }
+
+    private CoachingRequest requestFor(Member member, Trainer trainer, String status) {
+        CoachingRequest result = new CoachingRequest();
+        result.setMember(member);
+        result.setTrainer(trainer);
+        result.setStatus(status);
+        result.setRequestedAt(LocalDateTime.now().plusDays(1));
+        result.setGoal("Improve strength");
+        result.setCreatedAt(LocalDateTime.now());
+        return result;
     }
 }

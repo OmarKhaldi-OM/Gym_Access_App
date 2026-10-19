@@ -36,6 +36,11 @@ public class TrainerBookingController {
         return trainerBookingService.findByTrainer(trainerId);
     }
 
+    @GetMapping("/trainer/{trainerId}/clients")
+    public List<TrainerBookingResponseDTO> getClientsByTrainer(@PathVariable("trainerId") UUID trainerId) {
+        return trainerBookingService.findClientsByTrainer(trainerId);
+    }
+
     @PostMapping
     public ResponseEntity<TrainerBookingResponseDTO> create(@Valid @RequestBody TrainerBookingRequestDTO dto) {
         return ResponseEntity.ok(trainerBookingService.create(dto));

@@ -20,7 +20,12 @@ function pairTodaySessions(entries) {
     .reverse()
     .forEach((e) => {
       if (e.type === 'entree') {
-        byMember.set(e.membreId, { nom: e.membreNom, entry: e.heure.slice(0, 5), exit: null })
+        byMember.set(e.membreId, {
+          nom: e.membreNom,
+          memberArchived: e.memberArchived,
+          entry: e.heure.slice(0, 5),
+          exit: null,
+        })
       } else if (e.type === 'sortie' && byMember.has(e.membreId)) {
         byMember.get(e.membreId).exit = e.heure.slice(0, 5)
       }
@@ -104,8 +109,8 @@ export default function FrontDesk() {
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Avatar name={a.nom} />
-                  <p className="text-lg font-semibold">{a.nom}</p>
+                  <Avatar name={a.memberArchived ? t('deletedMember') : a.nom} />
+                  <p className="text-lg font-semibold">{a.memberArchived ? t('deletedMember') : a.nom}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-base font-mono text-text-muted">

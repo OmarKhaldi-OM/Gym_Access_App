@@ -10,6 +10,7 @@ function mapLog(log) {
     ...log,
     membreId: log.memberId,
     membreNom: log.memberNom,
+    memberArchived: log.memberArchived,
     date: timestamp.date,
     heure: timestamp.time,
     type: log.resultat?.toLowerCase() === 'refuse' ? 'refuse' : accessType === 'sortie' ? 'sortie' : 'entree',

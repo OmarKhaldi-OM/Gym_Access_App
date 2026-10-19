@@ -61,3 +61,8 @@ qu'au coach propriétaire. Ne jamais réutiliser un numéro de migration déjà
 présent dans le dépôt, même si le changement demandé mentionne une version
 occupée; créer la prochaine version disponible pour éviter les collisions
 Flyway.
+
+V8 nettoie les données déjà présentes pour les membres `archived` : séances
+individuelles et réservations de cours futures annulées, demandes de coaching
+`PENDING` passées à `CANCELLED`. Les réservations et séances passées restent
+inchangées.

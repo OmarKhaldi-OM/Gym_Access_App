@@ -94,6 +94,43 @@ class BookingServiceTest {
     }
 
     @Test
+    void archivedMemberBookingsDoNotCountTowardCourseCapacity() {
+        UUID memberId = UUID.randomUUID();
+        UUID scheduleId = UUID.randomUUID();
+        Member member = new Member();
+        member.setId(memberId);
+        Member archivedMember = new Member();
+        archivedMember.setArchived(true);
+
+        Class_Schedule schedule = new Class_Schedule();
+        schedule.setId(scheduleId);
+        Gym_Class gymClass = new Gym_Class();
+        gymClass.setCapaciteMax(1);
+        schedule.setGymClass(gymClass);
+
+        Booking archivedBooking = new Booking();
+        archivedBooking.setMember(archivedMember);
+        archivedBooking.setClassSchedule(schedule);
+        archivedBooking.setStatut("CONFIRMED");
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(securityUtil.hasAnyRole(Role.ADMIN, Role.RECEPTIONIST)).thenReturn(true);
+        when(classScheduleRepository.findById(scheduleId)).thenReturn(Optional.of(schedule));
+        when(bookingRepository.findByMemberId(memberId)).thenReturn(List.of());
+        when(bookingRepository.findByClassScheduleId(scheduleId)).thenReturn(List.of(archivedBooking));
+        when(bookingRepository.findAll()).thenReturn(List.of(archivedBooking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        BookingRequestDTO request = new BookingRequestDTO();
+        request.setMemberId(memberId);
+        request.setScheduleId(scheduleId);
+        request.setStatut("CONFIRMED");
+
+        assertEquals(Map.of(), bookingService.countActiveBySchedule());
+        assertEquals("CONFIRMED", bookingService.create(request).getStatut());
+    }
+
+    @Test
     void rejectsBookingWhenClassCapacityIsReached() {
         UUID memberId = UUID.randomUUID();
         UUID scheduleId = UUID.randomUUID();

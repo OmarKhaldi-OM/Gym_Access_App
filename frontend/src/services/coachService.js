@@ -1,12 +1,12 @@
-import { getBookingsForTrainer } from './trainerBookingService.js'
+import { getBookingsForTrainer, getClientBookingsForTrainer } from './trainerBookingService.js'
 import { getClassesForTrainer } from './classService.js'
 import { apiGet } from './api.js'
 import * as progressService from './progressService.js'
 import * as coachNoteService from './coachNoteService.js'
 
 export async function getCoachClients(trainerId) {
-  const bookings = (await getBookingsForTrainer(trainerId))
-    .filter((booking) => booking.statut !== 'annulee')
+  const bookings = (await getClientBookingsForTrainer(trainerId))
+    .filter((booking) => !booking.memberArchived && booking.statut !== 'annulee')
   const uniqueMembers = new Map()
   bookings.forEach((booking) => {
     const client = uniqueMembers.get(booking.memberId) || {
@@ -32,6 +32,7 @@ export async function getCoachSchedule(trainerId) {
     heureDebut: booking.dateTime.slice(11, 16),
     heureFin: new Date(new Date(booking.dateTime).getTime() + 3600000).toTimeString().slice(0, 5),
     clientNom: booking.clientNom,
+    memberArchived: booking.memberArchived,
   })) }
 }
 

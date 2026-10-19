@@ -12,6 +12,7 @@ public class BookingResponseDTO {
     private UUID id;
     private UUID memberId;
     private String memberNom;
+    private boolean memberArchived;
     private UUID scheduleId;
     private LocalDateTime dateReservation;
     private String statut;

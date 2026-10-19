@@ -95,8 +95,8 @@ export default function ActivityLog() {
               }`}
             >
               <div className="flex items-center gap-3">
-                <Avatar name={log.membreNom} />
-                <p className="text-lg font-semibold">{log.membreNom}</p>
+                <Avatar name={log.memberArchived ? t('deletedMember') : log.membreNom} />
+                <p className="text-lg font-semibold">{log.memberArchived ? t('deletedMember') : log.membreNom}</p>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-base font-mono text-text-muted">{log.heure}</span>

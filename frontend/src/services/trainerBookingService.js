@@ -38,6 +38,10 @@ export async function getBookingsForTrainer(trainerId) {
   return (await apiGet(`/api/trainer-bookings/trainer/${trainerId}`)).map(mapBooking)
 }
 
+export async function getClientBookingsForTrainer(trainerId) {
+  return (await apiGet(`/api/trainer-bookings/trainer/${trainerId}/clients`)).map(mapBooking)
+}
+
 export async function createTrainerBooking(details) {
   return mapBooking(await apiPost('/api/trainer-bookings', details))
 }

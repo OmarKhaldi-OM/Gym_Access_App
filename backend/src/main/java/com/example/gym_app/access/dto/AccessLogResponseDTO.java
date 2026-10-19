@@ -13,6 +13,7 @@ public class AccessLogResponseDTO {
     private UUID id;
     private UUID memberId;
     private String memberNom;
+    private boolean memberArchived;
     private UUID staffId;
     private LocalDateTime horodatage;
     private String resultat;

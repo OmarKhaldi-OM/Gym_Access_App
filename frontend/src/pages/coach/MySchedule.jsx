@@ -56,7 +56,7 @@ export default function MySchedule() {
     start: p.heureDebut,
     end: p.heureFin,
     title: 'personalSession',
-    subtitle: `${p.clientNom}`,
+    subtitle: p.memberArchived ? t('deletedMember') : p.clientNom,
     meta: p.studio,
     muted: false,
     badge: { text: '1 client', tone: 'muted' },

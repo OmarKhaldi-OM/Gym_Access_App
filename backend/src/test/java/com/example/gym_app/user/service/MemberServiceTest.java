@@ -4,10 +4,17 @@ import com.example.gym_app.access.entity.Access_Log;
 import com.example.gym_app.access.entity.Face_Authentication;
 import com.example.gym_app.access.repository.FaceAuthenticationRepository;
 import com.example.gym_app.access.repository.FaceEmbeddingRepository;
+import com.example.gym_app.classes.entity.Booking;
+import com.example.gym_app.classes.entity.Class_Schedule;
+import com.example.gym_app.classes.repository.BookingRepository;
 import com.example.gym_app.membership.entity.Subscription;
 import com.example.gym_app.membership.repository.SubscriptionRepository;
 import com.example.gym_app.security.ProfilePhotoStorageService;
 import com.example.gym_app.security.SecurityUtil;
+import com.example.gym_app.training.entity.CoachingRequest;
+import com.example.gym_app.training.entity.Trainer_Booking;
+import com.example.gym_app.training.repository.CoachingRequestRepository;
+import com.example.gym_app.training.repository.TrainerBookingRepository;
 import com.example.gym_app.training.service.CoachClientAccessService;
 import com.example.gym_app.user.entity.Member;
 import com.example.gym_app.user.entity.Role;
@@ -20,6 +27,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,6 +54,12 @@ class MemberServiceTest {
     @Mock
     private SubscriptionRepository subscriptionRepository;
     @Mock
+    private BookingRepository bookingRepository;
+    @Mock
+    private TrainerBookingRepository trainerBookingRepository;
+    @Mock
+    private CoachingRequestRepository coachingRequestRepository;
+    @Mock
     private FaceEmbeddingRepository faceEmbeddingRepository;
     @Mock
     private FaceAuthenticationRepository faceAuthenticationRepository;
@@ -63,6 +77,9 @@ class MemberServiceTest {
                 passwordEncoder,
                 securityUtil,
                 subscriptionRepository,
+                bookingRepository,
+                trainerBookingRepository,
+                coachingRequestRepository,
                 faceEmbeddingRepository,
                 faceAuthenticationRepository,
                 profilePhotoStorageService,
@@ -119,6 +136,57 @@ class MemberServiceTest {
     }
 
     @Test
+    void deletionCancelsOnlyFutureSessionsAndPendingRequestsForThatMember() {
+        UUID memberId = UUID.randomUUID();
+        Member member = new Member();
+        member.setId(memberId);
+        Member otherMember = new Member();
+        otherMember.setId(UUID.randomUUID());
+
+        Trainer_Booking futureSession = trainerBooking(member, LocalDateTime.now().plusDays(1));
+        futureSession.setStatut("CONFIRMED");
+        Trainer_Booking pastSession = trainerBooking(member, LocalDateTime.now().minusDays(1));
+        pastSession.setStatut("CONFIRMED");
+        Trainer_Booking otherFutureSession = trainerBooking(otherMember, LocalDateTime.now().plusDays(1));
+        otherFutureSession.setStatut("CONFIRMED");
+
+        Booking futureClassBooking = classBooking(member, LocalDateTime.now().plusDays(1));
+        futureClassBooking.setStatut("CONFIRMED");
+        Booking pastClassBooking = classBooking(member, LocalDateTime.now().minusDays(1));
+        pastClassBooking.setStatut("CONFIRMED");
+        Booking otherClassBooking = classBooking(otherMember, LocalDateTime.now().plusDays(1));
+        otherClassBooking.setStatut("CONFIRMED");
+
+        CoachingRequest pendingRequest = coachingRequest(member, "PENDING");
+        CoachingRequest handledRequest = coachingRequest(member, "ACCEPTED");
+        CoachingRequest otherPendingRequest = coachingRequest(otherMember, "PENDING");
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(passwordEncoder.encode(anyString())).thenReturn("unusable-password-hash");
+        when(trainerBookingRepository.findByMemberId(memberId))
+                .thenReturn(List.of(futureSession, pastSession, otherFutureSession));
+        when(bookingRepository.findByMemberId(memberId))
+                .thenReturn(List.of(futureClassBooking, pastClassBooking, otherClassBooking));
+        when(coachingRequestRepository.findByMemberIdOrderByCreatedAtDesc(memberId))
+                .thenReturn(List.of(pendingRequest, handledRequest, otherPendingRequest));
+
+        memberService.delete(memberId);
+
+        assertEquals("CANCELLED", futureSession.getStatut());
+        assertEquals("CONFIRMED", pastSession.getStatut());
+        assertEquals("CONFIRMED", otherFutureSession.getStatut());
+        assertEquals("CANCELLED", futureClassBooking.getStatut());
+        assertEquals("CONFIRMED", pastClassBooking.getStatut());
+        assertEquals("CONFIRMED", otherClassBooking.getStatut());
+        assertEquals("CANCELLED", pendingRequest.getStatus());
+        assertEquals("ACCEPTED", handledRequest.getStatus());
+        assertEquals("PENDING", otherPendingRequest.getStatus());
+        verify(trainerBookingRepository).saveAll(List.of(futureSession));
+        verify(bookingRepository).saveAll(List.of(futureClassBooking));
+        verify(coachingRequestRepository).saveAll(List.of(pendingRequest));
+    }
+
+    @Test
     void memberListExcludesArchivedProfiles() {
         when(memberRepository.findByArchivedFalse()).thenReturn(List.of(new Member()));
 
@@ -166,5 +234,28 @@ class MemberServiceTest {
                 .when(coachClientAccessService).requireClientAccess(memberId);
 
         assertThrows(AccessDeniedException.class, () -> memberService.findById(memberId));
+    }
+
+    private Trainer_Booking trainerBooking(Member member, LocalDateTime dateTime) {
+        Trainer_Booking booking = new Trainer_Booking();
+        booking.setMember(member);
+        booking.setDateHeure(dateTime);
+        return booking;
+    }
+
+    private Booking classBooking(Member member, LocalDateTime dateTime) {
+        Class_Schedule schedule = new Class_Schedule();
+        schedule.setDateHeure(dateTime);
+        Booking booking = new Booking();
+        booking.setMember(member);
+        booking.setClassSchedule(schedule);
+        return booking;
+    }
+
+    private CoachingRequest coachingRequest(Member member, String status) {
+        CoachingRequest request = new CoachingRequest();
+        request.setMember(member);
+        request.setStatus(status);
+        return request;
     }
 }
