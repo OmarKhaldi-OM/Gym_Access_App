@@ -34,6 +34,15 @@ test('allows only admin and receptionist to manage membership plans', () => {
   assert.equal(canAccessRoute({ role: 'MEMBER' }, '/admin/plans'), false)
 })
 
+test('staff account management is an admin-only navigation route', () => {
+  const adminNavigation = getRoleDefinition('ADMIN').navigation
+  assert.equal(adminNavigation.some((item) => item.to === '/admin/staff' && item.key === 'manageStaff'), true)
+  assert.equal(canAccessRoute({ role: 'ADMIN' }, '/admin/staff'), true)
+  assert.equal(canAccessRoute({ role: 'RECEPTIONIST' }, '/admin/staff'), false)
+  assert.equal(canAccessRoute({ role: 'TRAINER' }, '/admin/staff'), false)
+  assert.equal(canAccessRoute({ role: 'MEMBER' }, '/admin/staff'), false)
+})
+
 test('allows members to complete membership selection without opening other role routes', () => {
   assert.equal(canAccessRoute({ role: 'MEMBER' }, '/membership/setup'), true)
   assert.equal(canAccessRoute({ role: 'ADMIN' }, '/membership/setup'), false)

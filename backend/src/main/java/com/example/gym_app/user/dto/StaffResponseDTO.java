@@ -14,7 +14,9 @@ public class StaffResponseDTO {
     private String nom;
     private String prenom;
     private String email;
+    private String telephone;
     private Role role;
     private LocalDate dateEmbauche;
+    private String specialite;
 
 }

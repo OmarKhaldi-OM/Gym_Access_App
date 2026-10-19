@@ -9,7 +9,11 @@ import com.example.gym_app.membership.service.MembershipPlanService;
 import com.example.gym_app.membership.service.SubscriptionService;
 import com.example.gym_app.security.dto.AuthResponseDTO;
 import com.example.gym_app.user.controller.MemberController;
+import com.example.gym_app.user.controller.StaffController;
+import com.example.gym_app.user.controller.TrainerController;
 import com.example.gym_app.user.service.MemberService;
+import com.example.gym_app.user.service.StaffService;
+import com.example.gym_app.user.service.TrainerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -29,9 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest({MemberController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class})
+@WebMvcTest({MemberController.class, StaffController.class, TrainerController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class})
 @AutoConfigureMockMvc(addFilters = true)
-@Import({SecurityConfig.class, JwtAuthFilter.class, MemberController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class})
+@Import({SecurityConfig.class, JwtAuthFilter.class, MemberController.class, StaffController.class, TrainerController.class, FaceRecognitionController.class, GoogleAuthController.class, SubscriptionController.class, MembershipPlanController.class})
 class SecurityConfigAuthorizationTest {
 
     @Autowired
@@ -39,6 +43,12 @@ class SecurityConfigAuthorizationTest {
 
     @MockitoBean
     private MemberService memberService;
+
+    @MockitoBean
+    private StaffService staffService;
+
+    @MockitoBean
+    private TrainerService trainerService;
 
     @MockitoBean
     private FaceRecognitionService faceRecognitionService;
@@ -155,6 +165,24 @@ class SecurityConfigAuthorizationTest {
                 .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/api/plans/manage").with(user("member").roles("MEMBER")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void staffAccountManagementRequiresAdminForDirectApiRequests() throws Exception {
+        mockMvc.perform(get("/api/staff"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/staff").with(user("reception").roles("RECEPTIONIST")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/trainers")
+                        .with(user("member").roles("MEMBER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/staff")
+                        .with(user("reception").roles("RECEPTIONIST"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isForbidden());
     }
 

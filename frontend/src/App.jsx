@@ -25,6 +25,7 @@ import AdminMemberProfile from './pages/admin/MemberProfile.jsx'
 import AdminClassSchedule from './pages/admin/ClassSchedule.jsx'
 import AdminTrainerBookings from './pages/admin/TrainerBookings.jsx'
 import AdminPlans from './pages/admin/Plans.jsx'
+import AdminStaff from './pages/admin/Staff.jsx'
 
 import MyStatus from './pages/member/MyStatus.jsx'
 import MyMembership from './pages/member/MyMembership.jsx'
@@ -80,6 +81,7 @@ function AppRoutes() {
       <Route path="/admin/schedule" element={<RequireRole><AdminClassSchedule /></RequireRole>} />
       <Route path="/admin/trainer-bookings" element={<RequireRole><AdminTrainerBookings /></RequireRole>} />
       <Route path="/admin/plans" element={<RequireRole><AdminPlans /></RequireRole>} />
+      <Route path="/admin/staff" element={<RequireRole><AdminStaff /></RequireRole>} />
       <Route path="/admin/face-recognition" element={<RequireRole><FaceRecognitionPage /></RequireRole>} />
       <Route path="/admin/profile" element={<RequireRole><ProfileEdit /></RequireRole>} />
 

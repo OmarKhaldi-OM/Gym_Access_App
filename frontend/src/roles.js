@@ -39,7 +39,7 @@ const roleDefinitions = Object.freeze({
     profilePath: '/admin/profile',
     label: 'admin',
     navigation: [
-      { to: '/admin/dashboard', key: 'dashboard' }, { to: '/admin/activity', key: 'activity' }, { to: '/admin/members', key: 'members' }, { to: '/admin/schedule', key: 'schedule' }, { to: '/admin/trainer-bookings', key: 'trainerBookings' }, { to: '/admin/plans', key: 'managePlans' }, { to: '/admin/face-recognition', key: 'faceRecognition' },
+      { to: '/admin/dashboard', key: 'dashboard' }, { to: '/admin/activity', key: 'activity' }, { to: '/admin/members', key: 'members' }, { to: '/admin/staff', key: 'manageStaff' }, { to: '/admin/schedule', key: 'schedule' }, { to: '/admin/trainer-bookings', key: 'trainerBookings' }, { to: '/admin/plans', key: 'managePlans' }, { to: '/admin/face-recognition', key: 'faceRecognition' },
     ],
   },
   [ROLES.RECEPTIONIST]: {

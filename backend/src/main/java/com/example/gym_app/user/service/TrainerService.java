@@ -1,32 +1,38 @@
 package com.example.gym_app.user.service;
 
 import com.example.gym_app.exception.ResourceNotFoundException;
+import com.example.gym_app.exception.ConflictException;
 import com.example.gym_app.security.SecurityUtil;
 import com.example.gym_app.user.dto.TrainerRequestDTO;
 import com.example.gym_app.user.dto.TrainerResponseDTO;
+import com.example.gym_app.user.dto.TrainerUpdateRequestDTO;
 import com.example.gym_app.user.entity.Role;
 import com.example.gym_app.user.entity.Trainer;
 import com.example.gym_app.user.repository.TrainerRepository;
+import com.example.gym_app.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.Locale;
 
 @Service
 public class TrainerService {
 
     private final TrainerRepository trainerRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final SecurityUtil securityUtil;
 
     public TrainerService(
             TrainerRepository trainerRepository,
+            UserRepository userRepository,
             PasswordEncoder passwordEncoder,
             SecurityUtil securityUtil) {
         this.trainerRepository = trainerRepository;
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.securityUtil = securityUtil;
     }
@@ -46,7 +52,8 @@ public class TrainerService {
         Trainer trainer = new Trainer();
         trainer.setNom(dto.getNom());
         trainer.setPrenom(dto.getPrenom());
-        trainer.setEmail(dto.getEmail());
+        trainer.setEmail(normalizeEmail(dto.getEmail()));
+        trainer.setTelephone(dto.getTelephone());
         trainer.setMotDePasse(passwordEncoder.encode(dto.getMotDePasse()));
         trainer.setRole(Role.TRAINER);
         trainer.setDateEmbauche(dto.getDateEmbauche());
@@ -57,7 +64,7 @@ public class TrainerService {
 
     public List<TrainerResponseDTO> findAll() {
         securityUtil.requireRole(Role.values());
-        return trainerRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+        return trainerRepository.findAll().stream().map(this::toDTO).toList();
     }
 
     public TrainerResponseDTO findById(UUID id) {
@@ -69,16 +76,19 @@ public class TrainerService {
 
     public TrainerResponseDTO create(TrainerRequestDTO dto) {
         securityUtil.requireRole(Role.ADMIN);
+        requireEmailAvailable(dto.getEmail(), null);
         return toDTO(trainerRepository.save(toEntity(dto)));
     }
 
-    public TrainerResponseDTO update(UUID id, TrainerRequestDTO dto) {
+    public TrainerResponseDTO update(UUID id, TrainerUpdateRequestDTO dto) {
         securityUtil.requireRole(Role.ADMIN);
         Trainer existing = trainerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Trainer introuvable avec id: " + id));
+        requireEmailAvailable(dto.getEmail(), id);
         existing.setNom(dto.getNom());
         existing.setPrenom(dto.getPrenom());
-        existing.setEmail(dto.getEmail());
+        existing.setEmail(normalizeEmail(dto.getEmail()));
+        existing.setTelephone(dto.getTelephone());
         existing.setDateEmbauche(dto.getDateEmbauche());
         existing.setSpecialite(dto.getSpecialite());
         return toDTO(trainerRepository.save(existing));
@@ -86,6 +96,20 @@ public class TrainerService {
 
     public void delete(UUID id) {
         securityUtil.requireRole(Role.ADMIN);
-        trainerRepository.deleteById(id);
+        Trainer trainer = trainerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trainer introuvable avec id: " + id));
+        trainerRepository.delete(trainer);
+    }
+
+    private void requireEmailAvailable(String email, UUID currentId) {
+        userRepository.findByEmailIgnoreCase(normalizeEmail(email)).ifPresent(existing -> {
+            if (!existing.getId().equals(currentId)) {
+                throw new ConflictException("Cette adresse email est deja utilisee");
+            }
+        });
+    }
+
+    private String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

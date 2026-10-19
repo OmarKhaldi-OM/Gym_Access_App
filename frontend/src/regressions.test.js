@@ -121,6 +121,27 @@ test('membership onboarding and plan availability are translated in every suppor
   }
 })
 
+test('staff account management text is translated in every supported language', () => {
+  const source = readSource('./context/I18nContext.jsx')
+  const catalogs = source.slice(source.indexOf('const additionalMessages'), source.indexOf('const dictionaries'))
+  const keys = [
+    'manageStaff', 'staffManagementHelp', 'createStaff', 'editStaff', 'deleteStaff', 'staffAccounts',
+    'staffRole', 'trainerRole', 'receptionistRole', 'hireDate', 'initialPassword', 'initialPasswordHelp',
+    'searchStaff', 'searchStaffPlaceholder', 'filterStaffRole', 'allStaff', 'noStaffAccounts',
+    'noStaffMatches', 'clearFilters', 'viewDetails', 'staffDetails', 'staffStatusUnavailable',
+    'confirmDeleteStaff', 'staffCreated', 'staffUpdated', 'staffDeleted', 'staffSaveFailed', 'refresh',
+  ]
+
+  for (const language of ['en', 'fr', 'ar']) {
+    const start = catalogs.indexOf(`${language}: {`)
+    const next = catalogs.indexOf('\n  },', start)
+    const catalog = catalogs.slice(start, next)
+    for (const key of keys) {
+      assert.match(catalog, new RegExp(`${key}:\\s*'[^']+'`), `${language} should translate ${key}`)
+    }
+  }
+})
+
 test('theme follows the browser preference unless manually overridden in the current session', () => {
   const source = readSource('./context/ThemeContext.jsx')
 

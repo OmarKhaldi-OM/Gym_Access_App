@@ -2,6 +2,7 @@ package com.example.gym_app.user.controller;
 
 import com.example.gym_app.user.dto.TrainerRequestDTO;
 import com.example.gym_app.user.dto.TrainerResponseDTO;
+import com.example.gym_app.user.dto.TrainerUpdateRequestDTO;
 import com.example.gym_app.user.service.TrainerService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,7 @@ public class TrainerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TrainerResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody TrainerRequestDTO dto) {
+    public ResponseEntity<TrainerResponseDTO> update(@PathVariable("id") UUID id, @Valid @RequestBody TrainerUpdateRequestDTO dto) {
         return ResponseEntity.ok(trainerService.update(id, dto));
     }
 
