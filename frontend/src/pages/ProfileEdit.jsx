@@ -18,7 +18,7 @@ const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 export default function ProfileEdit() {
   const t = useT()
   const { user } = useAuth()
-  const { toastMessage, showToast } = useToast()
+  const { toastMessage, toastVariant, toastId, toastLeaving, showToast, dismissToast } = useToast()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [photoFile, setPhotoFile] = useState(null)
@@ -121,7 +121,6 @@ export default function ProfileEdit() {
       setGoogleLinked(true)
       showToast(t('googleLinked'))
     } catch (linkError) {
-      window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setGoogleLinkError(linkError.message || t('googleSignInError'))
     } finally {
       setIsLinkingGoogle(false)
@@ -172,7 +171,7 @@ export default function ProfileEdit() {
         onClose={() => setConfirmPhotoRemoval(false)}
         onConfirm={confirmRemovePhoto}
       />}
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} variant={toastVariant} id={toastId} leaving={toastLeaving} onClose={dismissToast} />
     </Layout>
   )
 }

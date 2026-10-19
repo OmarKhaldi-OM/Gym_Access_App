@@ -1,5 +1,3 @@
-import { useEffect } from 'react'
-
 export function ApiLoading({ message = 'Chargement…' }) {
   return <div className="flex min-h-20 items-center gap-3 py-4 text-base font-medium text-text-muted" role="status">
     <span className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
@@ -15,10 +13,6 @@ export function ApiEmpty({ message, action, className = '' }) {
 }
 
 export function ApiError({ error, onRetry, retryLabel = 'Réessayer', fallbackMessage = 'Une erreur est survenue lors du chargement des données.' }) {
-  useEffect(() => {
-    if (error) window.dispatchEvent(new Event('gate:api-error-dismiss'))
-  }, [error])
-
   if (!error) return null
 
   const rawMessage = typeof error.message === 'string' ? error.message.trim() : ''

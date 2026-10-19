@@ -19,7 +19,7 @@ export default function ClassSchedule() {
   const [creating, setCreating] = useState(false)
   const [classToDelete, setClassToDelete] = useState(null)
   const [weekOffset, setWeekOffset] = useState(0)
-  const { toastMessage, showToast } = useToast()
+  const { toastMessage, toastVariant, toastId, toastLeaving, showToast, dismissToast } = useToast()
   const t = useT()
   const baseDays = getDaysForWeek(0)
   const selectedClass = classes.find((item) => item.id === selected?.id) ?? null
@@ -73,7 +73,7 @@ export default function ClassSchedule() {
         onClose={() => setClassToDelete(null)}
         onConfirm={handleDelete}
       />}
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} variant={toastVariant} id={toastId} leaving={toastLeaving} onClose={dismissToast} />
     </Layout>
   )
 }

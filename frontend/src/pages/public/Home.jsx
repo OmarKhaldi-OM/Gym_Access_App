@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { PublicShell } from '../../components/PublicSite.jsx'
 import { useT } from '../../context/I18nContext.jsx'
 
@@ -10,11 +11,17 @@ const highlights = [
 
 export default function Home() {
   const t = useT()
+  const { hash } = useLocation()
   const localizedHighlights = highlights.map((item) => ({
     ...item,
     title: t(item.number === '01' ? 'trainAtYourPace' : item.number === '02' ? 'findYourGroup' : 'trackProgress', item.title),
     detail: t(item.number === '01' ? 'trainDetail' : item.number === '02' ? 'groupDetail' : 'progressDetail', item.detail),
   }))
+
+  useEffect(() => {
+    if (hash === '#club') document.getElementById('club')?.scrollIntoView()
+  }, [hash])
+
   return (
     <PublicShell>
       <main>

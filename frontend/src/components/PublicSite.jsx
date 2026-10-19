@@ -18,7 +18,7 @@ export function PublicHeader() {
       </Link>
       <nav className="public-nav" aria-label={t('primaryNavigation')}>
         <NavLink to="/plans">{t('plans')}</NavLink>
-        <a href="/#club">{t('club')}</a>
+        <Link to="/">{t('club')}</Link>
         <Link className="nav-login" to="/signin">{t('signIn')}</Link>
         <Link className="button button-dark nav-join" to="/plans">{t('join')} <span aria-hidden="true">↗</span></Link>
         <PublicControls />

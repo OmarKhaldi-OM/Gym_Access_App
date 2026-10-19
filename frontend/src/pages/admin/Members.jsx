@@ -16,7 +16,7 @@ export default function Members() {
   const { members, loading, error, refresh } = useMembers()
   const location = useLocation()
   const navigate = useNavigate()
-  const { toastMessage, showToast } = useToast()
+  const { toastMessage, toastVariant, toastId, toastLeaving, showToast, dismissToast } = useToast()
   const [query, setQuery] = useState('')
   const normalizedQuery = query.trim().toLocaleLowerCase()
   const results = useMemo(() => members.filter((member) => member.nom.toLocaleLowerCase().includes(normalizedQuery)), [members, normalizedQuery])
@@ -75,7 +75,7 @@ export default function Members() {
           ))}
         </div>
       </Panel>
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} variant={toastVariant} id={toastId} leaving={toastLeaving} onClose={dismissToast} />
     </Layout>
   )
 }

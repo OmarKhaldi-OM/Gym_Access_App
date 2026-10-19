@@ -13,7 +13,7 @@ const emptyForm = { nom: '', prix: '', dureeJours: '', actif: true }
 
 export default function AdminPlans() {
   const t = useT()
-  const { toastMessage, showToast } = useToast()
+  const { toastMessage, toastVariant, toastId, toastLeaving, showToast, dismissToast } = useToast()
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -191,7 +191,7 @@ export default function AdminPlans() {
         onClose={() => setPlanToDelete(null)}
         onConfirm={handleDelete}
       />}
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} variant={toastVariant} id={toastId} leaving={toastLeaving} onClose={dismissToast} />
     </Layout>
   )
 }

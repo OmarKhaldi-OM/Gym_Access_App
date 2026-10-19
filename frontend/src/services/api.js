@@ -1,3 +1,5 @@
+import { getApiErrorInfo } from './apiErrors.js'
+
 const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 const TOKEN_KEY = 'gate.token'
 const USER_KEY = 'gate.user'
@@ -6,10 +8,6 @@ function clearSession() {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(USER_KEY)
   window.dispatchEvent(new Event('gate:unauthorized'))
-}
-
-function dispatchApiError(message) {
-  window.dispatchEvent(new CustomEvent('gate:api-error', { detail: message }))
 }
 
 async function parseResponse(response) {
@@ -37,9 +35,13 @@ export async function apiRequest(path, options = {}) {
   let response
   try {
     response = await fetch(`${API_BASE_URL}${path}`, { ...requestOptions, headers })
-  } catch {
-    const error = new Error('Le serveur est injoignable. Vérifiez qu’il est démarré puis réessayez.')
-    dispatchApiError(error.message)
+  } catch (cause) {
+    if (cause?.name === 'AbortError') throw cause
+    const info = getApiErrorInfo(null, path, null, { network: true })
+    const error = new Error(info.message)
+    error.category = info.category
+    error.title = info.title
+    error.cause = cause
     throw error
   }
 
@@ -49,28 +51,11 @@ export async function apiRequest(path, options = {}) {
 
   const body = await parseResponse(response)
   if (!response.ok) {
-    const serverMessage = typeof body?.message === 'string' ? body.message.trim() : ''
-    const safeServerMessage = response.status < 500
-      && serverMessage.length > 0
-      && serverMessage.length <= 300
-      && !/(?:exception|stack\s*trace|\bat\s+[\w.$]+\(|<\/?(?:html|body|pre)\b)/i.test(serverMessage)
-      ? serverMessage
-      : ''
-    const message = response.status === 401
-      ? path === '/api/auth/login'
-        ? 'Adresse e-mail ou mot de passe incorrect.'
-        : path === '/api/auth/face-login'
-          ? 'Face not recognized or not enrolled. Try again or use your password.'
-          : 'Votre session a expiré. Connectez-vous à nouveau.'
-      : response.status === 403
-        ? 'Vous n’avez pas les droits pour effectuer cette action.'
-        : response.status === 503
-          && (path.startsWith('/api/face-recognition/') || path === '/api/auth/face-login')
-          ? 'Face recognition is unavailable. Make sure the face recognition service is running, then retry.'
-        : safeServerMessage || 'La requête a échoué. Veuillez réessayer.'
-    const error = new Error(message)
+    const info = getApiErrorInfo(response.status, path, body)
+    const error = new Error(info.message)
     error.status = response.status
-    dispatchApiError(message)
+    error.category = info.category
+    error.title = info.title
     throw error
   }
   return body

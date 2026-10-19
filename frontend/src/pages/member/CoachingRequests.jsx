@@ -15,7 +15,7 @@ const statusMap = { pending: ['pending', 'neutral'], accepted: ['accepted', 'pos
 export default function CoachingRequests() {
   const t = useT()
   const { user } = useAuth()
-  const { toastMessage, showToast } = useToast()
+  const { toastMessage, toastVariant, toastId, toastLeaving, showToast, dismissToast } = useToast()
   const [coaches, setCoaches] = useState([])
   const [requests, setRequests] = useState([])
   const [notifications, setNotifications] = useState([])
@@ -97,7 +97,7 @@ export default function CoachingRequests() {
           })}
         </div>
       </Panel>
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} variant={toastVariant} id={toastId} leaving={toastLeaving} onClose={dismissToast} />
     </Layout>
   )
 }

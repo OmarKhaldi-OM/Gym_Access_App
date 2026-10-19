@@ -138,6 +138,18 @@ test('initial browser preference is applied before the application module loads'
   assert.ok(source.indexOf('<script>') < source.indexOf('<script type="module"'))
 })
 
+test('public Club navigation returns to the index top without resetting the theme session', () => {
+  const appSource = readSource('./App.jsx')
+  const publicSiteSource = readSource('./components/PublicSite.jsx')
+  const homeSource = readSource('./pages/public/Home.jsx')
+
+  assert.match(appSource, /<ThemeProvider>[\s\S]*<AppRoutes \/>[\s\S]*<\/ThemeProvider>/)
+  assert.match(publicSiteSource, /<Link to="\/">\{t\('club'\)\}<\/Link>/)
+  assert.doesNotMatch(publicSiteSource, /href="\/#club"/)
+  assert.match(homeSource, /if \(hash === '#club'\) document\.getElementById\('club'\)\?\.scrollIntoView\(\)/)
+  assert.match(homeSource, /<a className="text-link" href="#club">\{t\('club'\)\}/)
+})
+
 test('primary green buttons meet WCAG AA contrast in both themes and interaction states', () => {
   const source = readSource('./index.css')
   const lightTheme = source.match(/:root\s*\{([^}]*)\}/)
@@ -181,6 +193,49 @@ test('primary green buttons meet WCAG AA contrast in both themes and interaction
     const disabledBackground = rgbHex(mixColors(lightBackground, page, 0.65))
     assert.ok(contrastRatio(disabledForeground, disabledBackground) >= 4.5, `${theme} disabled/loading text should meet WCAG AA`)
   }
+})
+
+test('notifications use readable theme tokens, responsive wrapping, and reduced motion', () => {
+  const source = readSource('./index.css')
+  const lightTheme = source.match(/:root\s*\{([^}]*)\}/)
+  const darkTheme = source.match(/:root\[data-theme='dark'\]\s*\{([^}]*)\}/)
+  assert.ok(lightTheme, 'light notification tokens should exist')
+  assert.ok(darkTheme, 'dark notification tokens should exist')
+
+  const getColor = (block, token) => {
+    const match = block.match(new RegExp(`${token}:\\s*(#[\\da-fA-F]{6})`))
+    assert.ok(match, `expected ${token} color token`)
+    return match[1]
+  }
+  for (const [theme, block] of [['light', lightTheme[1]], ['dark', darkTheme[1]]]) {
+    assert.ok(contrastRatio(getColor(block, '--notice-error-text'), getColor(block, '--notice-error-bg')) >= 4.5, `${theme} error text should meet WCAG AA`)
+    assert.ok(contrastRatio(getColor(block, '--notice-success-text'), getColor(block, '--notice-success-bg')) >= 4.5, `${theme} success text should meet WCAG AA`)
+  }
+
+  assert.match(source, /\.gate-notification-message[\s\S]*overflow-wrap:\s*anywhere/)
+  assert.match(source, /@media \(max-width:\s*600px\)[\s\S]*\.gate-notification[\s\S]*width:\s*auto/)
+  assert.match(source, /prefers-reduced-motion:\s*reduce[\s\S]*\.gate-notification[\s\S]*animation:\s*none/)
+  assert.match(source, /\.management-main \[role='alert'\]\.gate-toast-error\s*\{[^}]*color:\s*var\(--notice-error-text\)/)
+})
+
+test('global API feedback is a deduplicated fallback for unhandled requests', () => {
+  const feedback = readSource('./components/ApiFeedback.jsx')
+  const apiClient = readSource('./services/api.js')
+
+  assert.match(feedback, /addEventListener\('unhandledrejection'/)
+  assert.match(feedback, /now - lastNotificationRef\.current\.time < 5000/)
+  assert.doesNotMatch(apiClient, /gate:api-error['"]\s*,\s*\{\s*detail/)
+})
+
+test('page toasts retain success announcements and expose a dismiss action', () => {
+  const toast = readSource('./components/Toast.jsx')
+  const toastHook = readSource('./hooks/useToast.js')
+
+  assert.match(toast, /variant = 'success'/)
+  assert.match(toast, /role=\{variant === 'error' \? 'alert' : 'status'\}/)
+  assert.match(toast, /aria-label=\{t\('close', closeLabel\)\}/)
+  assert.match(toastHook, /variant = 'success'/)
+  assert.match(toastHook, /dismissToast/)
 })
 
 test('sign-in autofill keeps the normal input background in both themes', () => {

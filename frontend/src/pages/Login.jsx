@@ -75,7 +75,6 @@ export default function Login() {
       stopCamera()
       navigate(getHomePath(user) || '/', { replace: true })
     } catch (faceSignInError) {
-      window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(faceSignInError.message || 'Face sign-in failed.')
       setSubmitting(false)
     }
@@ -89,7 +88,6 @@ export default function Login() {
       const user = await signIn({ email, password })
       navigate(location.state?.from?.pathname || getHomePath(user) || '/', { replace: true })
     } catch (signInError) {
-      window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(signInError.message || t('wrongCredentials'))
       setSubmitting(false)
     }
@@ -102,7 +100,6 @@ export default function Login() {
       const user = await signInWithGoogle(credential)
       navigate(getHomePath(user) || '/', { replace: true })
     } catch (googleSignInError) {
-      window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(googleSignInError.message || t('googleSignInError'))
       setSubmitting(false)
     }

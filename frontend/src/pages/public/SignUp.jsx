@@ -30,7 +30,6 @@ export default function SignUp() {
       setPlans(availablePlans)
       if (!availablePlans.some((item) => item.id === planId)) setPlanId(availablePlans[0]?.id || '')
     }).catch((requestError) => {
-      window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(requestError.message)
     }).finally(() => setPlansLoading(false))
   }
@@ -47,7 +46,6 @@ export default function SignUp() {
       if (plan) await membershipService.createSubscription(plan)
       navigate('/membre/dashboard')
     } catch (signupError) {
-      window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(signupError.message || t('signupError'))
       setSubmitting(false)
     }
@@ -60,7 +58,6 @@ export default function SignUp() {
       await signInWithGoogle(credential)
       navigate(`/membership/setup?plan=${encodeURIComponent(planId)}`, { replace: true })
     } catch (googleSignInError) {
-      window.dispatchEvent(new Event('gate:api-error-dismiss'))
       setError(googleSignInError.message || t('googleSignInError'))
       setSubmitting(false)
     }

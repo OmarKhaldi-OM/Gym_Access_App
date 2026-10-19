@@ -12,7 +12,7 @@ import { useT } from '../../context/I18nContext.jsx'
 
 export default function MyClasses() {
   const { classes, myBookings, loading, error, refresh, bookClass, cancelBooking } = useClasses()
-  const { toastMessage, showToast } = useToast()
+  const { toastMessage, toastVariant, toastId, toastLeaving, showToast, dismissToast } = useToast()
   const t = useT()
   const [selectedId, setSelectedId] = useState(null)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -54,8 +54,7 @@ export default function MyClasses() {
       await bookClass(selectedClass.id)
       showToast(`${t('reserved')}: ${selectedClass.nom}`)
     } catch (error) {
-      window.dispatchEvent(new Event('gate:api-error-dismiss'))
-      showToast(error.message || t('classIsFull'))
+      showToast(error.message || t('classIsFull'), 5000, 'error')
     }
     setSelectedId(null)
   }
@@ -90,7 +89,7 @@ export default function MyClasses() {
         )}
       </ClassDetailModal>
 
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} variant={toastVariant} id={toastId} leaving={toastLeaving} onClose={dismissToast} />
     </Layout>
   )
 }

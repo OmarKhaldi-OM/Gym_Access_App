@@ -15,7 +15,7 @@ const statuses = { pending: ['pending', 'neutral'], accepted: ['accepted', 'posi
 export default function Requests() {
   const t = useT()
   const { user } = useAuth()
-  const { toastMessage, showToast } = useToast()
+  const { toastMessage, toastVariant, toastId, toastLeaving, showToast, dismissToast } = useToast()
   const [requests, setRequests] = useState([])
   const [notifications, setNotifications] = useState([])
   const [responses, setResponses] = useState({})
@@ -68,7 +68,7 @@ export default function Requests() {
           })}
         </div>
       </Panel>
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} variant={toastVariant} id={toastId} leaving={toastLeaving} onClose={dismissToast} />
     </Layout>
   )
 }
