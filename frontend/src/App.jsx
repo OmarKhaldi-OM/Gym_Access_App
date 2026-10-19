@@ -39,6 +39,8 @@ import CoachClients from './pages/coach/MyClients.jsx'
 import CoachClientProfile from './pages/coach/ClientProfile.jsx'
 
 import FrontDesk from './pages/reception/FrontDesk.jsx'
+import ReceptionMembers from './pages/reception/Members.jsx'
+import ReceptionMemberProfile from './pages/reception/MemberProfile.jsx'
 import ReceptionSchedule from './pages/reception/Schedule.jsx'
 import FaceRecognitionPage from './pages/FaceRecognitionPage.jsx'
 import CoachingRequests from './pages/member/CoachingRequests.jsx'
@@ -113,6 +115,8 @@ function AppRoutes() {
       {/* Réceptionniste (front desk) view */}
       <Route path="/reception" element={<Navigate to="/reception/accueil" replace />} />
       <Route path="/reception/accueil" element={<RequireRole><FrontDesk /></RequireRole>} />
+      <Route path="/reception/members" element={<RequireRole><ReceptionMembers /></RequireRole>} />
+      <Route path="/reception/members/:id" element={<RequireRole><ReceptionMemberProfile /></RequireRole>} />
       <Route path="/reception/planning" element={<RequireRole><ReceptionSchedule /></RequireRole>} />
       <Route path="/reception/face-recognition" element={<RequireRole><FaceRecognitionPage /></RequireRole>} />
       <Route path="/reception/profil" element={<RequireRole><ProfileEdit /></RequireRole>} />

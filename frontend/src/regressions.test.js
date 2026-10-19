@@ -67,6 +67,32 @@ test('coach client file is routed behind coach authorization and linked from the
   assert.match(detail, /coachNoteService\.createCoachNote/)
 })
 
+test('reception member pages reuse admin views without exposing member deletion or home search', () => {
+  const app = readSource('./App.jsx')
+  const sharedList = readSource('./pages/members/MemberList.jsx')
+  const sharedProfile = readSource('./pages/members/MemberProfile.jsx')
+  const frontDesk = readSource('./pages/reception/FrontDesk.jsx')
+
+  assert.match(app, /path="\/reception\/members"\s+element={<RequireRole><ReceptionMembers \/><\/RequireRole>}/)
+  assert.match(app, /path="\/reception\/members\/:id"\s+element={<RequireRole><ReceptionMemberProfile \/><\/RequireRole>}/)
+  assert.match(sharedList, /to=\{`\$\{memberPath\}\/\$\{member\.id\}`\}/)
+  assert.match(sharedProfile, /\{canManage && \([\s\S]*?t\('deleteMember'\)/)
+  assert.doesNotMatch(frontDesk, /Rechercher un membre|setQuery|normalizedQuery/)
+})
+
+test('member directory states are translated in every supported language', () => {
+  const source = readSource('./context/I18nContext.jsx')
+  const catalogs = source.slice(source.indexOf('const additionalMessages'), source.indexOf('const dictionaries'))
+
+  for (const language of ['en', 'fr', 'ar']) {
+    const start = catalogs.indexOf(`${language}: {`)
+    const end = catalogs.indexOf('\n  },', start)
+    const catalog = catalogs.slice(start, end)
+    assert.match(catalog, /clearSearch:\s*'[^']+'/)
+    assert.match(catalog, /requestFailed:\s*'[^']+'/)
+  }
+})
+
 test('coach client lists exclude archived members and history uses the localized deleted-member label', () => {
   const coachService = readSource('./services/coachService.js')
   const trainerBookings = readSource('./services/trainerBookingService.js')
@@ -407,12 +433,14 @@ test('admin cannot select account face enrollment from the face recognition page
 
 test('member deletion anonymizes through the admin profile action and retains access logs', () => {
   const memberService = readSource('./services/memberService.js')
-  const memberProfile = readSource('./pages/admin/MemberProfile.jsx')
+  const memberProfile = readSource('./pages/members/MemberProfile.jsx')
+  const adminMemberProfile = readSource('./pages/admin/MemberProfile.jsx')
   const memberServiceBackend = readSource('../../backend/src/main/java/com/example/gym_app/user/service/MemberService.java')
 
   assert.match(memberService, /apiDelete\(`\/api\/members\/\$\{id\}`\)/)
   assert.match(memberProfile, /memberService\.deleteMember\(id\)/)
   assert.match(memberProfile, /removeMember\(id\)/)
+  assert.match(adminMemberProfile, /canManage/)
   assert.match(memberServiceBackend, /member\.setArchived\(true\)/)
   assert.match(memberServiceBackend, /member\.setNom\("Membre anonymisé"\)/)
   assert.doesNotMatch(memberServiceBackend, /accessLogRepository|deleteById\(id\)/)
@@ -422,7 +450,7 @@ test('all frontend delete actions use the shared confirmation dialog', () => {
   const dialog = readSource('./components/ConfirmDialog.jsx')
   const classSchedule = readSource('./pages/admin/ClassSchedule.jsx')
   const plans = readSource('./pages/admin/Plans.jsx')
-  const memberProfile = readSource('./pages/admin/MemberProfile.jsx')
+  const memberProfile = readSource('./pages/members/MemberProfile.jsx')
   const profileEdit = readSource('./pages/ProfileEdit.jsx')
   const frontendSources = [
     classSchedule,

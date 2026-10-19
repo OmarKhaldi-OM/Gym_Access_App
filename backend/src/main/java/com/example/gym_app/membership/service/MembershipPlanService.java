@@ -6,6 +6,7 @@ import com.example.gym_app.membership.dto.MembershipPlanResponseDTO;
 import com.example.gym_app.membership.entity.Membership_Plan;
 import com.example.gym_app.membership.repository.MembershipPlanRepository;
 import com.example.gym_app.security.SecurityUtil;
+import com.example.gym_app.user.entity.Role;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,7 +57,7 @@ public class MembershipPlanService {
     }
 
     public List<MembershipPlanResponseDTO> findAllForManagement() {
-        securityUtil.requireStaff();
+        securityUtil.requireRole(Role.ADMIN);
         return membershipPlanRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
@@ -69,7 +70,7 @@ public class MembershipPlanService {
         return toDTO(plan);
     }
     public MembershipPlanResponseDTO update(UUID id, MembershipPlanRequestDTO dto) {
-        securityUtil.requireStaff();
+        securityUtil.requireRole(Role.ADMIN);
         Membership_Plan existing = membershipPlanRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Plan introuvable avec id: " + id));
         existing.setNom(dto.getNom());
@@ -82,12 +83,12 @@ public class MembershipPlanService {
     }
 
     public MembershipPlanResponseDTO create(MembershipPlanRequestDTO dto) {
-        securityUtil.requireStaff();
+        securityUtil.requireRole(Role.ADMIN);
         return toDTO(membershipPlanRepository.save(toEntity(dto)));
     }
 
     public void delete(UUID id) {
-        securityUtil.requireStaff();
+        securityUtil.requireRole(Role.ADMIN);
         membershipPlanRepository.deleteById(id);
     }
 }

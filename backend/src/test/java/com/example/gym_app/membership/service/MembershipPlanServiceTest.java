@@ -4,6 +4,7 @@ import com.example.gym_app.membership.dto.MembershipPlanRequestDTO;
 import com.example.gym_app.membership.entity.Membership_Plan;
 import com.example.gym_app.membership.repository.MembershipPlanRepository;
 import com.example.gym_app.security.SecurityUtil;
+import com.example.gym_app.user.entity.Role;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,11 +58,11 @@ class MembershipPlanServiceTest {
         var result = service.findAllForManagement();
 
         assertEquals(2, result.size());
-        verify(securityUtil).requireStaff();
+        verify(securityUtil).requireRole(Role.ADMIN);
     }
 
     @Test
-    void staffCanDeactivateAPlan() {
+    void adminCanDeactivateAPlan() {
         UUID planId = UUID.randomUUID();
         Membership_Plan plan = plan(true);
         plan.setId(planId);
@@ -78,7 +79,7 @@ class MembershipPlanServiceTest {
         var response = service.update(planId, update);
 
         assertFalse(response.isActif());
-        verify(securityUtil).requireStaff();
+        verify(securityUtil).requireRole(Role.ADMIN);
     }
 
     @Test
@@ -97,7 +98,17 @@ class MembershipPlanServiceTest {
         assertEquals(request.getNom(), result.getNom());
         assertEquals(request.getNomEn(), result.getNomEn());
         assertEquals(request.getNomAr(), result.getNomAr());
-        verify(securityUtil).requireStaff();
+        verify(securityUtil).requireRole(Role.ADMIN);
+    }
+
+    @Test
+    void adminCanDeleteAPlan() {
+        UUID planId = UUID.randomUUID();
+
+        service.delete(planId);
+
+        verify(securityUtil).requireRole(Role.ADMIN);
+        verify(membershipPlanRepository).deleteById(planId);
     }
 
     private Membership_Plan plan(boolean active) {

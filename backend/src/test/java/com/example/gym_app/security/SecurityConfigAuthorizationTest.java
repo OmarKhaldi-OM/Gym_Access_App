@@ -4,6 +4,7 @@ import com.example.gym_app.access.controller.FaceRecognitionController;
 import com.example.gym_app.access.service.FaceRecognitionService;
 import com.example.gym_app.membership.controller.SubscriptionController;
 import com.example.gym_app.membership.controller.MembershipPlanController;
+import com.example.gym_app.membership.dto.MembershipPlanResponseDTO;
 import com.example.gym_app.membership.dto.SubscriptionResponseDTO;
 import com.example.gym_app.membership.service.MembershipPlanService;
 import com.example.gym_app.membership.service.SubscriptionService;
@@ -36,6 +37,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -181,6 +183,17 @@ class SecurityConfigAuthorizationTest {
     }
 
     @Test
+    void receptionistCanReadMemberCollectionAndProfile() throws Exception {
+        UUID memberId = UUID.randomUUID();
+        when(memberService.findAll()).thenReturn(java.util.List.of());
+
+        mockMvc.perform(get("/api/members").with(user("reception").roles("RECEPTIONIST")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/members/{id}", memberId).with(user("reception").roles("RECEPTIONIST")))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void memberRoleMayEnterTheMemberRoute() throws Exception {
         mockMvc.perform(get("/api/members/{id}", UUID.randomUUID()).with(user("member").roles("MEMBER")))
                 .andExpect(status().isOk());
@@ -260,12 +273,60 @@ class SecurityConfigAuthorizationTest {
     }
 
     @Test
-    void planManagementListIsStaffOnly() throws Exception {
+    void planManagementListIsAdminOnly() throws Exception {
         mockMvc.perform(get("/api/plans/manage"))
                 .andExpect(status().isUnauthorized());
 
+        when(membershipPlanService.findAllForManagement()).thenReturn(java.util.List.of());
+
+        mockMvc.perform(get("/api/plans/manage").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/plans/manage").with(user("reception").roles("RECEPTIONIST")))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/plans/manage").with(user("trainer").roles("TRAINER")))
+                .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/plans/manage").with(user("member").roles("MEMBER")))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void planWritesAreAdminOnly() throws Exception {
+        UUID planId = UUID.randomUUID();
+        String request = """
+                {"nom":"Mensuel","nomEn":"Monthly","nomAr":"شهري","prix":80.00,"dureeJours":30,"actif":true}
+                """;
+        when(membershipPlanService.create(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new MembershipPlanResponseDTO());
+        when(membershipPlanService.update(org.mockito.ArgumentMatchers.eq(planId), org.mockito.ArgumentMatchers.any()))
+                .thenReturn(new MembershipPlanResponseDTO());
+
+        mockMvc.perform(post("/api/plans")
+                        .with(user("reception").roles("RECEPTIONIST"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(put("/api/plans/{id}", planId)
+                        .with(user("reception").roles("RECEPTIONIST"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/api/plans/{id}", planId)
+                        .with(user("reception").roles("RECEPTIONIST")))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/plans")
+                        .with(user("admin").roles("ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/api/plans/{id}", planId)
+                        .with(user("admin").roles("ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/plans/{id}", planId)
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isNoContent());
     }
 
     @Test

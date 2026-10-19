@@ -48,7 +48,7 @@ const roleDefinitions = Object.freeze({
     profilePath: '/reception/profil',
     label: 'reception',
     navigation: [
-      { to: '/reception/accueil', key: 'home' }, { to: '/reception/planning', key: 'schedule' }, { to: '/admin/plans', key: 'managePlans' }, { to: '/reception/face-recognition', key: 'faceRecognition' },
+      { to: '/reception/accueil', key: 'home' }, { to: '/reception/members', key: 'members' }, { to: '/reception/planning', key: 'schedule' }, { to: '/reception/face-recognition', key: 'faceRecognition' },
     ],
   },
   [ROLES.TRAINER]: {
@@ -79,7 +79,6 @@ const protectedRoutePatterns = Object.freeze(Object.fromEntries(
 ))
 
 const sharedRouteRoles = Object.freeze({
-  '/admin/plans': [ROLES.ADMIN, ROLES.RECEPTIONIST],
   '/membership/setup': [ROLES.MEMBER],
 })
 

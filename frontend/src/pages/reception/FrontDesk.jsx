@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout.jsx'
 import { Panel, SectionHeader } from '../../components/Panel.jsx'
@@ -37,7 +37,6 @@ export default function FrontDesk() {
   const t = useT()
   const { members, pendingEnrollments, loading: membersLoading, error: membersError, refresh } = useMembers()
   const navigate = useNavigate()
-  const [query, setQuery] = useState('')
   const [todaySessions, setTodaySessions] = useState([])
   const [activityLoading, setActivityLoading] = useState(true)
   const [activityError, setActivityError] = useState(null)
@@ -49,44 +48,9 @@ export default function FrontDesk() {
       .finally(() => setActivityLoading(false))
   }, [])
 
-  const normalizedQuery = query.trim().toLocaleLowerCase()
-  const results = useMemo(() => members.filter((member) => member.nom.toLocaleLowerCase().includes(normalizedQuery)), [members, normalizedQuery])
-
   return (
     <Layout role="reception">
       <h1 className="text-2xl font-bold mb-6">Accueil</h1>
-
-      <div className="mb-8">
-        <label className="block text-base font-medium text-text-muted mb-2">
-          Rechercher un membre
-        </label>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('namePlaceholderMember')}
-          className="w-full max-w-md bg-graphite-panel border border-graphite-line rounded-md px-4 py-2.5 text-base placeholder:text-text-muted"
-        />
-        {query.trim() && (
-          <div className="mt-3 max-w-md rounded-xl border border-graphite-line bg-graphite-panel divide-y divide-graphite-line">
-            {membersLoading && <ApiLoading message={t('loading')} />}
-            {!membersLoading && !membersError && results.length === 0 && (
-              <ApiEmpty message={t('noResults')} />
-            )}
-            {!membersLoading && !membersError && results.map((m) => (
-              <div key={m.id} className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <Avatar name={m.nom} />
-                  <p className="text-base font-semibold">{m.nom}</p>
-                </div>
-                <StatusChip variant={m.statut === 'Actif' ? 'memberActive' : 'memberInactive'}>
-                  {m.statut}
-                </StatusChip>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
       <div className="grid grid-cols-2 gap-6">
         <Panel>
