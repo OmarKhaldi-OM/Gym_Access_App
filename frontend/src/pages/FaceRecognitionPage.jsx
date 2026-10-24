@@ -4,6 +4,7 @@ import { useMembers } from '../context/MembersContext.jsx'
 import Layout from '../components/Layout.jsx'
 import { Panel } from '../components/Panel.jsx'
 import Button from '../components/Button.jsx'
+import SearchableSelect from '../components/SearchableSelect.jsx'
 import { enrollAccountFace, enrollFace, recognizeFace } from '../services/faceRecognitionService.js'
 import { getRoleDefinition, hasRole, ROLES } from '../roles.js'
 import { useT } from '../context/I18nContext.jsx'
@@ -22,7 +23,9 @@ export default function FaceRecognitionPage() {
   const isAdmin = hasRole(user, ROLES.ADMIN)
   const layoutRole = getRoleDefinition(user?.role)?.label || 'member'
   const [mode, setMode] = useState(isMember ? MODES.ENROLL_ACCOUNT : MODES.ENROLL_MEMBER)
-  const [selectedMemberId, setSelectedMemberId] = useState('')
+  const [selectedMemberId, setSelectedMemberId] = useState(() =>
+    typeof window === 'undefined' ? '' : new URLSearchParams(window.location.search).get('memberId') || '',
+  )
   const [cameraReady, setCameraReady] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [cameraError, setCameraError] = useState('')
@@ -32,35 +35,43 @@ export default function FaceRecognitionPage() {
   const videoRef = useRef(null)
   const streamRef = useRef(null)
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const memberId = params.get('memberId')
-    if (memberId) {
-      setSelectedMemberId(memberId)
-    }
-  }, [])
+  const memberOptions = useMemo(
+    () => members
+      .filter((member) =>
+        member &&
+        member.id &&
+        !member.archived &&
+        !member.isArchived &&
+        !member.anonymized &&
+        !member.anonymised &&
+        !member.email?.endsWith('@invalid.local') &&
+        member.nom !== 'Membre anonymisé',
+      )
+      .map((member) => ({
+        value: member.id,
+        label: member.nom || [member.prenom, member.nom].filter(Boolean).join(' '),
+        firstName: member.prenom || '',
+        lastName: member.nomFamille || '',
+        description: member.email || '',
+        badge: member.visageEnrole ? t('enrolled') : '',
+      })),
+    [members, t],
+  )
 
   useEffect(() => {
     if (isMember) setMode(MODES.ENROLL_ACCOUNT)
   }, [isMember])
 
   useEffect(() => {
-    if (members.length > 0 && !selectedMemberId) {
-      setSelectedMemberId(members[0].id)
+    if (membersLoading) return
+    if (!memberOptions.some((member) => member.value === selectedMemberId)) {
+      setSelectedMemberId(memberOptions[0]?.value || '')
     }
-  }, [members, selectedMemberId])
+  }, [memberOptions, membersLoading, selectedMemberId])
 
   useEffect(() => {
     return () => stopCamera()
   }, [])
-
-  const memberOptions = useMemo(
-    () => members.filter((member) => member && member.id).map((member) => ({
-      id: member.id,
-      label: member.nom || [member.prenom, member.nom].filter(Boolean).join(' ') || member.email || 'Membre',
-    })),
-    [members],
-  )
 
   async function startCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -285,7 +296,7 @@ export default function FaceRecognitionPage() {
               <p className="text-sm uppercase tracking-[0.18em] opacity-80">Status</p>
               <p className="mt-2 text-xl font-bold">{result.status}</p>
               {result.member && <p className="mt-2 text-base">Member: {result.member}</p>}
-              {result.confidence !== undefined && <p className="mt-1 text-base">Confidence: {(result.confidence * 100).toFixed(1)}%</p>}
+              {result.confidence !== undefined && <p className="mt-1 text-base">{t('faceMatchStrength')}: {(result.confidence * 100).toFixed(1)}%</p>}
               <p className="mt-3 text-sm opacity-90">{result.message}</p>
             </div>
           )}
@@ -296,20 +307,19 @@ export default function FaceRecognitionPage() {
 
           {mode === MODES.ENROLL_MEMBER ? (
             <>
-              <label className="block text-sm text-text-muted mb-2">Select member</label>
-              <select
-                value={selectedMemberId}
-                onChange={(e) => setSelectedMemberId(e.target.value)}
-                disabled={membersLoading || memberOptions.length === 0}
-                className="w-full rounded-md border border-graphite-line bg-graphite-bg px-3 py-2.5 text-base text-white"
-              >
-                {!memberOptions.length && <option value="">No member available</option>}
-                {memberOptions.map((member) => (
-                  <option key={member.id} value={member.id}>{member.label}</option>
-                ))}
-              </select>
+              <label className="block text-sm text-text-muted mb-2">
+                {t('selectMember')}
+                <SearchableSelect
+                  options={memberOptions}
+                  value={selectedMemberId}
+                  onChange={setSelectedMemberId}
+                  placeholder={t('searchMemberEnrollment')}
+                  emptyText={t('noSearchResults')}
+                  disabled={membersLoading || memberOptions.length === 0}
+                />
+              </label>
               <p className="mt-4 text-sm text-text-muted">
-                The enrolled face is saved as an embedding in the backend and later compared during access checks.
+                {t('faceMemberEnrollmentInfo')}
               </p>
             </>
           ) : mode === MODES.ENROLL_ACCOUNT ? (
@@ -317,7 +327,7 @@ export default function FaceRecognitionPage() {
               <p className="text-sm text-text-muted">Account sign-in face</p>
               <div className="mt-3 rounded-xl border border-graphite-line bg-graphite-bg p-4">
                 <p className="text-base font-semibold">{user?.displayName || user?.email}</p>
-                <p className="mt-2 text-sm text-text-muted">Only your signed-in account can be enrolled here. This face will be used to issue the same role-scoped JWT as password sign-in.</p>
+                <p className="mt-2 text-sm text-text-muted">{t('faceAccountEnrollmentInfo')}</p>
               </div>
             </>
           ) : (
@@ -335,7 +345,7 @@ export default function FaceRecognitionPage() {
                 </select>
               </div>
               <p className="mt-4 text-sm text-text-muted">
-                The system detects a face, computes a biometric embedding, compares it to enrolled members, validates the subscription, and records the access log.
+                {t('faceRecognitionInfo')}
               </p>
             </>
           )}

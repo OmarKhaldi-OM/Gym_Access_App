@@ -26,6 +26,7 @@ function mapMember(member, subscription = null) {
   return {
     ...member,
     nom: fullName(member),
+    nomFamille: member.nom,
     plan: subscription?.planNom || '—',
     planEn: subscription?.planNomEn,
     planAr: subscription?.planNomAr,

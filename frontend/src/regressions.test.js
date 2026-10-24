@@ -2,6 +2,11 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { formatMembershipNumber, getLocalizedMembershipName } from './membershipLocalization.js'
+import {
+  filterSearchableOptions,
+  getSearchableSelectDisplayValue,
+  getSearchableSelectKeyAction,
+} from './components/searchableSelectUtils.js'
 import { staffListPath } from './pages/admin/staffNavigation.js'
 import { canAccessRoute } from './roles.js'
 
@@ -191,6 +196,110 @@ test('face enrollment reports the caught API error without reading response out 
   assert.ok(catchBlock, 'handleEnroll should have an error handler')
   assert.doesNotMatch(catchBlock[1], /\bresponse\b/)
   assert.match(catchBlock[1], /message:\s*error\?\.message/)
+})
+
+test('face enrollment explanations are plain-language translations without technical jargon', () => {
+  const page = readSource('./pages/FaceRecognitionPage.jsx')
+  const source = readSource('./context/I18nContext.jsx')
+  const expectedAccountCopy = {
+    en: 'Only your own account can be enrolled here. Your face will let you sign in without typing your password, with exactly the same access as your usual login.',
+    fr: "Seul votre propre compte peut être enregistré ici. Votre visage vous permettra de vous connecter sans saisir votre mot de passe, avec exactement les mêmes accès que d'habitude.",
+    ar: 'يمكن تسجيل حسابك الشخصي فقط هنا. سيتيح لك وجهك تسجيل الدخول دون كتابة كلمة المرور، مع نفس صلاحيات الدخول المعتادة.',
+  }
+  const additionalMessages = source.slice(source.indexOf('const additionalMessages'), source.indexOf('const dictionaries'))
+
+  for (const key of ['faceAccountEnrollmentInfo', 'faceMemberEnrollmentInfo', 'faceRecognitionInfo', 'faceMatchStrength']) {
+    assert.match(page, new RegExp(`t\\('${key}'\\)`))
+    assert.equal((additionalMessages.match(new RegExp(`${key}:`, 'g')) || []).length, 3, `${key} must be defined once per language`)
+  }
+  assert.doesNotMatch(page, /\bJWT\b|role-scoped|embedding|biometric/i)
+
+  for (const [language, copy] of Object.entries(expectedAccountCopy)) {
+    const start = additionalMessages.indexOf(`${language}: {`)
+    const end = additionalMessages.indexOf('\n  },', start)
+    assert.ok(additionalMessages.slice(start, end).includes(copy))
+  }
+})
+
+test('searchable member options filter names, accents, and email case-insensitively', () => {
+  const options = [
+    { value: 'thomas', firstName: 'Thomas', lastName: 'King', label: 'Thomas King', description: 'thomas@example.net' },
+    { value: 'omar', firstName: 'Omar', lastName: 'Ben Ali', label: 'Omar Ben Ali', description: 'omar@example.com' },
+    { value: 'ome', firstName: 'Omé', lastName: 'Mélanie', label: 'Omé Mélanie', description: 'ome@example.org' },
+    { value: 'local-email', firstName: 'Alex', lastName: 'Rivera', label: 'Alex Rivera', description: 'omar.xyz@gmail.com' },
+    { value: 'domain-only', firstName: 'Casey', lastName: 'Lane', label: 'Casey Lane', description: 'casey@gmail.com' },
+  ]
+
+  assert.deepEqual(filterSearchableOptions(options, 'om').map((option) => option.value), [
+    'omar', 'ome', 'thomas', 'local-email',
+  ])
+  assert.deepEqual(filterSearchableOptions(options, 'OM').map((option) => option.value), [
+    'omar', 'ome', 'thomas', 'local-email',
+  ])
+  assert.deepEqual(filterSearchableOptions(options, 'omar ben'), [options[1]])
+  assert.deepEqual(filterSearchableOptions(options, 'ome'), [options[2]])
+  assert.deepEqual(filterSearchableOptions(options, 'gmail'), [])
+  assert.deepEqual(filterSearchableOptions(options, '.com'), [])
+  assert.deepEqual(filterSearchableOptions(options, 'omar@'), [options[1]])
+  assert.deepEqual(filterSearchableOptions(options, 'omar.x'), [options[3]])
+  assert.deepEqual(filterSearchableOptions(options, 'not found'), [])
+  assert.deepEqual(filterSearchableOptions(options, ''), options)
+})
+
+test('searchable select prioritizes name prefix matches then name contains then email matches', () => {
+  const options = [
+    { value: 'email', label: 'Alice Smith', firstName: 'Alice', lastName: 'Smith', description: 'omar@example.org' },
+    { value: 'contains', label: 'Thomas Omar', firstName: 'Thomas', lastName: 'Omar', description: 'thomas@example.org' },
+    { value: 'prefix-z', label: 'Omar Zed', firstName: 'Omar', lastName: 'Zed', description: 'oz@example.org' },
+    { value: 'prefix-a', label: 'Omar Adams', firstName: 'Omar', lastName: 'Adams', description: 'oa@example.org' },
+  ]
+
+  assert.deepEqual(filterSearchableOptions(options, 'omar').map((option) => option.value), [
+    'prefix-a', 'prefix-z', 'contains', 'email',
+  ])
+})
+
+test('searchable select replaces the selected label on click before the first search keystroke', () => {
+  const component = readSource('./components/SearchableSelect.jsx')
+  assert.match(component, /onClick=\{\(event\) => \{[\s\S]*?if \(!isSearching\) event\.currentTarget\.select\(\)/)
+  assert.match(component, /const nextQuery = event\.target\.value[\s\S]*?filterSearchableOptions\(options, nextQuery\)[\s\S]*?setQuery\(nextQuery\)/)
+})
+
+test('searchable select keyboard actions navigate, choose, and restore the selected label', () => {
+  assert.deepEqual(getSearchableSelectKeyAction('ArrowDown', -1, 3, true), { type: 'activate', index: 0 })
+  assert.deepEqual(getSearchableSelectKeyAction('ArrowDown', 2, 3, true), { type: 'activate', index: 0 })
+  assert.deepEqual(getSearchableSelectKeyAction('ArrowUp', -1, 3, true), { type: 'activate', index: 2 })
+  assert.deepEqual(getSearchableSelectKeyAction('ArrowUp', 0, 3, true), { type: 'activate', index: 2 })
+  assert.deepEqual(getSearchableSelectKeyAction('Enter', 1, 3, true), { type: 'select', index: 1 })
+  assert.deepEqual(getSearchableSelectKeyAction('Escape', 1, 3, true), { type: 'restore' })
+  assert.deepEqual(getSearchableSelectKeyAction('Tab', 1, 3, true), { type: 'restore', allowDefault: true })
+  assert.equal(getSearchableSelectDisplayValue(true, true, 'invalid text', 'Chosen member'), 'invalid text')
+  assert.equal(getSearchableSelectDisplayValue(false, false, '', 'Chosen member'), 'Chosen member')
+})
+
+test('face enrollment keeps the FrontDesk memberId preselection and filters archived identities', () => {
+  const page = readSource('./pages/FaceRecognitionPage.jsx')
+  const frontDesk = readSource('./pages/reception/FrontDesk.jsx')
+
+  assert.match(frontDesk, /face-recognition\?memberId=\$\{encodeURIComponent\(p\.id\)\}/)
+  assert.match(page, /new URLSearchParams\(window\.location\.search\)\.get\('memberId'\)/)
+  assert.match(page, /!member\.archived[\s\S]*?!member\.isArchived[\s\S]*?!member\.anonymized[\s\S]*?!member\.anonymised/)
+  assert.match(page, /member\.email\?\.endsWith\('@invalid\.local'\)/)
+  assert.ok(
+    page.indexOf('const memberOptions = useMemo') < page.indexOf('if (!memberOptions.some'),
+    'memberOptions must be initialized before its selection effect reads it',
+  )
+})
+
+test('searchable select labels and empty state are translated once in every language', () => {
+  const page = readSource('./pages/FaceRecognitionPage.jsx')
+  const source = readSource('./context/I18nContext.jsx')
+  const additionalMessages = source.slice(source.indexOf('const additionalMessages'), source.indexOf('const dictionaries'))
+
+  for (const key of ['selectMember', 'searchMemberEnrollment', 'noSearchResults']) {
+    assert.match(page, new RegExp(`t\\('${key}'\\)`))
+    assert.equal((additionalMessages.match(new RegExp(`${key}:`, 'g')) || []).length, 3)
+  }
 })
 
 test('each additional translation catalog defines coachingRequests once', () => {

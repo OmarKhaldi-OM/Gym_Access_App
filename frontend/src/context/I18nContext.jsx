@@ -132,6 +132,13 @@ const contentMessages = {
 
 const additionalMessages = {
   en: {
+    selectMember: 'Select a member',
+    searchMemberEnrollment: 'Choose or search for a member…',
+    noSearchResults: 'No results found.',
+    faceAccountEnrollmentInfo: 'Only your own account can be enrolled here. Your face will let you sign in without typing your password, with exactly the same access as your usual login.',
+    faceMemberEnrollmentInfo: "This member's face is saved to help recognize them when they arrive.",
+    faceRecognitionInfo: 'We check that the face belongs to a member, make sure their membership is active, and record their visit.',
+    faceMatchStrength: 'Match strength',
     viewClient: 'Open client file', backToClients: 'Back to clients', clientProfile: 'Client profile',
     dateOfBirth: 'Date of birth', bodyFat: 'Body fat', weight: 'Weight', notes: 'Notes',
     deadline: 'Deadline', noProgressData: 'No measurements recorded.', sessionHistory: 'Session history',
@@ -258,6 +265,13 @@ const additionalMessages = {
     planEssentialName: 'Essential', planUnlimitedName: 'Unlimited', planCoachingName: 'Coaching+',
   },
   fr: {
+    selectMember: 'Choisir un membre',
+    searchMemberEnrollment: 'Choisir ou rechercher un membre…',
+    noSearchResults: 'Aucun résultat.',
+    faceAccountEnrollmentInfo: "Seul votre propre compte peut être enregistré ici. Votre visage vous permettra de vous connecter sans saisir votre mot de passe, avec exactement les mêmes accès que d'habitude.",
+    faceMemberEnrollmentInfo: 'Le visage du membre est enregistré pour le reconnaître à son arrivée.',
+    faceRecognitionInfo: "Nous vérifions que le visage correspond à un membre, que son abonnement est actif, puis nous enregistrons sa visite.",
+    faceMatchStrength: 'Correspondance',
     viewClient: 'Ouvrir la fiche', backToClients: 'Retour aux clients', clientProfile: 'Fiche client',
     dateOfBirth: 'Date de naissance', bodyFat: 'Masse grasse', weight: 'Poids', notes: 'Notes',
     deadline: 'Échéance', noProgressData: 'Aucune mesure enregistrée.', sessionHistory: 'Historique des séances',
@@ -384,6 +398,13 @@ const additionalMessages = {
     planEssentialName: 'Essential', planUnlimitedName: 'Unlimited', planCoachingName: 'Coaching+',
   },
   ar: {
+    selectMember: 'اختيار عضو',
+    searchMemberEnrollment: 'اختر عضوًا أو ابحث عنه…',
+    noSearchResults: 'لا توجد نتائج.',
+    faceAccountEnrollmentInfo: 'يمكن تسجيل حسابك الشخصي فقط هنا. سيتيح لك وجهك تسجيل الدخول دون كتابة كلمة المرور، مع نفس صلاحيات الدخول المعتادة.',
+    faceMemberEnrollmentInfo: 'يُسجَّل وجه العضو للمساعدة في التعرّف عليه عند وصوله.',
+    faceRecognitionInfo: 'نتحقق من أن الوجه يعود إلى عضو، ومن أن اشتراكه ساري، ثم نسجل زيارته.',
+    faceMatchStrength: 'مدى التطابق',
     viewClient: 'فتح ملف العضو', backToClients: 'العودة إلى الأعضاء', clientProfile: 'ملف العضو',
     dateOfBirth: 'تاريخ الميلاد', bodyFat: 'نسبة الدهون', weight: 'الوزن', notes: 'ملاحظات',
     deadline: 'الموعد النهائي', noProgressData: 'لا توجد قياسات مسجلة.', sessionHistory: 'سجل الجلسات',
