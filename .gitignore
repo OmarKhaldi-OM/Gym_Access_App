@@ -1,5 +1,6 @@
 # Local project reference document
-AIDE.md
+/AIDE.md
+/Aide.md
 
 # Local environment files. Keep safe templates such as .env.example trackable.
 **/.env
