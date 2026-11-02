@@ -42,7 +42,62 @@ CYGWIN* | MINGW*)
 esac
 
 # set JAVACMD and JAVACCMD
+java_major_version() {
+  local java_bin="${1:-$JAVA_HOME/bin/java}"
+  [ -x "$java_bin" ] || return 1
+  "$java_bin" -version 2>&1 | head -n 1 | sed -E 's/^.*version "([0-9]+).*$/\1/'
+}
+
+find_java_home() {
+  local java_home="${JAVA_HOME-}"
+  if [ -n "$java_home" ] && [ -x "$java_home/bin/java" ] && [ -x "$java_home/bin/javac" ]; then
+    if [ "$(java_major_version "$java_home/bin/java")" -ge 21 ] 2>/dev/null; then
+      return 0
+    fi
+  fi
+
+  if command -v java >/dev/null 2>&1; then
+    local from_path
+    from_path="$(dirname "$(dirname "$(command -v java)")")"
+    if [ -x "$from_path/bin/java" ] && [ -x "$from_path/bin/javac" ] && [ "$(java_major_version "$from_path/bin/java")" -ge 21 ] 2>/dev/null; then
+      JAVA_HOME="$from_path"
+      return 0
+    fi
+  fi
+
+  for java_home in \
+    "$HOME/.jdks"/* \
+    /usr/lib/jvm/* \
+    /usr/lib64/jvm/* \
+    /opt/jdk* \
+    /Library/Java/JavaVirtualMachines/*/Contents/Home \
+    "$HOME/.sdkman/candidates/java"/* \
+    "C:/Program Files/Eclipse Adoptium"/* \
+    "C:/Program Files/Java"/* \
+    "C:/Program Files/Microsoft"/* \
+    "C:/Program Files/Amazon Corretto"/* \
+    "C:/java"/*
+  do
+    [ -d "$java_home" ] || continue
+    [ -x "$java_home/bin/java" ] || continue
+    [ -x "$java_home/bin/javac" ] || continue
+    if [ "$(java_major_version "$java_home/bin/java")" -ge 21 ] 2>/dev/null; then
+      JAVA_HOME="$java_home"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 set_java_home() {
+  if [ -z "${JAVA_HOME-}" ]; then
+    if ! find_java_home; then
+      echo "No Java 21+ JDK was found on the system. Set JAVA_HOME to a Java 21+ installation or install Temurin/OpenJDK 21." >&2
+      return 1
+    fi
+  fi
+
   # For Cygwin and MinGW, ensure paths are in Unix format before anything is touched
   if [ -n "${JAVA_HOME-}" ]; then
     if [ -x "$JAVA_HOME/jre/sh/java" ]; then

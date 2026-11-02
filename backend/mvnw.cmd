@@ -33,13 +33,14 @@
 @SET __MVNW_PSMODULEP_SAVE=%PSModulePath%
 @SET PSModulePath=
 @FOR /F "usebackq tokens=1* delims==" %%A IN (`powershell -noprofile "& {$scriptDir='%~dp0'; $script='%__MVNW_ARG0_NAME__%'; icm -ScriptBlock ([Scriptblock]::Create((Get-Content -Raw '%~f0'))) -NoNewScope}"`) DO @(
-  IF "%%A"=="MVN_CMD" (set __MVNW_CMD__=%%B) ELSE IF "%%B"=="" (echo %%A) ELSE (echo %%A=%%B)
+  IF "%%A"=="MVN_CMD" (set __MVNW_CMD__=%%B) ELSE IF "%%A"=="JAVA_HOME" (set JAVA_HOME=%%B) ELSE IF "%%A"=="PATH" (set PATH=%%B) ELSE IF "%%B"=="" (echo %%A) ELSE (echo %%A=%%B)
 )
 @SET PSModulePath=%__MVNW_PSMODULEP_SAVE%
 @SET __MVNW_PSMODULEP_SAVE=
 @SET __MVNW_ARG0_NAME__=
 @SET MVNW_USERNAME=
 @SET MVNW_PASSWORD=
+@IF NOT "%JAVA_HOME%"=="" SET PATH=%JAVA_HOME%\bin;%PATH%
 @IF NOT "%__MVNW_CMD__%"=="" ("%__MVNW_CMD__%" %*)
 @echo Cannot start maven from wrapper >&2 && exit /b 1
 @GOTO :EOF
@@ -48,6 +49,57 @@
 $ErrorActionPreference = "Stop"
 if ($env:MVNW_VERBOSE -eq "true") {
   $VerbosePreference = "Continue"
+}
+
+function Get-PreferredJavaHome {
+  $candidates = @()
+  if ($env:JAVA_HOME) { $candidates += $env:JAVA_HOME }
+
+  $javaCommand = Get-Command java -ErrorAction SilentlyContinue
+  if ($javaCommand) { $candidates += (Split-Path (Split-Path $javaCommand.Source) -Parent) }
+
+  $candidateRoots = @(
+    'C:\Program Files\Eclipse Adoptium',
+    'C:\Program Files\Microsoft',
+    'C:\Program Files\Amazon Corretto',
+    'C:\Program Files\Java',
+    "$env:USERPROFILE\.jdks",
+    "$env:LOCALAPPDATA\Programs\Eclipse Adoptium",
+    "$env:LOCALAPPDATA\Programs\Microsoft"
+  )
+
+  foreach ($root in $candidateRoots) {
+    if (Test-Path $root) {
+      $candidates += Get-ChildItem -Path $root -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+    }
+  }
+
+  foreach ($candidate in $candidates) {
+    if (-not $candidate) { continue }
+    $javaExe = Join-Path $candidate 'bin\java.exe'
+    $javacExe = Join-Path $candidate 'bin\javac.exe'
+    if (-not (Test-Path $javaExe)) { continue }
+    if (-not (Test-Path $javacExe)) { continue }
+
+    $versionCommand = '"' + $javaExe + '" -version 2>&1'
+    $versionOutput = cmd /c $versionCommand
+    $versionLine = ($versionOutput | Select-String 'version "(\d+)' | Select-Object -First 1)
+    if (-not $versionLine) { continue }
+    $major = [int]($versionLine.Matches[0].Groups[1].Value)
+    if ($major -ge 21) {
+      return $candidate
+    }
+  }
+
+  return $null
+}
+
+$preferredJavaHome = Get-PreferredJavaHome
+if ($preferredJavaHome) {
+  $env:JAVA_HOME = $preferredJavaHome
+  $env:PATH = "$preferredJavaHome\bin;$env:PATH"
+  Write-Output "JAVA_HOME=$preferredJavaHome"
+  Write-Output "PATH=$preferredJavaHome\bin;$env:PATH"
 }
 
 # calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties

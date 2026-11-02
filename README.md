@@ -53,43 +53,60 @@ L'application distingue quatre rôles : **Admin**, **Réception**, **Coach** et 
 
 ### Site public et authentification
 
-| Accueil | Formules | Connexion |
-|---|---|---|
-| ![Accueil](docs/screenshots/01-accueil.png) | ![Formules](docs/screenshots/02-formules.png) | ![Connexion](docs/screenshots/03-connexion.png) |
+<table>
+  <tr>
+    <td align="center"><strong>Accueil</strong><br><a href="docs/screenshots/01-accueil.png"><img src="docs/screenshots/01-accueil.png" alt="Accueil" width="100%"></a></td>
+    <td align="center"><strong>Formules</strong><br><a href="docs/screenshots/02-formules.png"><img src="docs/screenshots/02-formules.png" alt="Formules" width="100%"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Connexion</strong><br><a href="docs/screenshots/03-connexion.png"><img src="docs/screenshots/03-connexion.png" alt="Connexion" width="100%"></a></td>
+    <td></td>
+  </tr>
+</table>
 
 ### Espace membre
 
-| Tableau de bord | Réservation de cours | Progression et objectifs |
-|---|---|---|
-| ![Tableau de bord membre](docs/screenshots/04-membre-dashboard.png) | ![Réservation de cours](docs/screenshots/05-membre-cours.png) | ![Progression](docs/screenshots/06-membre-progression.png) |
+<table>
+  <tr>
+    <td align="center"><strong>Tableau de bord</strong><br><a href="docs/screenshots/04-membre-dashboard.png"><img src="docs/screenshots/04-membre-dashboard.png" alt="Tableau de bord membre" width="100%"></a></td>
+    <td align="center"><strong>Réservation de cours</strong><br><a href="docs/screenshots/05-membre-cours.png"><img src="docs/screenshots/05-membre-cours.png" alt="Réservation de cours" width="100%"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Progression et objectifs</strong><br><a href="docs/screenshots/06-membre-progression.png"><img src="docs/screenshots/06-membre-progression.png" alt="Progression du membre" width="100%"></a></td>
+    <td></td>
+  </tr>
+</table>
 
 ### Espace administration et réception
 
-| Tableau de bord admin | Gestion des membres | Comptes du personnel |
-|---|---|---|
-| ![Dashboard admin](docs/screenshots/07-admin-dashboard.png) | ![Membres](docs/screenshots/08-admin-membres.png) | ![Personnel](docs/screenshots/09-admin-personnel.png) |
-
-| Planning | Journal d'accès | Accueil réception |
-|---|---|---|
-| ![Planning](docs/screenshots/10-planning.png) | ![Journal d'accès](docs/screenshots/11-journal-acces.png) | ![Accueil réception](docs/screenshots/12-reception-accueil.png) |
+<table>
+  <tr>
+    <td align="center"><strong>Tableau de bord admin</strong><br><a href="docs/screenshots/07-admin-dashboard.png"><img src="docs/screenshots/07-admin-dashboard.png" alt="Tableau de bord admin" width="100%"></a></td>
+    <td align="center"><strong>Gestion des membres</strong><br><a href="docs/screenshots/08-admin-membres.png"><img src="docs/screenshots/08-admin-membres.png" alt="Gestion des membres" width="100%"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Comptes du personnel</strong><br><a href="docs/screenshots/09-admin-personnel.png"><img src="docs/screenshots/09-admin-personnel.png" alt="Comptes du personnel" width="100%"></a></td>
+    <td align="center"><strong>Journal d'accès</strong><br><a href="docs/screenshots/11-journal-acces.png"><img src="docs/screenshots/11-journal-acces.png" alt="Journal d'accès" width="100%"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Accueil réception</strong><br><a href="docs/screenshots/12-reception-accueil.png"><img src="docs/screenshots/12-reception-accueil.png" alt="Accueil réception" width="100%"></a></td>
+    <td></td>
+  </tr>
+</table>
 
 ### Reconnaissance faciale
 
-| Contrôle d'accès | Enrôlement d'un membre |
-|---|---|
-| ![Contrôle d'accès](docs/screenshots/13-controle-acces.png) | ![Enrôlement](docs/screenshots/14-enrolement.png) |
+<p align="center">
+  <a href="docs/screenshots/13-controle-acces.png"><img src="docs/screenshots/13-controle-acces.png" alt="Contrôle d'accès" width="700"></a><br>
+  <strong>Contrôle d'accès</strong>
+</p>
 
 ### Espace coach
 
-| Clients | Fiche client et notes privées |
-|---|---|
-| ![Clients du coach](docs/screenshots/15-coach-clients.png) | ![Fiche client](docs/screenshots/16-coach-fiche-client.png) |
-
-### Thèmes, langues et mobile
-
-| Thème sombre | Arabe (RTL) | Mobile (tiroir de navigation) |
-|---|---|---|
-| ![Thème sombre](docs/screenshots/17-theme-sombre.png) | ![Arabe RTL](docs/screenshots/18-arabe-rtl.png) | ![Mobile](docs/screenshots/19-mobile.png) |
+<p align="center">
+  <a href="docs/screenshots/16-coach-fiche-client.png"><img src="docs/screenshots/16-coach-fiche-client.png" alt="Fiche client et notes privées" width="700"></a><br>
+  <strong>Fiche client et notes privées</strong>
+</p>
 
 ## 3. Fonctionnalités par rôle
 
